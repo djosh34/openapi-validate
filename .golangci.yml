@@ -1,0 +1,53 @@
+version: "2"
+
+linters:
+  default: fast
+  disable:
+    - funlen
+    - testpackage
+    - wsl
+  enable:
+    - errcheck
+    - errorlint
+    - errname
+    - godoclint
+    - govet
+    - nilerr
+    - nilnil
+    - nolintlint
+    - paralleltest
+    - revive
+    - staticcheck
+    - wsl_v5
+  settings:
+    depguard:
+      rules:
+        main:
+          files:
+            - $all
+          allow:
+            - $gostd
+            - github.com/stretchr/testify/require
+    errcheck:
+      check-blank: true
+      check-type-assertions: true
+      disable-default-exclusions: true
+    godoclint:
+      default: basic
+      enable:
+        - require-doc
+      options:
+        require-doc:
+          ignore-exported: false
+          ignore-unexported: false
+        start-with-name:
+          include-unexported: true
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    revive:
+      enable-default-rules: true
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2

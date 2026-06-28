@@ -10,7 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestReaderRead verifies public and peek reader buffer behavior.
 func TestReaderRead(t *testing.T) {
+	t.Parallel()
+
 	readErr := errors.New("read failed")
 	publicRead := func(d *Decoder) io.Reader { return publicReader{d: d} }
 	peekRead := func(d *Decoder) io.Reader { return peekReader{d: d} }
@@ -97,6 +100,8 @@ func TestReaderRead(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			// Arrange
 			d := &Decoder{sourceReader: tt.sourceReader}
 			d.lookAheadBuffer = *bytes.NewBufferString(tt.internalBuffer)
@@ -124,19 +129,23 @@ func TestReaderRead(t *testing.T) {
 	}
 }
 
+// remainingString returns the unread bytes from r as a string.
 func remainingString(t *testing.T, r io.Reader) string {
 	t.Helper()
 
 	remaining, err := io.ReadAll(r)
 	require.NoError(t, err)
+
 	return string(remaining)
 }
 
+// errorAfterBytesReader returns its data and error from a single read.
 type errorAfterBytesReader struct {
 	data string
 	err  error
 }
 
+// Read copies the configured data into p and returns the configured error.
 func (r errorAfterBytesReader) Read(p []byte) (int, error) {
 	return copy(p, r.data), r.err
 }
