@@ -66,6 +66,19 @@ func TestRapidDecoderMatchesEncodingJSON(t *testing.T) {
 				t.Fatalf("unknown op %d", op)
 			}
 
+			shouldPeek := rapid.Bool().Draw(rt, "should beek")
+			if shouldPeek {
+				peekedToken, peekErr := got.Peek()
+
+				peekCount := rapid.IntRange(0, 80).Draw(rt, "additional peek count")
+				for _ = range peekCount {
+					additionalPeekToken, additionalErr := got.Peek()
+
+					require.Equal(t, peekErr, additionalErr)
+					require.Equal(t, peekedToken, additionalPeekToken)
+				}
+			}
+
 		}
 
 	})
