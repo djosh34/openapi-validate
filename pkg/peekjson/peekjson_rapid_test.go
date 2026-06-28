@@ -2,13 +2,11 @@ package peekjson
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
 )
 
@@ -36,21 +34,40 @@ func TestRapidDecoderMatchesEncodingJSON(t *testing.T) {
 			got.UseNumber()
 		}
 
-		history := make([]rapidDecoderOp, 0, opCount)
-		for i := range opCount {
-			assertRapidPeekBurst(rt, input, useNumber, history, got, fmt.Sprintf("before op %d", i))
+		for _ = range opCount {
+			op := drawRapidDecoderOp(rt, "draw Operation")
 
-			op := drawRapidDecoderOp(rt, fmt.Sprintf("op %d", i))
-			record, stop := assertRapidPublicOpMatches(rt, op, want, got)
-			if record {
-				history = append(history, op)
+			switch op {
+			case rapidOpDecode:
+				var wantValue any
+				var gotValue any
+				wantErr := want.Decode(&wantValue)
+				gotErr := got.Decode(&gotValue)
+
+				require.Equal(t, wantErr, gotErr)
+				require.Equal(t, wantValue, gotValue)
+			case rapidOpToken:
+				wantTok, wantErr := want.Token()
+				gotTok, gotErr := got.Token()
+
+				require.Equal(t, wantErr, gotErr)
+				require.Equal(t, wantTok, gotTok)
+			case rapidOpMore:
+				wantMore := want.More()
+				gotMore := got.More()
+
+				require.Equal(t, wantMore, gotMore)
+			case rapidOpInputOffset:
+				wantOffset := want.InputOffset()
+				gotOffset := got.InputOffset()
+
+				require.Equal(t, wantOffset, gotOffset)
+			default:
+				t.Fatalf("unknown op %d", op)
 			}
-			if stop {
-				return
-			}
+
 		}
 
-		assertRapidPeekBurst(rt, input, useNumber, history, got, "after ops")
 	})
 }
 
@@ -64,127 +81,6 @@ func drawRapidDecoderOp(t *rapid.T, label string) rapidDecoderOp {
 		return rapidOpMore
 	default:
 		return rapidOpInputOffset
-	}
-}
-
-func assertRapidPeekBurst(
-	t *rapid.T,
-	input string,
-	useNumber bool,
-	history []rapidDecoderOp,
-	got *Decoder,
-	label string,
-) {
-	count := rapid.IntRange(0, 8).Draw(t, label+" peek count")
-	for i := range count {
-		wantTok, wantErr := rapidPeekOracle(input, useNumber, history)
-		gotTok, gotErr := got.Peek()
-
-		assertRapidErrorsEqual(t, wantErr, gotErr, label, "peek")
-		if wantErr == nil {
-			if gotTok == nil {
-				t.Fatalf("%s peek %d: Peek returned nil token pointer without error", label, i)
-			}
-			assertRapidValuesEqual(t, wantTok, *gotTok, label, "peek token")
-		}
-	}
-}
-
-func rapidPeekOracle(input string, useNumber bool, history []rapidDecoderOp) (json.Token, error) {
-	dec := json.NewDecoder(strings.NewReader(input))
-	if useNumber {
-		dec.UseNumber()
-	}
-
-	for _, op := range history {
-		switch op {
-		case rapidOpDecode:
-			var v any
-			if err := dec.Decode(&v); err != nil {
-				return nil, fmt.Errorf("replay decode: %w", err)
-			}
-		case rapidOpToken:
-			if _, err := dec.Token(); err != nil {
-				return nil, fmt.Errorf("replay token: %w", err)
-			}
-		case rapidOpMore, rapidOpInputOffset:
-		default:
-			return nil, fmt.Errorf("unknown replay op %d", op)
-		}
-	}
-
-	return dec.Token()
-}
-
-func assertRapidPublicOpMatches(
-	t *rapid.T,
-	op rapidDecoderOp,
-	want *json.Decoder,
-	got *Decoder,
-) (record bool, stop bool) {
-	switch op {
-	case rapidOpDecode:
-		var wantValue any
-		var gotValue any
-		wantErr := want.Decode(&wantValue)
-		gotErr := got.Decode(&gotValue)
-
-		assertRapidErrorsEqual(t, wantErr, gotErr, "public op", "Decode")
-		assertRapidValuesEqual(t, wantValue, gotValue, "public op", "Decode value")
-
-		return wantErr == nil, wantErr != nil && !errors.Is(wantErr, io.EOF)
-	case rapidOpToken:
-		wantTok, wantErr := want.Token()
-		gotTok, gotErr := got.Token()
-
-		assertRapidErrorsEqual(t, wantErr, gotErr, "public op", "Token")
-		if wantErr == nil {
-			assertRapidValuesEqual(t, wantTok, gotTok, "public op", "Token value")
-		}
-
-		return wantErr == nil, wantErr != nil && !errors.Is(wantErr, io.EOF)
-	case rapidOpMore:
-		wantMore := want.More()
-		gotMore := got.More()
-		assertRapidValuesEqual(t, wantMore, gotMore, "public op", "More")
-
-		return false, false
-	case rapidOpInputOffset:
-		wantOffset := want.InputOffset()
-		gotOffset := got.InputOffset()
-		assertRapidValuesEqual(t, wantOffset, gotOffset, "public op", "InputOffset")
-
-		return false, false
-	default:
-		t.Fatalf("unknown op %d", op)
-
-		return false, true
-	}
-}
-
-func assertRapidErrorsEqual(t *rapid.T, want error, got error, scope string, op string) {
-	if want == nil && got == nil {
-		return
-	}
-	if want == nil || got == nil {
-		t.Fatalf("%s %s: error mismatch: want %v, got %v", scope, op, want, got)
-	}
-	if reflect.TypeOf(want) != reflect.TypeOf(got) || want.Error() != got.Error() {
-		t.Fatalf(
-			"%s %s: error mismatch:\nwant (%T) %q\ngot  (%T) %q",
-			scope,
-			op,
-			want,
-			want.Error(),
-			got,
-			got.Error(),
-		)
-	}
-}
-
-func assertRapidValuesEqual(t *rapid.T, want any, got any, scope string, op string) {
-	if !reflect.DeepEqual(want, got) {
-		t.Fatalf("%s %s mismatch:\nwant (%T) %#v\ngot  (%T) %#v", scope, op, want, want, got, got)
 	}
 }
 

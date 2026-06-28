@@ -46,6 +46,8 @@ func (d *Decoder) Peek() (*json.Token, error) {
 		return nil, err
 	}
 
+	d.peekedToken = &tok
+
 	return &tok, err
 }
 
