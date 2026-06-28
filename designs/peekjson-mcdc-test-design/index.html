@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>peekjson MC/DC Test Design</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #52616f;
+      --line: #cfd8e3;
+      --panel: #f7f9fc;
+      --panel-2: #eef4f8;
+      --accent: #16697a;
+      --accent-2: #8a5a18;
+      --bad: #9f2d2d;
+      --good: #1f7a4c;
+      --code: #243447;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+      color: var(--ink);
+      background: var(--white);
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      border-bottom: 3px solid var(--accent);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 32px 0 12px;
+      font-size: 1.45rem;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 6px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 1.08rem;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    code {
+      color: var(--code);
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0 4px;
+    }
+
+    pre {
+      overflow: auto;
+      background: #17202a;
+      color: #f6f8fb;
+      padding: 14px;
+      border-radius: 6px;
+      font-size: 0.92rem;
+    }
+
+    .note {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--accent);
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+
+    .warning {
+      border-left-color: var(--bad);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .tile {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .tile strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--panel-2);
+      font-weight: 700;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fbfcfe;
+    }
+
+    .id {
+      white-space: nowrap;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .risk {
+      color: var(--bad);
+      font-weight: 700;
+    }
+
+    .ok {
+      color: var(--good);
+      font-weight: 700;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    ul {
+      margin: 8px 0 14px 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>peekjson MC/DC Test Design</h1>
+    <p class="small">Target: <code>pkg/peekjson/peekjson.go</code>. This is a test design only; it does not add executable tests.</p>
+  </header>
+
+  <section>
+    <h2>Intent</h2>
+    <p>
+      <code>peekjson.Decoder</code> wraps <code>encoding/json.Decoder</code> so callers can inspect the next JSON token with
+      <code>Peek()</code> and later consume the same bytes through the public decoder. The implementation has two readers:
+      <code>peekReader</code> reads from the source and copies bytes into <code>lookAheadBuffer</code>, while <code>publicReader</code>
+      should replay that buffer before reading fresh source bytes.
+    </p>
+    <div class="note warning">
+      Current status: <code>Peek()</code> does not assign <code>d.peekedToken</code> on success, so repeated peeks advance instead of
+      returning the cached token. <code>publicReader.Read</code> is still a TODO and currently returns <code>0, nil</code>, which can stall
+      consumers. The test plan below is therefore written as a design for the intended implementation and includes tests that will
+      fail against the current code.
+    </div>
+  </section>
+
+  <section>
+    <h2>Coverage Standard</h2>
+    <p>
+      The current code has only simple boolean decisions, so MC/DC is equivalent to proving both outcomes of each predicate.
+      For the intended <code>publicReader.Read</code>, the design treats each buffer/source predicate independently so future compound
+      conditions still have explicit true/false pairs.
+    </p>
+    <div class="grid">
+      <div class="tile">
+        <strong>Branch coverage</strong>
+        Every <code>if</code> decision has tests for true and false paths.
+      </div>
+      <div class="tile">
+        <strong>MC/DC</strong>
+        When a decision has multiple conditions, each condition must independently change the decision outcome while other inputs are held stable.
+      </div>
+      <div class="tile">
+        <strong>Behavioral oracle</strong>
+        Peeking must not change the token stream observed by <code>Token</code>, <code>Decode</code>, or <code>More</code>.
+      </div>
+      <div class="tile">
+        <strong>Reader contract</strong>
+        Any read returning <code>n &gt; 0</code> must preserve those bytes, even when the same read also returns an error.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decision Catalog</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Location</th>
+        <th>Decision</th>
+        <th>Required outcomes</th>
+        <th>Notes</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td class="id">D1</td>
+        <td><code>Peek</code>, line 31</td>
+        <td><code>d.peekedToken != nil</code></td>
+        <td>true: cached token returned. false: calls <code>peekDec.Token()</code>.</td>
+        <td>Requires a successful peek to cache <code>peekedToken</code>. Current code misses this assignment.</td>
+      </tr>
+      <tr>
+        <td class="id">D2</td>
+        <td><code>Peek</code>, line 36</td>
+        <td><code>err != nil</code> after <code>peekDec.Token()</code></td>
+        <td>true: error stored and returned. false: token returned and cached.</td>
+        <td>Use valid input for false, empty/invalid/truncated JSON for true.</td>
+      </tr>
+      <tr>
+        <td class="id">D3</td>
+        <td><code>peekReader.Read</code>, line 50</td>
+        <td><code>err != nil</code> from source reader</td>
+        <td>true: returns source error. false: writes read bytes into look-ahead buffer.</td>
+        <td>Edge case: source may return <code>n &gt; 0</code> and <code>err != nil</code>; bytes must still be buffered before propagating error.</td>
+      </tr>
+      <tr>
+        <td class="id">D4</td>
+        <td>intended <code>publicReader.Read</code></td>
+        <td><code>lookAheadBuffer.Len() &gt; 0</code></td>
+        <td>true: read from replay buffer. false: read directly from source.</td>
+        <td>This is the core no-consume guarantee after <code>Peek</code>.</td>
+      </tr>
+      <tr>
+        <td class="id">D5</td>
+        <td>intended <code>publicReader.Read</code></td>
+        <td>buffer satisfies requested read vs only partially fills it</td>
+        <td>true: return only buffered bytes. false: combine buffered bytes with source bytes or perform a second source read.</td>
+        <td>Exact implementation can return after buffer bytes or fill the remainder; tests should assert byte order and no loss, not over-specify chunking unless the code commits to it.</td>
+      </tr>
+      <tr>
+        <td class="id">D6</td>
+        <td>intended <code>publicReader.Read</code></td>
+        <td><code>err != nil</code> from direct source read</td>
+        <td>true: propagate error according to <code>io.Reader</code> rules. false: return source bytes.</td>
+        <td>Include <code>n == 0</code> with error and <code>n &gt; 0</code> with error.</td>
+      </tr>
+      <tr>
+        <td class="id">D7</td>
+        <td>intended <code>publicReader.Read</code></td>
+        <td>public read invalidates a cached peek</td>
+        <td>before read: cache hit. after read: next peek must read the next public token.</td>
+        <td>Not a branch if implemented unconditionally, but critical state coverage.</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>MC/DC Matrix</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>Decision</th>
+        <th>False case</th>
+        <th>True case</th>
+        <th>Independence argument</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td class="id">D1</td>
+        <td><code>T01</code>: first <code>Peek()</code> on <code>{"a":1}</code>.</td>
+        <td><code>T02</code>: second <code>Peek()</code> before any public read.</td>
+        <td>Only cache state changes; input and decoder position are otherwise held stable.</td>
+      </tr>
+      <tr>
+        <td class="id">D2</td>
+        <td><code>T01</code>: valid JSON has a next token.</td>
+        <td><code>T08</code>: empty reader returns <code>io.EOF</code>; <code>T09</code>: invalid token returns syntax error.</td>
+        <td>Only parser result changes from token to error.</td>
+      </tr>
+      <tr>
+        <td class="id">D3</td>
+        <td><code>R01</code>: source read returns <code>n &gt; 0, nil</code>.</td>
+        <td><code>R02</code>: source read returns <code>0, io.ErrUnexpectedEOF</code>.</td>
+        <td>Same reader path and buffer state; source error value toggles the branch.</td>
+      </tr>
+      <tr>
+        <td class="id">D3 edge</td>
+        <td><code>R01</code>: successful bytes are buffered.</td>
+        <td><code>R03</code>: source returns <code>n &gt; 0, io.EOF</code>; bytes are still buffered and error is returned.</td>
+        <td>Guards against the common bug where bytes are dropped when <code>n</code> and <code>err</code> arrive together.</td>
+      </tr>
+      <tr>
+        <td class="id">D4</td>
+        <td><code>P01</code>: no look-ahead, public decoder reads source.</td>
+        <td><code>P02</code>: after <code>Peek()</code>, public decoder reads replay buffer.</td>
+        <td>Only <code>lookAheadBuffer.Len()</code> changes; source JSON and destination buffer size stay stable.</td>
+      </tr>
+      <tr>
+        <td class="id">D5</td>
+        <td><code>P03</code>: look-ahead buffer shorter than caller buffer.</td>
+        <td><code>P04</code>: look-ahead buffer at least as long as caller buffer.</td>
+        <td>Replay buffer length independently changes whether source bytes are needed for the call.</td>
+      </tr>
+      <tr>
+        <td class="id">D6</td>
+        <td><code>P01</code>: direct source read succeeds.</td>
+        <td><code>P05</code>: direct source read returns <code>0, io.EOF</code>; <code>P06</code>: direct source read returns <code>n &gt; 0, io.EOF</code>.</td>
+        <td>Same direct-source path; only source result toggles error handling.</td>
+      </tr>
+      <tr>
+        <td class="id">D7</td>
+        <td><code>T02</code>: second peek without public read is a cache hit.</td>
+        <td><code>T03</code>: peek after consuming a token is not a cache hit and observes the next token.</td>
+        <td>Only the public read between peeks changes cache validity.</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Test Inventory</h2>
+
+    <h3>Peek API behavior</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Scenario</th>
+        <th>Stimulus</th>
+        <th>Expected assertions</th>
+        <th>Coverage</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td class="id">T01</td>
+        <td>First peek returns first token.</td>
+        <td><code>NewDecoder(strings.NewReader(`{"a":1}`)); Peek()</code></td>
+        <td>Token is <code>json.Delim('{')</code>, error is nil, token is cached internally.</td>
+        <td>D1 false, D2 false</td>
+      </tr>
+      <tr>
+        <td class="id">T02</td>
+        <td>Repeated peek does not advance.</td>
+        <td>Call <code>Peek()</code> twice with no public read.</td>
+        <td>Both results are equal to <code>{</code>. With an instrumented reader, the second call performs no extra source read.</td>
+        <td>D1 true</td>
+      </tr>
+      <tr>
+        <td class="id">T03</td>
+        <td>Public consumption invalidates cached peek.</td>
+        <td><code>Peek()</code>, then <code>Token()</code>, then <code>Peek()</code>.</td>
+        <td><code>Token()</code> returns the same <code>{</code>. Next <code>Peek()</code> returns string token <code>"a"</code>.</td>
+        <td>D4 true, D7</td>
+      </tr>
+      <tr>
+        <td class="id">T04</td>
+        <td>Peek does not consume before <code>Decode</code>.</td>
+        <td><code>Peek()</code> on <code>{"a":[1,true,null]}</code>, then <code>Decode(&map[string]any{})</code>.</td>
+        <td>Decoded value is complete and exactly matches the input semantics.</td>
+        <td>D4 true, integration oracle</td>
+      </tr>
+      <tr>
+        <td class="id">T05</td>
+        <td>Peek across streaming JSON values.</td>
+        <td>Input <code>{} [] 3</code>; alternate <code>Peek</code>, <code>Decode</code>, <code>Peek</code>, <code>Decode</code>.</td>
+        <td>Observed values are object, array, number in order with no byte loss between values.</td>
+        <td>D4 true/false over time</td>
+      </tr>
+      <tr>
+        <td class="id">T06</td>
+        <td>All token kinds are visible.</td>
+        <td>Walk tokens for <code>{"s":"x\n","n":9007199254740993,"b":false,"z":null,"a":[true]}</code>.</td>
+        <td>Delims, strings, booleans, nil, and numbers appear in the same order as standard <code>json.Decoder.Token</code>.</td>
+        <td>Behavioral completeness</td>
+      </tr>
+      <tr>
+        <td class="id">T07</td>
+        <td>Peek preserves number precision.</td>
+        <td><code>Peek()</code> on <code>9007199254740993</code>.</td>
+        <td>Peeked token type is <code>json.Number</code> with exact string <code>"9007199254740993"</code>.</td>
+        <td><code>UseNumber</code> behavior</td>
+      </tr>
+      <tr>
+        <td class="id">T08</td>
+        <td>Empty input error.</td>
+        <td><code>Peek()</code> on <code>""</code>.</td>
+        <td>Returns nil token and <code>io.EOF</code>. Repeated error behavior is stable and documented by the test.</td>
+        <td>D2 true</td>
+      </tr>
+      <tr>
+        <td class="id">T09</td>
+        <td>Invalid top-level token.</td>
+        <td><code>Peek()</code> on <code>"]"</code>.</td>
+        <td>Returns nil token and a JSON syntax error. Public decode sees the same invalid input state.</td>
+        <td>D2 true, replay after error</td>
+      </tr>
+      <tr>
+        <td class="id">T10</td>
+        <td>Truncated JSON after a valid peek.</td>
+        <td><code>Peek()</code> then consume tokens for <code>{"a":</code>.</td>
+        <td>First peek can return <code>{</code>; later public consumption reaches the same unexpected EOF as standard decoder.</td>
+        <td>Look-ahead replay plus parser error</td>
+      </tr>
+      <tr>
+        <td class="id">T11</td>
+        <td><code>More()</code> remains coherent after peeking.</td>
+        <td>Input <code>[1,2]</code>; consume <code>[</code>, call <code>Peek()</code>, then <code>More()</code>, <code>Decode</code>.</td>
+        <td><code>More()</code> returns true before values and false after the array is exhausted.</td>
+        <td>Embedded decoder integration</td>
+      </tr>
+      <tr>
+        <td class="id">T12</td>
+        <td>Whitespace around peeked token.</td>
+        <td>Input with leading spaces, newlines, and tabs before <code>{"a":1}</code>.</td>
+        <td>Peek returns <code>{</code>; public decode still succeeds. Buffered whitespace is replayed correctly.</td>
+        <td>Buffer replay edge</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <h3>Reader-level tests in package <code>peekjson</code></h3>
+    <p class="small">
+      These should be same-package tests, not <code>peekjson_test</code>, so they can construct <code>peekReader</code>,
+      <code>publicReader</code>, and inspect <code>lookAheadBuffer</code>. They are necessary for MC/DC because high-level JSON tests can hide
+      reader branch behavior behind <code>encoding/json</code> buffering.
+    </p>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Scenario</th>
+        <th>Stimulus</th>
+        <th>Expected assertions</th>
+        <th>Coverage</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td class="id">R01</td>
+        <td><code>peekReader</code> successful source read.</td>
+        <td>Source returns <code>"abc", nil</code>.</td>
+        <td>Read returns <code>3, nil</code>; <code>lookAheadBuffer.String() == "abc"</code>.</td>
+        <td>D3 false</td>
+      </tr>
+      <tr>
+        <td class="id">R02</td>
+        <td><code>peekReader</code> zero-byte source error.</td>
+        <td>Source returns <code>0, io.ErrUnexpectedEOF</code>.</td>
+        <td>Read returns <code>0</code> and that error; look-ahead buffer is unchanged.</td>
+        <td>D3 true</td>
+      </tr>
+      <tr>
+        <td class="id">R03</td>
+        <td><code>peekReader</code> bytes plus error.</td>
+        <td>Custom source returns <code>"abc", io.EOF</code> in one read.</td>
+        <td>Read returns <code>3, io.EOF</code>; <code>"abc"</code> is still buffered for public replay.</td>
+        <td>D3 edge</td>
+      </tr>
+      <tr>
+        <td class="id">R04</td>
+        <td><code>peekReader</code> zero-length destination.</td>
+        <td>Call <code>Read</code> with <code>p := make([]byte, 0)</code>.</td>
+        <td>No panic, no buffer mutation, result follows the wrapped reader contract.</td>
+        <td>Reader boundary</td>
+      </tr>
+      <tr>
+        <td class="id">P01</td>
+        <td><code>publicReader</code> direct source read.</td>
+        <td>Empty look-ahead buffer, source <code>"xyz"</code>, destination length 3.</td>
+        <td>Returns <code>"xyz"</code>; cache fields are cleared.</td>
+        <td>D4 false, D6 false</td>
+      </tr>
+      <tr>
+        <td class="id">P02</td>
+        <td><code>publicReader</code> replay buffer read.</td>
+        <td>Look-ahead buffer <code>"abc"</code>, source <code>"xyz"</code>, destination length 3.</td>
+        <td>Returns <code>"abc"</code> before any source bytes; cache fields are cleared.</td>
+        <td>D4 true, D5 true</td>
+      </tr>
+      <tr>
+        <td class="id">P03</td>
+        <td>Partial replay followed by source.</td>
+        <td>Look-ahead buffer <code>"a"</code>, source <code>"bc"</code>, destination length 3.</td>
+        <td>Combined stream observed by repeated reads is <code>"abc"</code>; no duplicated or lost byte.</td>
+        <td>D5 false</td>
+      </tr>
+      <tr>
+        <td class="id">P04</td>
+        <td>Replay larger than destination.</td>
+        <td>Look-ahead buffer <code>"abcdef"</code>, destination length 2.</td>
+        <td>First read returns <code>"ab"</code>; later reads return <code>"cd"</code>, <code>"ef"</code> before source.</td>
+        <td>D5 true</td>
+      </tr>
+      <tr>
+        <td class="id">P05</td>
+        <td>Direct source EOF.</td>
+        <td>Empty buffer, source returns <code>0, io.EOF</code>.</td>
+        <td>Read returns <code>0, io.EOF</code>; cache fields are cleared.</td>
+        <td>D6 true</td>
+      </tr>
+      <tr>
+        <td class="id">P06</td>
+        <td>Direct source bytes plus EOF.</td>
+        <td>Empty buffer, source returns <code>"z", io.EOF</code>.</td>
+        <td>Read returns the byte and preserves the error semantics chosen by the implementation; JSON consumers do not lose <code>"z"</code>.</td>
+        <td>D6 edge</td>
+      </tr>
+      <tr>
+        <td class="id">P07</td>
+        <td>Cache reset is unconditional.</td>
+        <td>Set <code>peekedToken</code> and <code>peekedErr</code>, call <code>publicReader.Read</code> with buffered and unbuffered sources.</td>
+        <td>Both fields are nil after every call, including error-returning calls.</td>
+        <td>D7 state invariant</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Edge Cases</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>Category</th>
+        <th>Cases</th>
+        <th>Why it matters</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>JSON grammar</td>
+        <td>empty input, whitespace-only input, invalid delimiters, unterminated string, truncated object, trailing garbage after one value.</td>
+        <td>Ensures peek errors match public decoder errors and buffered bytes do not mask syntax failures.</td>
+      </tr>
+      <tr>
+        <td>Token variety</td>
+        <td>object delimiters, array delimiters, object keys, strings with escapes, booleans, null, integers, decimals, exponents, very large integers.</td>
+        <td>Confirms <code>Peek</code> mirrors <code>encoding/json.Decoder.Token</code> while preserving <code>json.Number</code>.</td>
+      </tr>
+      <tr>
+        <td>Reader behavior</td>
+        <td>one byte per read, large read-ahead by <code>json.Decoder</code>, zero-byte reads, <code>n &gt; 0</code> with error, EOF after replay buffer.</td>
+        <td>Most bugs in this package will be byte-replay bugs, not JSON parsing bugs.</td>
+      </tr>
+      <tr>
+        <td>State sequencing</td>
+        <td>peek-peek, peek-token-peek, peek-decode-peek, token-peek-token, peek-more-decode, decode until EOF then peek.</td>
+        <td>Validates cache invalidation and confirms public methods consume the same stream a normal decoder would consume.</td>
+      </tr>
+      <tr>
+        <td>Contract boundaries</td>
+        <td>nil reader, concurrent calls, and mutation of embedded decoder options.</td>
+        <td>These should be documented as unsupported unless the package explicitly commits to supporting them. Do not over-test undefined behavior.</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Pragmatic Test Structure</h2>
+    <ul>
+      <li>Use one same-package file such as <code>pkg/peekjson/peekjson_test.go</code> for reader internals and public API tests that need state inspection.</li>
+      <li>Add helper readers: <code>chunkReader</code>, <code>scriptedReader</code>, and <code>countingReader</code>. Keep them tiny and deterministic.</li>
+      <li>Compare public token streams against <code>encoding/json.NewDecoder</code> for broad integration cases, with the known difference that peeked numbers should be <code>json.Number</code>.</li>
+      <li>For reader tests, assert byte sequences and state transitions directly instead of relying on statement coverage alone.</li>
+      <li>Run tests with the race detector only if concurrency support is added later; the current type should be treated as not goroutine-safe.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Acceptance Checklist</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>Requirement</th>
+        <th>Acceptance signal</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>Every decision in the catalog has true and false coverage.</td>
+        <td class="ok">All IDs D1-D7 are mapped to passing tests in the MC/DC matrix.</td>
+      </tr>
+      <tr>
+        <td>Peek is non-consuming.</td>
+        <td class="ok"><code>T03</code>, <code>T04</code>, <code>T05</code>, and <code>T12</code> pass.</td>
+      </tr>
+      <tr>
+        <td>Reader byte replay is lossless.</td>
+        <td class="ok"><code>R03</code>, <code>P03</code>, <code>P04</code>, and chunked-reader integration cases pass.</td>
+      </tr>
+      <tr>
+        <td>Error behavior is deliberate.</td>
+        <td class="ok"><code>T08</code>, <code>T09</code>, <code>T10</code>, <code>R02</code>, <code>R03</code>, <code>P05</code>, and <code>P06</code> pass with documented expectations.</td>
+      </tr>
+      <tr>
+        <td>No untested TODO behavior remains.</td>
+        <td class="risk">Current <code>publicReader.Read</code> must be implemented before the intended integration tests can pass.</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Future Coverage Command</h2>
+    <p>
+      Go's built-in coverage is statement-oriented, so it should be treated as a sanity check, not proof of MC/DC. The decision matrix
+      above is the proof obligation. After implementation, run:
+    </p>
+    <pre><code>go test ./pkg/peekjson -covermode=count -coverprofile=coverage.out
+go tool cover -func=coverage.out</code></pre>
+  </section>
+</main>
+</body>
+</html>
