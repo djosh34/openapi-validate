@@ -2,13 +2,42 @@ package peekjson
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
 )
+
+const peekJSONRapidChecks = "50000"
+
+func TestMain(m *testing.M) {
+	if !rapidChecksExplicitlyConfigured() {
+		if err := flag.Set("rapid.checks", peekJSONRapidChecks); err != nil {
+			panic(err)
+		}
+	}
+
+	os.Exit(m.Run())
+}
+
+func rapidChecksExplicitlyConfigured() bool {
+	if _, ok := os.LookupEnv("RAPID_CHECKS"); ok {
+		return true
+	}
+
+	wasSet := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "rapid.checks" {
+			wasSet = true
+		}
+	})
+
+	return wasSet
+}
 
 type rapidDecoderOp uint8
 
@@ -22,8 +51,27 @@ const (
 func TestRapidDecoderMatchesEncodingJSON(t *testing.T) {
 	t.Parallel()
 
+	var numValid int
+	var numValidObjects int
+	var numInvalid int
+
 	rapid.Check(t, func(rt *rapid.T) {
 		input := drawChaoticJSONStream(rt)
+
+		var testValid any
+		err := json.Unmarshal([]byte(input), &testValid)
+		if err == nil {
+			numValid += 1
+		} else {
+			numInvalid += 1
+		}
+
+		var testValidObject map[string]json.RawMessage
+		err = json.Unmarshal([]byte(input), &testValidObject)
+		if err == nil {
+			numValidObjects += 1
+		}
+
 		useNumber := rapid.Bool().Draw(rt, "use number")
 		opCount := rapid.IntRange(1, 80).Draw(rt, "op count")
 
@@ -66,7 +114,7 @@ func TestRapidDecoderMatchesEncodingJSON(t *testing.T) {
 				t.Fatalf("unknown op %d", op)
 			}
 
-			shouldPeek := rapid.Bool().Draw(rt, "should beek")
+			shouldPeek := rapid.Bool().Draw(rt, "should peek")
 			if shouldPeek {
 				peekedToken, peekErr := got.Peek()
 
@@ -82,6 +130,12 @@ func TestRapidDecoderMatchesEncodingJSON(t *testing.T) {
 		}
 
 	})
+
+	fmt.Println("Num valid: ", numValid, " Num invalid: ", numInvalid)
+	fmt.Println("Num valid objects: ", numValidObjects)
+
+	require.NotEqualf(t, 0, numValid, "only zero valid json inputs")
+	require.NotEqualf(t, 0, numValidObjects, "only zero valid json objects")
 }
 
 func drawRapidDecoderOp(t *rapid.T, label string) rapidDecoderOp {
