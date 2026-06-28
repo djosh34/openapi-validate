@@ -18,6 +18,7 @@ type Decoder struct {
 	peekDec     *json.Decoder
 	peekedToken *json.Token
 	peekedErr   error
+	peeked      bool
 }
 
 // NewDecoder returns a decoder that reads JSON values from r.
@@ -33,11 +34,12 @@ func NewDecoder(r io.Reader) *Decoder {
 
 // Peek returns the next JSON token without discarding its source bytes.
 func (d *Decoder) Peek() (*json.Token, error) {
-	if d.peekedToken != nil {
+	if d.peeked {
 		return d.peekedToken, d.peekedErr
 	}
 
 	tok, err := d.peekDec.Token()
+	d.peeked = true
 	if err != nil {
 		d.peekedErr = err
 
@@ -45,6 +47,12 @@ func (d *Decoder) Peek() (*json.Token, error) {
 	}
 
 	return &tok, err
+}
+
+func (d *Decoder) clearPeek() {
+	d.peeked = false
+	d.peekedToken = nil
+	d.peekedErr = nil
 }
 
 // peekReader reads from the source while saving bytes for the public decoder.
@@ -84,6 +92,8 @@ func (r publicReader) Read(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
+
+	d.clearPeek()
 
 	n, err := d.lookAheadBuffer.Read(p)
 	if err != nil && !errors.Is(err, io.EOF) {
