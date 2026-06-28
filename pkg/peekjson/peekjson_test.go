@@ -10,57 +10,101 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPublicReaderRead(t *testing.T) {
+func TestReaderRead(t *testing.T) {
+	readErr := errors.New("read failed")
+	publicRead := func(d *Decoder) io.Reader { return publicReader{d: d} }
+	peekRead := func(d *Decoder) io.Reader { return peekReader{d: d} }
+
 	for name, tt := range map[string]struct {
-		bytesToRead          int
-		internalBuffer       string
-		upstreamBuffer       string
-		expectedOutputBuffer bytes.Buffer
-		expectedBytesRead    int
-		expectedErr          error
+		reader                  func(*Decoder) io.Reader
+		bytesToRead             int
+		internalBuffer          string
+		sourceReader            io.Reader
+		expectedOutput          string
+		expectedLookAheadBuffer string
+		expectedRemainingSource string
+		expectedBytesRead       int
+		expectedErr             error
 	}{
-		"fully from internal buffer": {
-			bytesToRead:    len("buffer"),
-			internalBuffer: "buffer",
-			upstreamBuffer: "upstream",
-			expectedErr:    nil,
+		"public reader fully from internal buffer": {
+			reader:                  publicRead,
+			bytesToRead:             len("buffer"),
+			internalBuffer:          "buffer",
+			sourceReader:            strings.NewReader("upstream"),
+			expectedOutput:          "buffer",
+			expectedLookAheadBuffer: "",
+			expectedBytesRead:       len("buffer"),
+			expectedErr:             nil,
 		},
-		"fully from upstream": {
-			bytesToRead:    len("up"),
-			internalBuffer: "",
-			upstreamBuffer: "upstream",
-			expectedErr:    nil,
+		"public reader fully from upstream": {
+			reader:                  publicRead,
+			bytesToRead:             len("up"),
+			internalBuffer:          "",
+			sourceReader:            strings.NewReader("upstream"),
+			expectedOutput:          "up",
+			expectedLookAheadBuffer: "",
+			expectedBytesRead:       len("up"),
+			expectedErr:             nil,
 		},
-		"fills from internal buffer then partial upstream": {
-			bytesToRead:    len("bufst"),
-			internalBuffer: "buf",
-			upstreamBuffer: "stream",
-			expectedErr:    nil,
+		"public reader fills from internal buffer then partial upstream": {
+			reader:                  publicRead,
+			bytesToRead:             len("bufst"),
+			internalBuffer:          "buf",
+			sourceReader:            strings.NewReader("stream"),
+			expectedOutput:          "bufst",
+			expectedLookAheadBuffer: "",
+			expectedBytesRead:       len("bufst"),
+			expectedErr:             nil,
 		},
-		"drains internal buffer and upstream before eof": {
-			bytesToRead:    len("bufstream") + 10,
-			internalBuffer: "buf",
-			upstreamBuffer: "stream",
-			expectedErr:    io.EOF,
+		"public reader drains internal buffer and upstream before eof": {
+			reader:                  publicRead,
+			bytesToRead:             len("bufstream") + 10,
+			internalBuffer:          "buf",
+			sourceReader:            strings.NewReader("stream"),
+			expectedOutput:          "bufstream",
+			expectedLookAheadBuffer: "",
+			expectedBytesRead:       len("bufstream"),
+			expectedErr:             nil,
 		},
-		"drains upstream before eof": {
-			bytesToRead:    len("upstream") + 10,
-			internalBuffer: "",
-			upstreamBuffer: "upstream",
-			expectedErr:    io.EOF,
+		"public reader drains upstream before eof": {
+			reader:                  publicRead,
+			bytesToRead:             len("upstream") + 10,
+			internalBuffer:          "",
+			sourceReader:            strings.NewReader("upstream"),
+			expectedOutput:          "upstream",
+			expectedLookAheadBuffer: "",
+			expectedBytesRead:       len("upstream"),
+			expectedErr:             nil,
+		},
+		"peek reader buffers read bytes": {
+			reader:                  peekRead,
+			bytesToRead:             len("peek"),
+			sourceReader:            strings.NewReader("peeked"),
+			expectedOutput:          "peek",
+			expectedLookAheadBuffer: "peek",
+			expectedRemainingSource: "ed",
+			expectedBytesRead:       len("peek"),
+			expectedErr:             nil,
+		},
+		"peek reader buffers bytes returned with error": {
+			reader:                  peekRead,
+			bytesToRead:             len("peek"),
+			sourceReader:            errorAfterBytesReader{data: "peek", err: readErr},
+			expectedOutput:          "peek",
+			expectedLookAheadBuffer: "peek",
+			expectedBytesRead:       len("peek"),
+			expectedErr:             readErr,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			// Arrange
-			upstream := strings.NewReader(tt.upstreamBuffer)
-
-			d := &Decoder{sourceReader: upstream}
+			d := &Decoder{sourceReader: tt.sourceReader}
 			d.lookAheadBuffer = *bytes.NewBufferString(tt.internalBuffer)
 
 			p := make([]byte, tt.bytesToRead)
 
 			// Act
-			n, err := publicReader{d: d}.Read(p)
+			n, err := tt.reader(d).Read(p)
 
 			// Assert
 			if tt.expectedErr == nil {
@@ -69,38 +113,15 @@ func TestPublicReaderRead(t *testing.T) {
 				require.ErrorIs(t, err, tt.expectedErr)
 			}
 
-			require.Equal(t, n, tt.expectedBytesRead)
-			require.Equal(t, p, tt.expectedOutputBuffer)
+			require.Equal(t, tt.expectedBytesRead, n)
+			require.Equal(t, tt.expectedOutput, string(p[:n]))
+			require.Equal(t, tt.expectedLookAheadBuffer, d.lookAheadBuffer.String())
 
+			if tt.expectedRemainingSource != "" {
+				require.Equal(t, tt.expectedRemainingSource, remainingString(t, tt.sourceReader))
+			}
 		})
 	}
-}
-
-func TestPeekReaderBuffersReadBytes(t *testing.T) {
-	upstream := strings.NewReader("peeked")
-	d := &Decoder{sourceReader: upstream}
-	p := make([]byte, len("peek"))
-
-	n, err := peekReader{d: d}.Read(p)
-
-	require.NoError(t, err)
-	require.Equal(t, len("peek"), n)
-	require.Equal(t, "peek", string(p[:n]))
-	require.Equal(t, "peek", d.lookAheadBuffer.String())
-	require.Equal(t, "ed", remainingString(t, upstream))
-}
-
-func TestPeekReaderBuffersBytesReturnedWithError(t *testing.T) {
-	readErr := errors.New("read failed")
-	d := &Decoder{sourceReader: errorAfterBytesReader{data: "peek", err: readErr}}
-	p := make([]byte, len("peek"))
-
-	n, err := peekReader{d: d}.Read(p)
-
-	require.ErrorIs(t, err, readErr)
-	require.Equal(t, len("peek"), n)
-	require.Equal(t, "peek", string(p[:n]))
-	require.Equal(t, "peek", d.lookAheadBuffer.String())
 }
 
 func remainingString(t *testing.T, r io.Reader) string {

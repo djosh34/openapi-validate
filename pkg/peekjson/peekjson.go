@@ -47,11 +47,11 @@ type peekReader struct {
 
 func (r peekReader) Read(p []byte) (int, error) {
 	n, err := r.d.sourceReader.Read(p)
-	if err != nil {
-		return n, err
+	if n > 0 {
+		_, _ = r.d.lookAheadBuffer.Write(p[:n])
 	}
 
-	return r.d.lookAheadBuffer.Write(p[:n])
+	return n, err
 }
 
 type publicReader struct {
@@ -64,7 +64,18 @@ func (r publicReader) Read(p []byte) (int, error) {
 	d.peekedToken = nil
 	d.peekedErr = nil
 
-	// TODO
-	// Read first from buffer, then wrong read reader
-	return 0, nil
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	n, err := d.lookAheadBuffer.Read(p)
+	if err != nil && err != io.EOF {
+		return n, err
+	}
+	if n <= len(p) {
+		return n, nil
+	}
+
+	m, err := d.sourceReader.Read(p[n:])
+	return n + m, err
 }
