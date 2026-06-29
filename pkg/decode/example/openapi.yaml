@@ -103,6 +103,37 @@ paths:
         '204':
           description: No Content
 
+  /nullable-object-keys-additional-properties-false:
+    post:
+      operationId: nullableObjectKeysAdditionalPropertiesFalse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              nullable: true
+              required:
+                - requiredNullableString
+                - requiredNotNullableString
+              additionalProperties: false
+              properties:
+                requiredNullableString:
+                  type: string
+                  nullable: true
+                requiredNotNullableString:
+                  type: string
+                  nullable: false
+                optionalNullableString:
+                  type: string
+                  nullable: true
+                optionalNotNullableString:
+                  type: string
+                  nullable: false
+      responses:
+        '204':
+          description: No Content
+
   /object-additional-properties-true:
     post:
       operationId: objectAdditionalPropertiesTrue

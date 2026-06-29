@@ -212,3 +212,68 @@ func TestObjectKeysAdditionalPropertiesFalseDecodeAllowedWays(t *testing.T) {
 		})
 	}
 }
+
+func TestObjectKeysAdditionalPropertiesFalseDecodeRejectsInvalidShapes(t *testing.T) {
+	t.Parallel()
+
+	for name, tt := range map[string]struct {
+		inputJson   string
+		expectedErr error
+	}{
+		"not object array": {
+			inputJson:   `[]`,
+			expectedErr: example.NotAnObjectError,
+		},
+		"not object string": {
+			inputJson:   `"not-object"`,
+			expectedErr: example.NotAnObjectError,
+		},
+		"additional property": {
+			inputJson:   `{"requiredNullableString":"required-nullable","requiredNotNullableString":"required-not-nullable","extra":"not-allowed"}`,
+			expectedErr: example.AdditionalPropertyError,
+		},
+		"missing required nullable string": {
+			inputJson:   `{"requiredNotNullableString":"required-not-nullable"}`,
+			expectedErr: example.MissingRequiredPropertyError,
+		},
+		"missing required not nullable string": {
+			inputJson:   `{"requiredNullableString":"required-nullable"}`,
+			expectedErr: example.MissingRequiredPropertyError,
+		},
+		"required not nullable string null": {
+			inputJson:   `{"requiredNullableString":"required-nullable","requiredNotNullableString":null}`,
+			expectedErr: example.NullForNotNullableStringError,
+		},
+		"optional not nullable string null": {
+			inputJson:   `{"requiredNullableString":"required-nullable","requiredNotNullableString":"required-not-nullable","optionalNotNullableString":null}`,
+			expectedErr: example.NullForNotNullableStringError,
+		},
+		"required nullable string number": {
+			inputJson:   `{"requiredNullableString":123,"requiredNotNullableString":"required-not-nullable"}`,
+			expectedErr: example.NonStringForStringSchemaError,
+		},
+		"required not nullable string bool": {
+			inputJson:   `{"requiredNullableString":"required-nullable","requiredNotNullableString":false}`,
+			expectedErr: example.NonStringForStringSchemaError,
+		},
+		"optional nullable string object": {
+			inputJson:   `{"requiredNullableString":"required-nullable","requiredNotNullableString":"required-not-nullable","optionalNullableString":{}}`,
+			expectedErr: example.NonStringForStringSchemaError,
+		},
+		"optional not nullable string array": {
+			inputJson:   `{"requiredNullableString":"required-nullable","requiredNotNullableString":"required-not-nullable","optionalNotNullableString":[]}`,
+			expectedErr: example.NonStringForStringSchemaError,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			decoder := peekjson.NewDecoder(strings.NewReader(tt.inputJson))
+			var actualStruct example.ObjectKeysAdditionalPropertiesFalse
+
+			err := actualStruct.Decode(decoder)
+
+			require.ErrorIs(t, err, tt.expectedErr)
+		})
+	}
+}
