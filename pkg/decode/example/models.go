@@ -16,11 +16,67 @@ var (
 	NonStringForStringSchemaError = errors.New("non-string for string schema")
 )
 
+type RequiredNullableString string
+type RequiredNotNullableString string
+type OptionalNullableString string
+type OptionalNotNullableString string
+
+var (
+	_ json.Unmarshaler = (*RequiredNullableString)(nil)
+	_ json.Unmarshaler = (*RequiredNotNullableString)(nil)
+	_ json.Unmarshaler = (*OptionalNullableString)(nil)
+	_ json.Unmarshaler = (*OptionalNotNullableString)(nil)
+)
+
+func (s *RequiredNullableString) UnmarshalJSON(data []byte) error {
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+
+	*s = RequiredNullableString(value)
+	return nil
+}
+
+func (s *RequiredNotNullableString) UnmarshalJSON(data []byte) error {
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+
+	*s = RequiredNotNullableString(value)
+	return nil
+}
+
+func (s *OptionalNullableString) UnmarshalJSON(data []byte) error {
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+
+	*s = OptionalNullableString(value)
+	return nil
+}
+
+func (s *OptionalNotNullableString) UnmarshalJSON(data []byte) error {
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+
+	*s = OptionalNotNullableString(value)
+	return nil
+}
+
 type ObjectKeysAdditionalPropertiesFalse struct {
-	RequiredNullableString    *string `json:"requiredNullableString"`
-	RequiredNotNullableString string  `json:"requiredNotNullableString"`
-	OptionalNullableString    *string `json:"optionalNullableString,omitzero"`
-	OptionalNotNullableString *string `json:"optionalNotNullableString,omitzero"`
+	RequiredNullableString    *RequiredNullableString    `json:"requiredNullableString"`
+	RequiredNotNullableString RequiredNotNullableString  `json:"requiredNotNullableString"`
+	OptionalNullableString    *OptionalNullableString    `json:"optionalNullableString,omitzero"`
+	OptionalNotNullableString *OptionalNotNullableString `json:"optionalNotNullableString,omitzero"`
 }
 
 var _ json.Unmarshaler = (*ObjectKeysAdditionalPropertiesFalse)(nil)

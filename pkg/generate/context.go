@@ -12,7 +12,14 @@ type GenerateContext struct {
 	Operations map[string]SchemaObject
 }
 
-type SchemaObject interface{}
+type SchemaObject interface {
+	// Only reason this exists, is to differentiate for SchemaObject and non-SchemaObject
+	DummyFunc()
+}
+
+var _ SchemaObject = new(ObjectContext)
+var _ SchemaObject = new(StringContext)
+var _ SchemaObject = new(ArrayContext)
 
 type ObjectContext struct {
 	Nullable                   bool
@@ -25,11 +32,14 @@ type ObjectContext struct {
 type StringContext struct {
 	Nullable bool
 }
-
 type ArrayContext struct {
 	Nullable bool
 	Items    SchemaObject
 }
+
+func (o *ObjectContext) DummyFunc() {}
+func (o *StringContext) DummyFunc() {}
+func (o *ArrayContext) DummyFunc()  {}
 
 func (c *GenerateContext) JSONRequestBodySchemas() (map[*openapi3.Operation]*openapi3.Schema, error) {
 	if c.Document == nil || c.Document.Paths == nil {
