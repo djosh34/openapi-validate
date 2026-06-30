@@ -1,8 +1,12 @@
 package generate
 
 import (
+	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -40,6 +44,33 @@ func TestGenerateExample(t *testing.T) {
 	err = generateContext.Generate(generateOutputDir)
 	require.NoError(t, err)
 
+}
+
+func TestGenerateExampleMatchesFixture(t *testing.T) {
+	repoRoot := GetRepoRoot(t)
+	exampleDir := filepath.Join(repoRoot, "pkg", "decode", "example")
+	openapiExamplePath := filepath.Join(exampleDir, "openapi.yaml")
+	generateOutputDir := filepath.Join(repoRoot, "pkg", "decode", "example_gen")
+
+	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
+	require.NoError(t, err)
+
+	err = generateContext.FilterOperations("objectKeysAdditionalPropertiesFalse")
+	require.NoError(t, err)
+
+	err = os.MkdirAll(generateOutputDir, 0o755)
+	require.NoError(t, err)
+	err = os.WriteFile(filepath.Join(generateOutputDir, "stale.go"), []byte("package stale\n"), 0o644)
+	require.NoError(t, err)
+
+	err = generateContext.Generate(generateOutputDir)
+	require.NoError(t, err)
+
+	requireSameFiles(t, exampleDir, generateOutputDir, []string{
+		"decode.go",
+		"decode_tests",
+		"openapi.yaml",
+	})
 }
 
 func TestGeneratePopulatesOperationsMap(t *testing.T) {
@@ -92,4 +123,82 @@ func TestFilterOperationsReturnsErrorWhenOperationMissing(t *testing.T) {
 
 	err = generateContext.FilterOperations("notAnOperation")
 	require.ErrorContains(t, err, "operation not found: [notAnOperation]")
+}
+
+func requireSameFiles(t *testing.T, expectedDir string, actualDir string, exceptions []string) {
+	t.Helper()
+
+	exceptionSet := make(map[string]struct{}, len(exceptions))
+	for _, exception := range exceptions {
+		exceptionSet[filepath.ToSlash(filepath.Clean(exception))] = struct{}{}
+	}
+
+	expectedFiles := comparableFiles(t, expectedDir, exceptionSet)
+	actualFiles := comparableFiles(t, actualDir, exceptionSet)
+
+	require.Equal(t, expectedFiles, actualFiles)
+
+	for _, rel := range slices.Sorted(maps.Keys(expectedFiles)) {
+		expected, err := os.ReadFile(filepath.Join(expectedDir, filepath.FromSlash(rel)))
+		require.NoError(t, err)
+
+		actual, err := os.ReadFile(filepath.Join(actualDir, filepath.FromSlash(rel)))
+		require.NoError(t, err)
+
+		require.Equal(t, expected, actual, "file content differs: %s", rel)
+	}
+}
+
+func comparableFiles(t *testing.T, root string, exceptions map[string]struct{}) map[string]struct{} {
+	t.Helper()
+
+	files := map[string]struct{}{}
+
+	err := filepath.WalkDir(root, func(path string, dirEntry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+
+		if rel == "." {
+			return nil
+		}
+
+		rel = filepath.ToSlash(rel)
+		if exceptedPath(rel, exceptions) {
+			if dirEntry.IsDir() {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
+		if dirEntry.IsDir() {
+			return nil
+		}
+
+		files[rel] = struct{}{}
+		return nil
+	})
+	require.NoError(t, err)
+
+	return files
+}
+
+func exceptedPath(rel string, exceptions map[string]struct{}) bool {
+	if _, ok := exceptions[rel]; ok {
+		return true
+	}
+
+	for exception := range exceptions {
+		if strings.HasPrefix(rel, exception+"/") {
+			return true
+		}
+	}
+
+	return false
 }
