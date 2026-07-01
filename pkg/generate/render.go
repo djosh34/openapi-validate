@@ -3,16 +3,22 @@ package generate
 import (
 	"bytes"
 	"embed"
+	"errors"
 	"fmt"
 	"go/format"
+	"io/fs"
 	"maps"
+	"path"
 	"slices"
+	"strings"
 	"sync"
 	"text/template"
 )
 
 //go:embed templates/*.tmpl
 var templateFS embed.FS
+
+const templatePattern = "templates/*.tmpl"
 
 var (
 	generateTemplatesOnce sync.Once
@@ -24,6 +30,24 @@ type fileTemplateContext struct {
 	Schemas []SchemaObject
 }
 
+func wrapTemplateError(templateErr error) error {
+	matches, err := fs.Glob(templateFS, templatePattern)
+	if err != nil {
+		return errors.Join(templateErr, err)
+	}
+
+	originalErrorString := templateErr.Error()
+
+	for _, match := range matches {
+		matchWithFilePrepend := fmt.Sprintf("file://%s", match)
+
+		baseMatch := path.Base(match)
+		originalErrorString = strings.ReplaceAll(originalErrorString, baseMatch, matchWithFilePrepend)
+	}
+
+	return errors.New(originalErrorString)
+}
+
 func renderModelsFile(schemas []SchemaObject) ([]byte, error) {
 	templates, err := parsedGenerateTemplates()
 	if err != nil {
@@ -33,7 +57,7 @@ func renderModelsFile(schemas []SchemaObject) ([]byte, error) {
 	var out bytes.Buffer
 	err = templates.ExecuteTemplate(&out, "file.tmpl", fileTemplateContext{Schemas: schemas})
 	if err != nil {
-		return nil, err
+		return nil, wrapTemplateError(err)
 	}
 
 	formatted, err := format.Source(out.Bytes())
@@ -61,7 +85,7 @@ func executeGoTemplate(name string, data any) (string, error) {
 
 func parsedGenerateTemplates() (*template.Template, error) {
 	generateTemplatesOnce.Do(func() {
-		generateTemplates, generateTemplatesErr = template.ParseFS(templateFS, "templates/*.tmpl")
+		generateTemplates, generateTemplatesErr = template.ParseFS(templateFS, templatePattern)
 	})
 	if generateTemplatesErr != nil {
 		return nil, fmt.Errorf("parse generate templates: %w", generateTemplatesErr)
