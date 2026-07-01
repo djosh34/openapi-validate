@@ -82,6 +82,12 @@ func TestObjectNodeValidCasesIncludeEveryRequiredPropertyValidCombination(t *tes
 		`{"left":null,"right":"valid-string"}`,
 		`{"left":null,"right":null}`,
 	}, rawMessages(node.ValidCases()))
+	require.Equal(t, []string{
+		"required properties",
+		"required properties",
+		"required properties",
+		"required properties",
+	}, caseNames(node.ValidCases()))
 }
 
 func TestObjectNodeAdditionalPropertiesDefaultAllowsExtraProperties(t *testing.T) {
@@ -172,6 +178,48 @@ func TestObjectNodeAdditionalPropertyKeyDoesNotOverwriteExistingProperty(t *test
 		additionalPropertyCaseKey:        json.RawMessage(`"valid-string"`),
 		additionalPropertyCaseKey + "_2": json.RawMessage(`"additional-property"`),
 	}, rawObject(t, additionalPropertyCase.Value))
+}
+
+func TestObjectNodeRequiredValidCasesCatchRejectedNonBaselineRequiredVariant(t *testing.T) {
+	node := ObjectNode{
+		Required: []string{"id"},
+		AdditionalProperties: AdditionalPropertiesNode{
+			Allowed: new(false),
+		},
+		Properties: map[string]SchemaNode{
+			"id": stringSchema(true),
+		},
+	}
+
+	var rejected []string
+	for _, testCase := range node.ValidCases() {
+		object := rawObject(t, testCase.Value)
+		if string(object["id"]) == "null" {
+			rejected = append(rejected, string(testCase.Value))
+		}
+	}
+
+	require.Equal(t, []string{`{"id":null}`}, rejected)
+}
+
+func TestObjectNodeOptionalCasesUseSingleRequiredBaseline(t *testing.T) {
+	node := ObjectNode{
+		Required: []string{"id"},
+		AdditionalProperties: AdditionalPropertiesNode{
+			Allowed: new(false),
+		},
+		Properties: map[string]SchemaNode{
+			"id":       stringSchema(true),
+			"optional": stringSchema(true),
+		},
+	}
+
+	require.Subset(t, rawMessages(node.ValidCases()), []string{
+		`{"id":"valid-string","optional":"valid-string"}`,
+		`{"id":"valid-string","optional":null}`,
+	})
+	require.NotContains(t, rawMessages(node.ValidCases()), `{"id":null,"optional":"valid-string"}`)
+	require.NotContains(t, rawMessages(node.ValidCases()), `{"id":null,"optional":null}`)
 }
 
 func rawMessages(cases []Case) []string {

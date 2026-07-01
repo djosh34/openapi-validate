@@ -18,18 +18,17 @@ type ObjectNode struct {
 }
 
 func (o *ObjectNode) ValidCases() []Case {
-	_, optionalNames, requiredObjects := o.objectCaseData()
-	requiredObject := requiredObjects[0]
+	_, optionalNames, baselineRequiredObject, requiredObjects := o.objectCaseData()
 
 	cases := append([]Case{}, o.BaseNode.ValidCases()...)
-	for _, object := range requiredObjects {
-		cases = append(cases, objectCase("required properties", object))
+	for _, requiredObject := range requiredObjects {
+		cases = append(cases, objectCase("required properties", requiredObject))
 	}
 
 	for _, name := range optionalNames {
 		schema := o.Properties[name]
 		for _, validCase := range schema.ValidCases() {
-			object := cloneObject(requiredObject)
+			object := cloneObject(baselineRequiredObject)
 			object[name] = validCase.Value
 
 			cases = append(cases, objectCase(
@@ -39,12 +38,11 @@ func (o *ObjectNode) ValidCases() []Case {
 		}
 	}
 
-	return append(cases, o.additionalPropertyValidCases(requiredObject)...)
+	return append(cases, o.additionalPropertyValidCases(baselineRequiredObject)...)
 }
 
 func (o *ObjectNode) InvalidCases() []Case {
-	requiredNames, optionalNames, requiredObjects := o.objectCaseData()
-	requiredObject := requiredObjects[0]
+	requiredNames, optionalNames, baselineRequiredObject, _ := o.objectCaseData()
 
 	cases := append([]Case{}, o.BaseNode.InvalidCases()...)
 	cases = append(cases,
@@ -60,7 +58,7 @@ func (o *ObjectNode) InvalidCases() []Case {
 
 	if len(requiredNames) > 1 {
 		for _, missingName := range requiredNames {
-			object := cloneObject(requiredObject)
+			object := cloneObject(baselineRequiredObject)
 			delete(object, missingName)
 			cases = append(cases, objectCase("missing required property "+missingName, object))
 		}
@@ -69,7 +67,7 @@ func (o *ObjectNode) InvalidCases() []Case {
 	for _, name := range append(requiredNames, optionalNames...) {
 		schema := o.Properties[name]
 		for _, invalidCase := range schema.InvalidCases() {
-			object := cloneObject(requiredObject)
+			object := cloneObject(baselineRequiredObject)
 			object[name] = invalidCase.Value
 
 			cases = append(cases, objectCase(
@@ -79,7 +77,7 @@ func (o *ObjectNode) InvalidCases() []Case {
 		}
 	}
 
-	return append(cases, o.additionalPropertyInvalidCases(requiredObject)...)
+	return append(cases, o.additionalPropertyInvalidCases(baselineRequiredObject)...)
 }
 
 type AdditionalPropertiesNode struct {
@@ -157,7 +155,7 @@ func (o *ObjectNode) additionalPropertyInvalidCases(requiredObject map[string]js
 	}
 }
 
-func (o *ObjectNode) objectCaseData() ([]string, []string, []map[string]json.RawMessage) {
+func (o *ObjectNode) objectCaseData() ([]string, []string, map[string]json.RawMessage, []map[string]json.RawMessage) {
 	requiredNames := make([]string, 0, len(o.Required))
 	requiredSet := map[string]struct{}{}
 	for _, name := range o.Required {
@@ -169,6 +167,7 @@ func (o *ObjectNode) objectCaseData() ([]string, []string, []map[string]json.Raw
 		requiredNames = append(requiredNames, name)
 	}
 
+	baselineRequiredObject := map[string]json.RawMessage{}
 	requiredObjects := []map[string]json.RawMessage{{}}
 	for _, name := range requiredNames {
 		schema, ok := o.Properties[name]
@@ -179,6 +178,11 @@ func (o *ObjectNode) objectCaseData() ([]string, []string, []map[string]json.Raw
 		validCases := schema.ValidCases()
 		if len(validCases) == 0 {
 			continue
+		}
+
+		for _, validCase := range validCases {
+			baselineRequiredObject[name] = validCase.Value
+			break
 		}
 
 		nextObjects := make([]map[string]json.RawMessage, 0, len(requiredObjects)*len(validCases))
@@ -200,7 +204,7 @@ func (o *ObjectNode) objectCaseData() ([]string, []string, []map[string]json.Raw
 	}
 	sort.Strings(optionalNames)
 
-	return requiredNames, optionalNames, requiredObjects
+	return requiredNames, optionalNames, baselineRequiredObject, requiredObjects
 }
 
 func (o *ObjectNode) additionalPropertyKey() string {
