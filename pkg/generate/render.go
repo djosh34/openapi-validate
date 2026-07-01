@@ -11,10 +11,10 @@ import (
 	"text/template"
 )
 
-//go:embed templates/*.tmpl
+//go:embed templates/*.go.tmpl
 var templateFS embed.FS
 
-const templatePattern = "templates/*.tmpl"
+const templatePattern = "templates/*.go.tmpl"
 
 var (
 	generateTemplatesOnce sync.Once
@@ -33,7 +33,7 @@ func renderModelsFile(schemas []SchemaObject) ([]byte, error) {
 	}
 
 	var out bytes.Buffer
-	err = templates.ExecuteTemplate(&out, "file.tmpl", fileTemplateContext{Schemas: schemas})
+	err = templates.ExecuteTemplate(&out, "file.go.tmpl", fileTemplateContext{Schemas: schemas})
 	if err != nil {
 		return nil, err
 	}

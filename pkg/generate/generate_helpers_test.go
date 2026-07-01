@@ -108,19 +108,19 @@ func transformError(err error, transform func(string) string) error {
 }
 
 func TestNormalizeFileURIBlocks(t *testing.T) {
-	errorString := `template: file://templates/file.tmpl:22:3: executing "file://templates/file.tmpl" at <.Generate>: error calling Generate: template: file://templates/string.tmpl:1:13: executing "file://templates/string.tmpl" at <.Name>`
+	errorString := `template: file://templates/file.go.tmpl:22:3: executing "file://templates/file.go.tmpl" at <.Generate>: error calling Generate: template: file://templates/string.go.tmpl:1:13: executing "file://templates/string.go.tmpl" at <.Name>`
 
-	require.Equal(t, `template: file:///repo/pkg/generate/templates/file.tmpl:22:3
-: executing "templates/file.tmpl" at <.Generate>: error calling Generate: template: file:///repo/pkg/generate/templates/string.tmpl:1:13
-: executing "templates/string.tmpl" at <.Name>`, normalizeFileURIBlocks(errorString, "file:///repo/pkg/generate/"))
+	require.Equal(t, `template: file:///repo/pkg/generate/templates/file.go.tmpl:22:3
+: executing "templates/file.go.tmpl" at <.Generate>: error calling Generate: template: file:///repo/pkg/generate/templates/string.go.tmpl:1:13
+: executing "templates/string.go.tmpl" at <.Name>`, normalizeFileURIBlocks(errorString, "file:///repo/pkg/generate/"))
 }
 
 func TestTransformErrorPreservesUnwraps(t *testing.T) {
-	wrapped := fmt.Errorf("outer file.tmpl: %w", errors.New("inner string.tmpl"))
-	joined := errors.Join(errors.New("joined array.tmpl"), wrapped)
+	wrapped := fmt.Errorf("outer file.go.tmpl: %w", errors.New("inner string.go.tmpl"))
+	joined := errors.Join(errors.New("joined array.go.tmpl"), wrapped)
 
 	transformed := transformError(joined, func(errorString string) string {
-		return strings.ReplaceAll(errorString, ".tmpl", ".go")
+		return strings.ReplaceAll(errorString, ".go.tmpl", ".go")
 	})
 
 	require.Equal(t, "joined array.go\nouter file.go: inner string.go", transformed.Error())
@@ -137,23 +137,23 @@ func TestTransformErrorPreservesUnwraps(t *testing.T) {
 
 func TestWrapTemplateErrorPreservesUnwraps(t *testing.T) {
 	wrapped := fmt.Errorf(
-		"template: object.tmpl:5:6: %w",
-		errors.New("template: string.tmpl:1:13"),
+		"template: object.go.tmpl:5:6: %w",
+		errors.New("template: string.go.tmpl:1:13"),
 	)
-	joined := errors.Join(errors.New("template: file.tmpl:22:3"), wrapped)
+	joined := errors.Join(errors.New("template: file.go.tmpl:22:3"), wrapped)
 
 	templateErr := wrapTemplateError(joined)
 
-	require.Equal(t, "template: file://templates/file.tmpl:22:3\ntemplate: file://templates/object.tmpl:5:6: template: file://templates/string.tmpl:1:13", templateErr.Error())
+	require.Equal(t, "template: file://templates/file.go.tmpl:22:3\ntemplate: file://templates/object.go.tmpl:5:6: template: file://templates/string.go.tmpl:1:13", templateErr.Error())
 
 	multiUnwrapper, ok := templateErr.(interface{ Unwrap() []error })
 	require.True(t, ok)
 
 	unwrappedErrors := multiUnwrapper.Unwrap()
 	require.Len(t, unwrappedErrors, 2)
-	require.Equal(t, "template: file://templates/file.tmpl:22:3", unwrappedErrors[0].Error())
-	require.Equal(t, "template: file://templates/object.tmpl:5:6: template: file://templates/string.tmpl:1:13", unwrappedErrors[1].Error())
-	require.Equal(t, "template: file://templates/string.tmpl:1:13", errors.Unwrap(unwrappedErrors[1]).Error())
+	require.Equal(t, "template: file://templates/file.go.tmpl:22:3", unwrappedErrors[0].Error())
+	require.Equal(t, "template: file://templates/object.go.tmpl:5:6: template: file://templates/string.go.tmpl:1:13", unwrappedErrors[1].Error())
+	require.Equal(t, "template: file://templates/string.go.tmpl:1:13", errors.Unwrap(unwrappedErrors[1]).Error())
 }
 
 func normalizeFileURIBlocks(errorString string, absolutePathPrefix string) string {

@@ -89,12 +89,21 @@ func TestGenerateExampleMatchesFixture_Regen(t *testing.T) {
 	}
 
 	lastArg := os.Args[len(os.Args)-1]
-	expectedLastArg := fmt.Sprintf("^\\Q%s\\E$", name)
-	if lastArg != expectedLastArg {
-		t.Skip("Intentionally no regen, when not ran directly")
+
+	var allowedLastArgs []string
+	allowedLastArgs = append(allowedLastArgs, fmt.Sprintf("^\\Q%s\\E$", name))
+	allowedLastArgs = append(allowedLastArgs, fmt.Sprintf("-test.run=^\\Q%s\\E$", name))
+
+	for _, arg := range allowedLastArgs {
+		if arg == lastArg {
+			t.Log("Running Regen.....")
+			SharedGenerateExampleMatchesFixture(t, true)
+			return
+		}
 	}
 
-	SharedGenerateExampleMatchesFixture(t, true)
+	t.Log("Last Arg: ", lastArg)
+	t.Skip("Intentionally no regen, when not ran directly")
 }
 
 func TestGeneratePopulatesOperationsMap(t *testing.T) {

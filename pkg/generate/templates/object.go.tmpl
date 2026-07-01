@@ -1,21 +1,19 @@
-{{- define "object_required_property" }}
+{{- define "object_property" }}
 		case "{{ .PropertyName }}":
+			{{- if .Required }}
 			has{{ .Schema.TypeName }} = true
+			{{- end }}
 
-			err = json.Unmarshal(value, &o.{{ .Schema.TypeName }})
-			if err != nil {
-				return err
-			}
-{{- end }}
-
-{{- define "object_optional_property" }}
-		case "{{ .PropertyName }}":
 			var {{ .LocalName }} {{ .Schema.TypeName }}
 			err = json.Unmarshal(value, &{{ .LocalName }})
 			if err != nil {
 				return err
 			}
+			{{- if .Required }}
+			o.{{ .Schema.TypeName }} = {{ .LocalName }}
+			{{- else }}
 			o.{{ .Schema.TypeName }} = &{{ .LocalName }}
+			{{- end }}
 {{- end }}
 
 {{- $name := .TypeName -}}
@@ -70,11 +68,7 @@ func (o *{{ $name }}) UnmarshalJSON(data []byte) error {
 
 		switch name {
 {{- range .Properties }}
-{{- if .Required }}
-{{- template "object_required_property" . }}
-{{- else }}
-{{- template "object_optional_property" . }}
-{{- end }}
+{{- template "object_property" . }}
 {{- end }}
 		default:
 {{- if .AdditionalProperties }}

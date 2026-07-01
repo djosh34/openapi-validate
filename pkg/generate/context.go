@@ -78,15 +78,15 @@ func (p ObjectFieldContext) LocalName() string {
 }
 
 func (o ObjectContext) Generate() (string, error) {
-	return executeGoTemplate("object.tmpl", o)
+	return executeGoTemplate("object.go.tmpl", o)
 }
 
 func (o StringContext) Generate() (string, error) {
-	return executeGoTemplate("string.tmpl", o)
+	return executeGoTemplate("string.go.tmpl", o)
 }
 
 func (o ArrayContext) Generate() (string, error) {
-	return executeGoTemplate("array.tmpl", o)
+	return executeGoTemplate("array.go.tmpl", o)
 }
 
 func (c *GenerateContext) JSONRequestBodySchemas() (map[*openapi3.Operation]*openapi3.Schema, error) {
