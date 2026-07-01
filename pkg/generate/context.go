@@ -15,11 +15,28 @@ type GenerateContext struct {
 type Schema interface {
 	Base() *BaseSchema
 	Generate() (string, error)
+	SchemaTypeName() string
 }
 
 type BaseSchema struct {
 	TypeName string
 	Nullable bool
+}
+
+func (b *BaseSchema) Base() *BaseSchema {
+	return b
+}
+
+func (b *BaseSchema) SchemaTypeName() string {
+	if b == nil {
+		return ""
+	}
+
+	return b.TypeName
+}
+
+func (b *BaseSchema) LocalName() string {
+	return unexportedName(b.SchemaTypeName())
 }
 
 type ObjectSchema struct {
@@ -34,8 +51,8 @@ var _ Schema = new(StringSchema)
 var _ Schema = new(ArraySchema)
 
 type ObjectFieldContext struct {
+	Schema
 	PropertyName string
-	Schema       Schema
 	Required     bool
 }
 
@@ -49,7 +66,7 @@ type ArraySchema struct {
 }
 
 // TODO, put in tmpl
-func (p ObjectFieldContext) FieldType() string {
+func (p *ObjectFieldContext) FieldType() string {
 	if p.Required {
 		return p.SchemaTypeName()
 	}
@@ -58,7 +75,7 @@ func (p ObjectFieldContext) FieldType() string {
 }
 
 // TODO, put in tmpl
-func (p ObjectFieldContext) JSONTag() string {
+func (p *ObjectFieldContext) JSONTag() string {
 	if p.Required {
 		return fmt.Sprintf("`json:%q`", p.PropertyName)
 	}
@@ -67,21 +84,21 @@ func (p ObjectFieldContext) JSONTag() string {
 }
 
 // TODO, we could decide to not care, and auto gen some valid var name
-func (p ObjectFieldContext) LocalName() string {
-	return unexportedName(p.SchemaTypeName())
+func (p *ObjectFieldContext) LocalName() string {
+	return unexportedName(p.Schema.SchemaTypeName())
 }
 
-func (p ObjectFieldContext) SchemaTypeName() string {
-	return schemaTypeName(p.Schema)
-}
-
-func (o *ObjectSchema) Base() *BaseSchema {
+func (o *ObjectFieldContext) Generate() (string, error) {
 	if o == nil {
-		return nil
+		return "", fmt.Errorf("nil object schema")
 	}
 
-	return &o.BaseSchema
+	return executeGoTemplate("object_property.go.tmpl", o)
 }
+
+//func (p ObjectFieldContext) SchemaTypeName() string {
+//	return schemaTypeName(p.Schema)
+//}
 
 func (o *ObjectSchema) Generate() (string, error) {
 	if o == nil {
@@ -95,28 +112,12 @@ func (o *ObjectSchema) AdditionalPropertiesTypeName() string {
 	return schemaTypeName(o.AdditionalPropertiesSchema)
 }
 
-func (s *StringSchema) Base() *BaseSchema {
-	if s == nil {
-		return nil
-	}
-
-	return &s.BaseSchema
-}
-
 func (s *StringSchema) Generate() (string, error) {
 	if s == nil {
 		return "", fmt.Errorf("nil string schema")
 	}
 
 	return executeGoTemplate("string.go.tmpl", s)
-}
-
-func (a *ArraySchema) Base() *BaseSchema {
-	if a == nil {
-		return nil
-	}
-
-	return &a.BaseSchema
 }
 
 func (a *ArraySchema) Generate() (string, error) {
@@ -141,7 +142,7 @@ func schemaTypeName(schema Schema) string {
 		return ""
 	}
 
-	return base.TypeName
+	return base.SchemaTypeName()
 }
 
 func (c *GenerateContext) JSONRequestBodySchemas() (map[*openapi3.Operation]*openapi3.Schema, error) {

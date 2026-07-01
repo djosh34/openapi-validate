@@ -1,0 +1,18 @@
+{{- define "object_property" }}
+		case "{{ .PropertyName }}":
+			{{- if .Required }}
+			has{{ .SchemaTypeName }} = true
+			{{- end }}
+
+			var {{ .LocalName }} {{ .SchemaTypeName }}
+			err = json.Unmarshal(value, &{{ .LocalName }})
+			if err != nil {
+				return err
+			}
+			{{- if .Required }}
+			o.{{ .SchemaTypeName }} = {{ .LocalName }}
+			{{- else }}
+			o.{{ .SchemaTypeName }} = &{{ .LocalName }}
+			{{- end }}
+{{- end }}
+
