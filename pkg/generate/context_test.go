@@ -2,7 +2,6 @@ package generate
 
 import (
 	"net/http"
-	"path/filepath"
 	"testing"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -38,7 +37,7 @@ func TestJSONRequestBodySchemasKeepsOnlyOperationsWithJSONBodySchema(t *testing.
 }
 
 func TestJSONRequestBodyModelSchemasConvertsRequestBodySchemas(t *testing.T) {
-	openapiExamplePath := filepath.Join(GetRepoRoot(t), "pkg", "decode", "example", "openapi.yaml")
+	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
 

@@ -88,6 +88,7 @@ func TestSchemaNodeUnmarshalYAMLDispatchesString(t *testing.T) {
 	content := []byte(`
 type: string
 nullable: true
+format: date-time
 `)
 
 	var schemaNode SchemaNode
@@ -98,6 +99,57 @@ nullable: true
 	require.Nil(t, schemaNode.Object)
 	require.NotNil(t, schemaNode.String)
 	require.Equal(t, BaseNode{Nullable: true}, schemaNode.String.BaseNode)
+	require.Equal(t, "date-time", schemaNode.String.Format)
+}
+
+func TestSchemaNodeUnmarshalYAMLDispatchesArray(t *testing.T) {
+	content := []byte(`
+type: array
+nullable: true
+items:
+  type: string
+  nullable: false
+`)
+
+	var schemaNode SchemaNode
+	err := yaml.Unmarshal(content, &schemaNode)
+	require.NoError(t, err)
+
+	require.Equal(t, "array", schemaNode.Type)
+	require.NotNil(t, schemaNode.Array)
+	require.Equal(t, BaseNode{Nullable: true}, schemaNode.Array.BaseNode)
+	require.Equal(t, "string", schemaNode.Array.Items.Type)
+	require.NotNil(t, schemaNode.Array.Items.String)
+}
+
+func TestSchemaNodeUnmarshalYAMLDispatchesNumber(t *testing.T) {
+	content := []byte(`
+type: number
+nullable: true
+`)
+
+	var schemaNode SchemaNode
+	err := yaml.Unmarshal(content, &schemaNode)
+	require.NoError(t, err)
+
+	require.Equal(t, "number", schemaNode.Type)
+	require.NotNil(t, schemaNode.Number)
+	require.Equal(t, BaseNode{Nullable: true}, schemaNode.Number.BaseNode)
+}
+
+func TestSchemaNodeUnmarshalYAMLDispatchesBoolean(t *testing.T) {
+	content := []byte(`
+type: boolean
+nullable: true
+`)
+
+	var schemaNode SchemaNode
+	err := yaml.Unmarshal(content, &schemaNode)
+	require.NoError(t, err)
+
+	require.Equal(t, "boolean", schemaNode.Type)
+	require.NotNil(t, schemaNode.Bool)
+	require.Equal(t, BaseNode{Nullable: true}, schemaNode.Bool.BaseNode)
 }
 
 func TestSchemaNodeUnmarshalYAMLDispatchesObjectWithNestedProperties(t *testing.T) {
@@ -193,13 +245,13 @@ func TestAdditionalPropertiesNodeUnmarshalYAMLCanBeBool(t *testing.T) {
 
 func TestSchemaNodeUnmarshalYAMLRejectsUnsupportedSchemaType(t *testing.T) {
 	content := []byte(`
-type: number
+type: integer
 nullable: true
 `)
 
 	var schemaNode SchemaNode
 	err := yaml.Unmarshal(content, &schemaNode)
-	require.ErrorContains(t, err, `unsupported schema type "number"`)
+	require.ErrorContains(t, err, `unsupported schema type "integer"`)
 }
 
 func TestSchemaNodeUnmarshalYAMLRejectsMissingSchemaType(t *testing.T) {
@@ -255,13 +307,13 @@ func TestAdditionalPropertiesNodeUnmarshalYAMLRejectsNonBoolScalar(t *testing.T)
 
 func TestAdditionalPropertiesNodeUnmarshalYAMLRejectsUnsupportedSchema(t *testing.T) {
 	content := []byte(`
-type: number
+type: integer
 nullable: true
 `)
 
 	var additionalPropertiesNode AdditionalPropertiesNode
 	err := yaml.Unmarshal(content, &additionalPropertiesNode)
-	require.ErrorContains(t, err, `unsupported schema type "number"`)
+	require.ErrorContains(t, err, `unsupported schema type "integer"`)
 }
 
 func TestAdditionalPropertiesNodeUnmarshalYAMLAllowsMissingNode(t *testing.T) {

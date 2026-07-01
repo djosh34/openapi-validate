@@ -30,9 +30,15 @@ func GetRepoRoot(t *testing.T) string {
 	}
 }
 
+func exampleOpenAPIPath(t *testing.T) string {
+	t.Helper()
+
+	return filepath.Join(GetRepoRoot(t), "resources", "openapi.yaml")
+}
+
 func TestGenerateExample(t *testing.T) {
 
-	openapiExamplePath := filepath.Join(GetRepoRoot(t), "pkg", "decode", "example", "openapi.yaml")
+	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
 
@@ -58,7 +64,7 @@ func SharedGenerateExampleMatchesFixture(t *testing.T, regen bool) {
 
 	repoRoot := GetRepoRoot(t)
 	exampleDir := filepath.Join(repoRoot, "pkg", "decode", "example")
-	openapiExamplePath := filepath.Join(exampleDir, "openapi.yaml")
+	openapiExamplePath := exampleOpenAPIPath(t)
 	generateOutputDir := filepath.Join(repoRoot, "pkg", "decode", "example_gen")
 
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
@@ -78,7 +84,6 @@ func SharedGenerateExampleMatchesFixture(t *testing.T, regen bool) {
 	requireSameFiles(t, exampleDir, generateOutputDir, []string{
 		"decode.go",
 		"decode_tests",
-		"openapi.yaml",
 	}, regen)
 
 }
@@ -114,7 +119,7 @@ func TestGenerateExampleMatchesFixture_Regen(t *testing.T) {
 }
 
 func TestGeneratePopulatesOperationsMap(t *testing.T) {
-	openapiExamplePath := filepath.Join(GetRepoRoot(t), "pkg", "decode", "example", "openapi.yaml")
+	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
 
@@ -329,7 +334,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 }
 
 func TestFilterOperationsKeepsOnlyRequestedOperation(t *testing.T) {
-	openapiExamplePath := filepath.Join(GetRepoRoot(t), "pkg", "decode", "example", "openapi.yaml")
+	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
 
@@ -343,7 +348,7 @@ func TestFilterOperationsKeepsOnlyRequestedOperation(t *testing.T) {
 }
 
 func TestFilterOperationsReturnsErrorWhenOperationMissing(t *testing.T) {
-	openapiExamplePath := filepath.Join(GetRepoRoot(t), "pkg", "decode", "example", "openapi.yaml")
+	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
 

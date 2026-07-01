@@ -4,6 +4,104 @@ info:
   version: 1.0.0
 
 paths:
+  /composite-object:
+    post:
+      operationId: compositeObject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              nullable: false
+              required:
+                - arrayNullableItemsNullable
+                - arrayNullableItemsNotNullable
+                - arrayNotNullableItemsNullable
+                - arrayNotNullableItemsNotNullable
+                - objectAdditionalPropertiesTrue
+                - objectAdditionalPropertiesSchema
+                - objectAdditionalPropertiesImplicit
+                - stringFormatNullable
+                - stringFormatNotNullable
+                - numberNullable
+                - numberNotNullable
+                - boolNullable
+                - boolNotNullable
+              additionalProperties: false
+              properties:
+                arrayNullableItemsNullable:
+                  type: array
+                  nullable: true
+                  items:
+                    type: string
+                    nullable: true
+                arrayNullableItemsNotNullable:
+                  type: array
+                  nullable: true
+                  items:
+                    type: string
+                    nullable: false
+                arrayNotNullableItemsNullable:
+                  type: array
+                  nullable: false
+                  items:
+                    type: string
+                    nullable: true
+                arrayNotNullableItemsNotNullable:
+                  type: array
+                  nullable: false
+                  items:
+                    type: string
+                    nullable: false
+                objectAdditionalPropertiesTrue:
+                  type: object
+                  nullable: false
+                  additionalProperties: true
+                  properties:
+                    known:
+                      type: string
+                      nullable: false
+                objectAdditionalPropertiesSchema:
+                  type: object
+                  nullable: false
+                  additionalProperties:
+                    type: string
+                    nullable: false
+                  properties:
+                    known:
+                      type: string
+                      nullable: false
+                objectAdditionalPropertiesImplicit:
+                  type: object
+                  nullable: false
+                  properties:
+                    known:
+                      type: string
+                      nullable: false
+                stringFormatNullable:
+                  type: string
+                  format: date-time
+                  nullable: true
+                stringFormatNotNullable:
+                  type: string
+                  format: date-time
+                  nullable: false
+                numberNullable:
+                  type: number
+                  nullable: true
+                numberNotNullable:
+                  type: number
+                  nullable: false
+                boolNullable:
+                  type: boolean
+                  nullable: true
+                boolNotNullable:
+                  type: boolean
+                  nullable: false
+      responses:
+        '204':
+          description: No Content
   /optional-array-nullable:
     post:
       operationId: optionalArrayNullable
@@ -145,101 +243,3 @@ paths:
         '204':
           description: No Content
 
-  /composite-object:
-    post:
-      operationId: compositeObject
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              nullable: false
-              required:
-                - arrayNullableItemsNullable
-                - arrayNullableItemsNotNullable
-                - arrayNotNullableItemsNullable
-                - arrayNotNullableItemsNotNullable
-                - objectAdditionalPropertiesTrue
-                - objectAdditionalPropertiesSchema
-                - objectAdditionalPropertiesImplicit
-                - stringFormatNullable
-                - stringFormatNotNullable
-                - numberNullable
-                - numberNotNullable
-                - boolNullable
-                - boolNotNullable
-              additionalProperties: false
-              properties:
-                arrayNullableItemsNullable:
-                  type: array
-                  nullable: true
-                  items:
-                    type: string
-                    nullable: true
-                arrayNullableItemsNotNullable:
-                  type: array
-                  nullable: true
-                  items:
-                    type: string
-                    nullable: false
-                arrayNotNullableItemsNullable:
-                  type: array
-                  nullable: false
-                  items:
-                    type: string
-                    nullable: true
-                arrayNotNullableItemsNotNullable:
-                  type: array
-                  nullable: false
-                  items:
-                    type: string
-                    nullable: false
-                objectAdditionalPropertiesTrue:
-                  type: object
-                  nullable: false
-                  additionalProperties: true
-                  properties:
-                    known:
-                      type: string
-                      nullable: false
-                objectAdditionalPropertiesSchema:
-                  type: object
-                  nullable: false
-                  additionalProperties:
-                    type: string
-                    nullable: false
-                  properties:
-                    known:
-                      type: string
-                      nullable: false
-                objectAdditionalPropertiesImplicit:
-                  type: object
-                  nullable: false
-                  properties:
-                    known:
-                      type: string
-                      nullable: false
-                stringFormatNullable:
-                  type: string
-                  format: date-time
-                  nullable: true
-                stringFormatNotNullable:
-                  type: string
-                  format: date-time
-                  nullable: false
-                numberNullable:
-                  type: number
-                  nullable: true
-                numberNotNullable:
-                  type: number
-                  nullable: false
-                boolNullable:
-                  type: boolean
-                  nullable: true
-                boolNotNullable:
-                  type: boolean
-                  nullable: false
-      responses:
-        '204':
-          description: No Content

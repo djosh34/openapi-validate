@@ -7,3 +7,5 @@ this WORKS, EVEN WHEN THE EXPRESSION IS NOT A TYPE!
 Keep it stupid simple
 Never 'prepare' for future stuff
 Do not create extra fields/functions without reason that you need it
+
+Never ignore errors.

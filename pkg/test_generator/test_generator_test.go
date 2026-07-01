@@ -1,6 +1,7 @@
 package testgenerator
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,15 +10,13 @@ import (
 
 	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi-validator/config"
-	validatorerrors "github.com/pb33f/libopenapi-validator/errors"
 	"github.com/pb33f/libopenapi-validator/schema_validation"
-	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
 
 func TestGeneratedCasesValidateAgainstOpenAPISchema(t *testing.T) {
-	openapiPath := testdataOpenAPIPath("nullable_object_with_nullable_string.yaml")
+	openapiPath := filepath.Join("..", "..", "resources", "openapi.yaml")
 	content, err := os.ReadFile(openapiPath)
 	require.NoError(t, err)
 
@@ -28,7 +27,7 @@ func TestGeneratedCasesValidateAgainstOpenAPISchema(t *testing.T) {
 	require.NoError(t, buildErr)
 
 	openAPIRoot := unmarshalYAMLDocument(t, content)
-	validator := schema_validation.NewSchemaValidator(config.WithOpenAPIMode())
+	validationOptions := config.NewValidationOptions(config.WithOpenAPIMode(), config.WithFormatAssertions())
 	testedSchemas := 0
 
 	for pathPair := model.Model.Paths.PathItems.First(); pathPair != nil; pathPair = pathPair.Next() {
@@ -38,6 +37,7 @@ func TestGeneratedCasesValidateAgainstOpenAPISchema(t *testing.T) {
 		for operationPair := pathItem.GetOperations().First(); operationPair != nil; operationPair = operationPair.Next() {
 			method := operationPair.Key()
 			operation := operationPair.Value()
+
 			if operation.RequestBody == nil || operation.RequestBody.Content == nil {
 				continue
 			}
@@ -47,12 +47,38 @@ func TestGeneratedCasesValidateAgainstOpenAPISchema(t *testing.T) {
 				openAPISchema := mediaTypePair.Value().Schema
 				require.NotNil(t, openAPISchema)
 
+				compiledSchema, err := schema_validation.CompileSchemaForValidation(
+					openAPISchema.Schema(),
+					schema_validation.SchemaValidationPurposeGeneric,
+					validationOptions,
+					3.0,
+				)
+				require.NoError(t, err)
+				require.NotNil(t, compiledSchema)
+				require.NotNil(t, compiledSchema.CompiledSchema)
+
 				var generatorSchema SchemaNode
 				schemaNode := findSchemaNode(t, openAPIRoot, requestPath, method, mediaType)
 				require.NoError(t, schemaNode.Decode(&generatorSchema))
 
-				testGeneratedCases(t, validator, openAPISchema.Schema(), true, generatorSchema.ValidCases())
-				testGeneratedCases(t, validator, openAPISchema.Schema(), false, generatorSchema.InvalidCases())
+				schemaName := fmt.Sprintf("%s %s %s", strings.ToUpper(method), requestPath, mediaType)
+
+				t.Run(fmt.Sprintf("valid %s", schemaName), func(t *testing.T) {
+					testCases := generatorSchema.ValidCases()
+					t.Logf("Testcases: %v", len(testCases))
+					for _, testCase := range generatorSchema.ValidCases() {
+						valid, validationError := validateCompiledSchemaString(t, compiledSchema, string(testCase.Value))
+						require.Truef(t, valid, "expected generated case to validate, got: %s", validationError)
+					}
+				})
+				t.Run(fmt.Sprintf("invalid %s", schemaName), func(t *testing.T) {
+					testCases := generatorSchema.InvalidCases()
+					t.Logf("Testcases: %v", len(testCases))
+					for _, testCase := range testCases {
+						valid, _ := validateCompiledSchemaString(t, compiledSchema, string(testCase.Value))
+						require.False(t, valid, "expected generated case to be invalid")
+					}
+				})
 				testedSchemas++
 			}
 		}
@@ -65,30 +91,19 @@ func testdataOpenAPIPath(name string) string {
 	return filepath.Join("testdata", name)
 }
 
-func testGeneratedCases(
-	t *testing.T,
-	validator schema_validation.SchemaValidator,
-	schema *base.Schema,
-	wantValid bool,
-	cases []Case,
-) {
+func validateCompiledSchemaString(t *testing.T, compiledSchema *schema_validation.CompiledValidationSchema, payload string) (bool, string) {
 	t.Helper()
 
-	for _, testCase := range cases {
-		validity := "invalid"
-		if wantValid {
-			validity = "valid"
-		}
+	var decoded any
+	require.NoError(t, json.Unmarshal([]byte(payload), &decoded))
 
-		t.Run(fmt.Sprintf("%s %s", validity, testCase.Name), func(t *testing.T) {
-			valid, validationErrors := validator.ValidateSchemaStringWithVersion(schema, string(testCase.Value), 3.0)
-			if wantValid {
-				require.Truef(t, valid, "expected generated case to validate, got: %s", validationErrorMessages(validationErrors))
-			} else {
-				require.False(t, valid, "expected generated case to be invalid")
-			}
-		})
+	// The high-level string validator skips validation when a root JSON null decodes to nil.
+	err := compiledSchema.CompiledSchema.Validate(decoded)
+	if err == nil {
+		return true, ""
 	}
+
+	return false, err.Error()
 }
 
 func unmarshalYAMLDocument(t *testing.T, content []byte) *yaml.Node {
@@ -140,16 +155,4 @@ func mappingValue(node *yaml.Node, key string) *yaml.Node {
 	}
 
 	return nil
-}
-
-func validationErrorMessages(validationErrors []*validatorerrors.ValidationError) string {
-	messages := make([]string, 0, len(validationErrors))
-	for _, validationError := range validationErrors {
-		messages = append(messages, validationError.Message)
-		for _, schemaError := range validationError.SchemaValidationErrors {
-			messages = append(messages, schemaError.Reason)
-		}
-	}
-
-	return strings.Join(messages, "; ")
 }

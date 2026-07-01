@@ -4,12 +4,21 @@ var _ Caseable = new(SchemaNode)
 
 type SchemaNode struct {
 	Type   string `yaml:"type"`
+	Array  *ArrayNode
+	Bool   *BoolNode
+	Number *NumberNode
 	Object *ObjectNode
 	String *StringNode
 }
 
 func (s *SchemaNode) ValidCases() []Case {
 	switch {
+	case s.Array != nil:
+		return s.Array.ValidCases()
+	case s.Bool != nil:
+		return s.Bool.ValidCases()
+	case s.Number != nil:
+		return s.Number.ValidCases()
 	case s.Object != nil:
 		return s.Object.ValidCases()
 	case s.String != nil:
@@ -21,6 +30,12 @@ func (s *SchemaNode) ValidCases() []Case {
 
 func (s *SchemaNode) InvalidCases() []Case {
 	switch {
+	case s.Array != nil:
+		return s.Array.InvalidCases()
+	case s.Bool != nil:
+		return s.Bool.InvalidCases()
+	case s.Number != nil:
+		return s.Number.InvalidCases()
 	case s.Object != nil:
 		return s.Object.InvalidCases()
 	case s.String != nil:

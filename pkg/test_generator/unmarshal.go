@@ -20,6 +20,45 @@ func (s *SchemaNode) UnmarshalYAML(value *yaml.Node) error {
 	}
 
 	switch schema.Type {
+	case "array":
+		var arrayNode ArrayNode
+		err = value.Decode(&arrayNode)
+		if err != nil {
+			return err
+		}
+		s.Type = schema.Type
+		s.Array = &arrayNode
+		s.Bool = nil
+		s.Number = nil
+		s.Object = nil
+		s.String = nil
+		return nil
+	case "boolean":
+		var boolNode BoolNode
+		err = value.Decode(&boolNode)
+		if err != nil {
+			return err
+		}
+		s.Type = schema.Type
+		s.Array = nil
+		s.Bool = &boolNode
+		s.Number = nil
+		s.Object = nil
+		s.String = nil
+		return nil
+	case "number":
+		var numberNode NumberNode
+		err = value.Decode(&numberNode)
+		if err != nil {
+			return err
+		}
+		s.Type = schema.Type
+		s.Array = nil
+		s.Bool = nil
+		s.Number = &numberNode
+		s.Object = nil
+		s.String = nil
+		return nil
 	case "object":
 		var objectNode ObjectNode
 		err = value.Decode(&objectNode)
@@ -27,6 +66,9 @@ func (s *SchemaNode) UnmarshalYAML(value *yaml.Node) error {
 			return err
 		}
 		s.Type = schema.Type
+		s.Array = nil
+		s.Bool = nil
+		s.Number = nil
 		s.Object = &objectNode
 		s.String = nil
 		return nil
@@ -37,6 +79,9 @@ func (s *SchemaNode) UnmarshalYAML(value *yaml.Node) error {
 			return err
 		}
 		s.Type = schema.Type
+		s.Array = nil
+		s.Bool = nil
+		s.Number = nil
 		s.Object = nil
 		s.String = &stringNode
 		return nil

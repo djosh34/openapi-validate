@@ -20,6 +20,12 @@ func TestStringNodeValidCasesAlwaysIncludeString(t *testing.T) {
 	}
 }
 
+func TestStringNodeValidCasesUseDateTimeWhenFormatted(t *testing.T) {
+	node := StringNode{Format: "date-time"}
+
+	require.Equal(t, Case{Name: "date-time", Value: json.RawMessage(`"2026-07-01T12:34:56Z"`)}, node.ValidCases()[0])
+}
+
 func TestStringNodeValidCasesIncludeNullOnlyWhenNullable(t *testing.T) {
 	nullableNode := StringNode{BaseNode: BaseNode{Nullable: true}}
 	nullableCases := nullableNode.ValidCases()
@@ -33,10 +39,17 @@ func TestStringNodeValidCasesIncludeNullOnlyWhenNullable(t *testing.T) {
 
 func TestStringNodeInvalidCasesIncludeNullOnlyWhenNotNullable(t *testing.T) {
 	nullableNode := StringNode{BaseNode: BaseNode{Nullable: true}}
-	require.Empty(t, nullableNode.InvalidCases())
+	require.NotContains(t, rawMessages(nullableNode.InvalidCases()), `null`)
 
 	notNullableNode := StringNode{BaseNode: BaseNode{Nullable: false}}
 	invalidCases := notNullableNode.InvalidCases()
-	require.Len(t, invalidCases, 1)
+	require.Len(t, invalidCases, 5)
 	require.Equal(t, Case{Name: "null", Value: json.RawMessage(`null`)}, invalidCases[0])
+}
+
+func TestStringNodeInvalidCasesIncludeDateTimeFormatError(t *testing.T) {
+	node := StringNode{Format: "date-time"}
+
+	require.Contains(t, rawMessages(node.InvalidCases()), `"not-date-time"`)
+	require.Contains(t, caseNames(node.InvalidCases()), "invalid date-time")
 }
