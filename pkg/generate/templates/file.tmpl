@@ -1,0 +1,25 @@
+package example
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+{{- if .UsesFmt }}
+	"fmt"
+{{- end }}
+)
+
+var (
+	NotAnObjectError              = errors.New("not an object")
+	AdditionalPropertyError       = errors.New("additional property")
+	MissingRequiredPropertyError  = errors.New("missing required property")
+	NullForNotNullableStringError = errors.New("null for not nullable string")
+	NonStringForStringSchemaError = errors.New("non-string for string schema")
+)
+
+var jsonNull = []byte("null")
+
+{{- range .Schemas }}
+
+{{ .Generate -}}
+{{- end }}

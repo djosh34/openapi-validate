@@ -107,6 +107,9 @@ func TestStringContextGenerateRequiredNotNullableString(t *testing.T) {
 		ContextName: "RequiredNotNullableString",
 	}
 
+	generated, err := schemaContext.Generate()
+	require.NoError(t, err)
+
 	require.Equal(t, `type RequiredNotNullableString string
 
 var _ json.Unmarshaler = new(RequiredNotNullableString)
@@ -121,11 +124,10 @@ func (s *RequiredNotNullableString) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
-
 	*s = RequiredNotNullableString(value)
 	return nil
 }
-`, schemaContext.Generate())
+`, generated)
 }
 
 func TestObjectContextGenerateObjectKeysAdditionalPropertiesFalse(t *testing.T) {
@@ -154,6 +156,9 @@ func TestObjectContextGenerateObjectKeysAdditionalPropertiesFalse(t *testing.T) 
 		},
 	}
 
+	generated, err := schemaContext.Generate()
+	require.NoError(t, err)
+
 	require.Equal(t, `type ObjectKeysAdditionalPropertiesFalse struct {
 	RequiredNullableString    RequiredNullableString     `+"`"+`json:"requiredNullableString"`+"`"+`
 	RequiredNotNullableString RequiredNotNullableString  `+"`"+`json:"requiredNotNullableString"`+"`"+`
@@ -174,7 +179,6 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 	if tok != json.Delim('{') {
 		return NotAnObjectError
 	}
-
 	var hasRequiredNullableString bool
 	var hasRequiredNotNullableString bool
 
@@ -203,6 +207,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 			if err != nil {
 				return err
 			}
+
 		case "requiredNotNullableString":
 			hasRequiredNotNullableString = true
 
@@ -210,6 +215,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 			if err != nil {
 				return err
 			}
+
 		case "optionalNullableString":
 			var optionalNullableString OptionalNullableString
 			err = json.Unmarshal(value, &optionalNullableString)
@@ -219,18 +225,17 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 			o.OptionalNullableString = &optionalNullableString
 
 		case "optionalNotNullableString":
-
 			var optionalNotNullableString OptionalNotNullableString
 			err = json.Unmarshal(value, &optionalNotNullableString)
 			if err != nil {
 				return err
 			}
 			o.OptionalNotNullableString = &optionalNotNullableString
+
 		default:
 			return fmt.Errorf("%w: %s", AdditionalPropertyError, name)
 		}
 	}
-
 	if !hasRequiredNullableString {
 		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "requiredNullableString")
 	}
@@ -240,7 +245,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
-`, schemaContext.Generate())
+`, generated)
 }
 
 func TestFilterOperationsKeepsOnlyRequestedOperation(t *testing.T) {

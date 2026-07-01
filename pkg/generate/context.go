@@ -14,7 +14,7 @@ type GenerateContext struct {
 
 type SchemaObject interface {
 	Name() string
-	Generate() string
+	Generate() (string, error)
 }
 
 var _ SchemaObject = new(ObjectContext)
@@ -44,9 +44,17 @@ func (o ObjectContext) Name() string { return o.ContextName }
 func (o StringContext) Name() string { return o.ContextName }
 func (o ArrayContext) Name() string  { return o.ContextName }
 
-func (o ObjectContext) Generate() string { panic("TODO: implement ObjectContext.Generate") }
-func (o StringContext) Generate() string { panic("TODO: implement StringContext.Generate") }
-func (o ArrayContext) Generate() string  { panic("TODO: implement ArrayContext.Generate") }
+func (o ObjectContext) Generate() (string, error) {
+	return executeGoTemplate("object.tmpl", o)
+}
+
+func (o StringContext) Generate() (string, error) {
+	return executeGoTemplate("string.tmpl", o)
+}
+
+func (o ArrayContext) Generate() (string, error) {
+	return executeGoTemplate("array.tmpl", o)
+}
 
 func (c *GenerateContext) JSONRequestBodySchemas() (map[*openapi3.Operation]*openapi3.Schema, error) {
 	if c.Document == nil || c.Document.Paths == nil {

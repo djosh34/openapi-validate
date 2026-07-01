@@ -2,10 +2,9 @@ package example
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
-
-	"encoding/json"
 )
 
 var (
@@ -35,7 +34,6 @@ func (s *RequiredNullableString) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
-
 	s.Value = new(value)
 	return nil
 }
@@ -54,7 +52,6 @@ func (s *RequiredNotNullableString) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
-
 	*s = RequiredNotNullableString(value)
 	return nil
 }
@@ -76,7 +73,6 @@ func (s *OptionalNullableString) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
-
 	s.Value = new(value)
 	return nil
 }
@@ -95,7 +91,6 @@ func (s *OptionalNotNullableString) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
-
 	*s = OptionalNotNullableString(value)
 	return nil
 }
@@ -120,7 +115,6 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 	if tok != json.Delim('{') {
 		return NotAnObjectError
 	}
-
 	var hasRequiredNullableString bool
 	var hasRequiredNotNullableString bool
 
@@ -149,6 +143,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 			if err != nil {
 				return err
 			}
+
 		case "requiredNotNullableString":
 			hasRequiredNotNullableString = true
 
@@ -156,6 +151,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 			if err != nil {
 				return err
 			}
+
 		case "optionalNullableString":
 			var optionalNullableString OptionalNullableString
 			err = json.Unmarshal(value, &optionalNullableString)
@@ -165,18 +161,17 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 			o.OptionalNullableString = &optionalNullableString
 
 		case "optionalNotNullableString":
-
 			var optionalNotNullableString OptionalNotNullableString
 			err = json.Unmarshal(value, &optionalNotNullableString)
 			if err != nil {
 				return err
 			}
 			o.OptionalNotNullableString = &optionalNotNullableString
+
 		default:
 			return fmt.Errorf("%w: %s", AdditionalPropertyError, name)
 		}
 	}
-
 	if !hasRequiredNullableString {
 		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "requiredNullableString")
 	}

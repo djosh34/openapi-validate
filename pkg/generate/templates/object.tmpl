@@ -1,0 +1,81 @@
+{{- $name := .Name }}
+type {{ $name }} struct {
+{{- range .OrderedProperties }}
+	{{ .Schema.Name }} {{ .FieldType }} {{ .JSONTag }}
+{{- end }}
+}
+
+var _ json.Unmarshaler = (*{{ $name }})(nil)
+
+func (o *{{ $name }}) UnmarshalJSON(data []byte) error {
+{{- if .Nullable }}
+	if bytes.Equal(data, jsonNull) {
+		return nil
+	}
+
+{{- end }}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber()
+
+	tok, err := d.Token()
+	if err != nil {
+		return err
+	}
+	if tok != json.Delim('{') {
+		return NotAnObjectError
+	}
+
+{{- range .RequiredProperties }}
+	var has{{ .Schema.Name }} bool
+{{- end }}
+
+	for d.More() {
+		nameTok, nameErr := d.Token()
+		if nameErr != nil {
+			return nameErr
+		}
+
+		name, ok := nameTok.(string)
+		if !ok {
+			return NotAnObjectError
+		}
+
+		var value json.RawMessage
+		err = d.Decode(&value)
+		if err != nil {
+			return err
+		}
+
+		switch name {
+{{- range .OrderedProperties }}
+{{- if .Required }}
+{{ template "object_required_property.tmpl" . -}}
+{{- else }}
+{{ template "object_optional_property.tmpl" . -}}
+{{- end }}
+{{- end }}
+		default:
+{{- if .AdditionalProperties }}
+{{- if .AdditionalPropertiesSchema }}
+			var additionalProperty {{ .AdditionalPropertiesSchema.Name }}
+			err = json.Unmarshal(value, &additionalProperty)
+			if err != nil {
+				return err
+			}
+{{- else }}
+			continue
+{{- end }}
+{{- else }}
+			return fmt.Errorf("%w: %s", AdditionalPropertyError, name)
+{{- end }}
+		}
+	}
+
+{{- range .RequiredProperties }}
+	if !has{{ .Schema.Name }} {
+		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "{{ .JSONName }}")
+	}
+{{- end }}
+
+	return nil
+}

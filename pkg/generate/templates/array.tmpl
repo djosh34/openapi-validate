@@ -1,0 +1,35 @@
+{{- $name := .Name }}
+{{- $items := .Items.Name }}
+{{- if .Nullable }}
+type {{ $name }} struct {
+	Value []{{ $items }}
+}
+{{- else }}
+type {{ $name }} []{{ $items }}
+{{- end }}
+
+var _ json.Unmarshaler = new({{ $name }})
+
+func (a *{{ $name }}) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+{{- if .Nullable }}
+		a.Value = nil
+		return nil
+{{- else }}
+		return fmt.Errorf("null for not nullable array")
+{{- end }}
+	}
+
+	var value []{{ $items }}
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return err
+	}
+
+{{- if .Nullable }}
+	a.Value = value
+{{- else }}
+	*a = {{ $name }}(value)
+{{- end }}
+	return nil
+}

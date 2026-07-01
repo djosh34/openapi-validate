@@ -25,15 +25,34 @@ func (fs FileSet) WriteToDir(dir string) error {
 }
 
 func (c *GenerateContext) GenerateInMemory() (FileSet, error) {
-	operations, err := c.JSONRequestBodySchemaObjects()
+	operations := c.Operations
+	if operations == nil {
+		var err error
+		operations, err = c.JSONRequestBodySchemaObjects()
+		if err != nil {
+			return nil, err
+		}
+
+		c.Operations = operations
+	}
+
+	operationSchemas, err := namedOperationSchemas(operations)
 	if err != nil {
 		return nil, err
 	}
 
-	c.Operations = operations
+	schemas, err := schemaDefinitions(operationSchemas)
+	if err != nil {
+		return nil, err
+	}
+
+	models, err := renderModelsFile(schemas)
+	if err != nil {
+		return nil, err
+	}
 
 	fileSet := make(FileSet)
-	fileSet["models.go"] = []byte("package example")
+	fileSet["models.go"] = models
 
 	return fileSet, nil
 }

@@ -1,0 +1,7 @@
+		case "{{ .JSONName }}":
+			var {{ .LocalName }} {{ .Schema.Name }}
+			err = json.Unmarshal(value, &{{ .LocalName }})
+			if err != nil {
+				return err
+			}
+			o.{{ .Schema.Name }} = &{{ .LocalName }}

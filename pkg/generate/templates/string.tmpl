@@ -1,0 +1,34 @@
+{{- $name := .Name }}
+{{- if .Nullable }}
+type {{ $name }} struct {
+	Value *string
+}
+{{- else }}
+type {{ $name }} string
+{{- end }}
+
+var _ json.Unmarshaler = new({{ $name }})
+
+func (s *{{ $name }}) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+{{- if .Nullable }}
+		s.Value = nil
+		return nil
+{{- else }}
+		return NullForNotNullableStringError
+{{- end }}
+	}
+
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+
+{{- if .Nullable }}
+	s.Value = new(value)
+{{- else }}
+	*s = {{ $name }}(value)
+{{- end }}
+	return nil
+}
