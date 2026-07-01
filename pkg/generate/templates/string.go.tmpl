@@ -10,6 +10,12 @@ type {{ $name }} string
 var _ json.Unmarshaler = new({{ $name }})
 
 func (s *{{ $name }}) UnmarshalJSON(data []byte) error {
+{{- if .EmptyBodyAllowed }}
+	if len(data) == 0 {
+		return nil
+	}
+
+{{- end }}
 	if bytes.Equal(data, jsonNull) {
 {{- if .Nullable }}
 		s.Value = nil

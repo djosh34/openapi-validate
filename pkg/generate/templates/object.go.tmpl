@@ -8,6 +8,12 @@ type {{ $name }} struct {
 var _ json.Unmarshaler = (*{{ $name }})(nil)
 
 func (o *{{ $name }}) UnmarshalJSON(data []byte) error {
+{{- if .EmptyBodyAllowed }}
+	if len(data) == 0 {
+		return nil
+	}
+
+{{- end }}
 {{- if .Nullable }}
 	if bytes.Equal(data, jsonNull) {
 		return nil

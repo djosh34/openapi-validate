@@ -4,6 +4,23 @@ info:
   version: 1.0.0
 
 paths:
+  /optional-array-nullable:
+    post:
+      operationId: optionalArrayNullable
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: array
+              nullable: true
+              items:
+                type: string
+                nullable: false
+      responses:
+        '204':
+          description: No Content
+
   /array-nullable:
     post:
       operationId: arrayNullable

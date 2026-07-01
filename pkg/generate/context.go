@@ -21,8 +21,9 @@ type Schema interface {
 }
 
 type BaseSchema struct {
-	Name     string
-	Nullable bool
+	Name             string
+	Nullable         bool
+	EmptyBodyAllowed bool
 }
 
 func (b *BaseSchema) Base() *BaseSchema {
@@ -236,6 +237,8 @@ func (c *GenerateContext) JSONRequestBodyModelSchemas() ([]Schema, error) {
 			if err != nil {
 				return nil, fmt.Errorf("operation %q request body schema: %w", operation.OperationID, err)
 			}
+
+			schema.Base().EmptyBodyAllowed = !operation.RequestBody.Value.Required
 
 			name := jsonBody.Schema.Value.Title
 			if name == "" {

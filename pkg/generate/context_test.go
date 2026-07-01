@@ -93,6 +93,36 @@ func TestJSONRequestBodyModelSchemasConvertsRequestBodySchemas(t *testing.T) {
 	}, schemas)
 }
 
+func TestJSONRequestBodyModelSchemasAllowsEmptyBodyWhenRequestBodyIsOptional(t *testing.T) {
+	schema := openapi3.NewArraySchema()
+	schema.WithItems(openapi3.NewStringSchema())
+
+	generateContext := &GenerateContext{
+		Document: &openapi3.T{
+			Paths: openapi3.NewPaths(
+				openapi3.WithPath("/optional-body", &openapi3.PathItem{
+					Post: operationWithContent("optionalBody", openapi3.NewContentWithJSONSchema(schema)),
+				}),
+			),
+		},
+	}
+
+	schemas, err := generateContext.JSONRequestBodyModelSchemas()
+	require.NoError(t, err)
+
+	require.Equal(t, []Schema{
+		&ArraySchema{
+			BaseSchema: BaseSchema{Name: "OptionalBody", EmptyBodyAllowed: true},
+			Items: &StringSchema{
+				BaseSchema: BaseSchema{Name: "OptionalBodyItem"},
+			},
+		},
+		&StringSchema{
+			BaseSchema: BaseSchema{Name: "OptionalBodyItem"},
+		},
+	}, schemas)
+}
+
 func TestSchemaFromOpenAPISchemaRecursesObjectProperties(t *testing.T) {
 	nestedSchema := openapi3.NewObjectSchema()
 	nestedSchema.WithProperty("child", openapi3.NewStringSchema().WithNullable())

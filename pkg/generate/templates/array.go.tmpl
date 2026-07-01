@@ -11,6 +11,12 @@ type {{ $name }} []{{ $items }}
 var _ json.Unmarshaler = new({{ $name }})
 
 func (a *{{ $name }}) UnmarshalJSON(data []byte) error {
+{{- if .EmptyBodyAllowed }}
+	if len(data) == 0 {
+		return nil
+	}
+
+{{- end }}
 	if bytes.Equal(data, jsonNull) {
 {{- if .Nullable }}
 		a.Value = nil

@@ -17,6 +17,48 @@ var (
 
 var jsonNull = []byte("null")
 
+type OptionalArrayNullable struct {
+	Value []OptionalArrayNullableItem
+}
+
+var _ json.Unmarshaler = new(OptionalArrayNullable)
+
+func (a *OptionalArrayNullable) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+	if bytes.Equal(data, jsonNull) {
+		a.Value = nil
+		return nil
+	}
+
+	var value []OptionalArrayNullableItem
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return err
+	}
+	a.Value = value
+	return nil
+}
+
+type OptionalArrayNullableItem string
+
+var _ json.Unmarshaler = new(OptionalArrayNullableItem)
+
+func (s *OptionalArrayNullableItem) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+		return NullForNotNullableStringError
+	}
+
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+	*s = OptionalArrayNullableItem(value)
+	return nil
+}
+
 type ObjectKeysAdditionalPropertiesFalse struct {
 	OptionalNotNullableString *ObjectKeysAdditionalPropertiesFalseOptionalNotNullableString `json:"optionalNotNullableString,omitzero"`
 	OptionalNullableString    *ObjectKeysAdditionalPropertiesFalseOptionalNullableString    `json:"optionalNullableString,omitzero"`
@@ -181,5 +223,80 @@ func (s *ObjectKeysAdditionalPropertiesFalseRequiredNullableString) UnmarshalJSO
 		return NonStringForStringSchemaError
 	}
 	s.Value = new(value)
+	return nil
+}
+
+type ArrayNullable struct {
+	Value []ArrayNullableItem
+}
+
+var _ json.Unmarshaler = new(ArrayNullable)
+
+func (a *ArrayNullable) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+		a.Value = nil
+		return nil
+	}
+
+	var value []ArrayNullableItem
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return err
+	}
+	a.Value = value
+	return nil
+}
+
+type ArrayNullableItem string
+
+var _ json.Unmarshaler = new(ArrayNullableItem)
+
+func (s *ArrayNullableItem) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+		return NullForNotNullableStringError
+	}
+
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+	*s = ArrayNullableItem(value)
+	return nil
+}
+
+type ArrayNotNullable []ArrayNotNullableItem
+
+var _ json.Unmarshaler = new(ArrayNotNullable)
+
+func (a *ArrayNotNullable) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+		return fmt.Errorf("null for not nullable array")
+	}
+
+	var value []ArrayNotNullableItem
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return err
+	}
+	*a = ArrayNotNullable(value)
+	return nil
+}
+
+type ArrayNotNullableItem string
+
+var _ json.Unmarshaler = new(ArrayNotNullableItem)
+
+func (s *ArrayNotNullableItem) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+		return NullForNotNullableStringError
+	}
+
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+	*s = ArrayNotNullableItem(value)
 	return nil
 }
