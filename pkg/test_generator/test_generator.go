@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+type Caseable interface {
+	ValidCases() []Case
+	InvalidCases() []Case
+}
 type Case struct {
 	GenerateValid   func(valid, invalid map[string]SchemaNode) json.RawMessage
 	RequiredValid   map[string]SchemaNode

@@ -11,6 +11,10 @@ func (o *ObjectNode) ValidCases() []Case {
 	//TODO implement me
 	panic("implement me")
 }
+func (o *ObjectNode) InvalidCases() []Case {
+	//TODO implement me
+	panic("implement me")
+}
 
 type AdditionalPropertiesNode struct {
 	Allowed *bool
