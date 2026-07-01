@@ -6,25 +6,7 @@ requestBody:
   content:
     application/json:
       schema:
-        type: object
-        nullable: true
-        required:
-          - requiredNullableString
-          - requiredNotNullableString
-        additionalProperties: false
-        properties:
-          requiredNullableString:
-            type: string
-            nullable: true
-          requiredNotNullableString:
-            type: string
-            nullable: false
-          optionalNullableString:
-            type: string
-            nullable: true
-          optionalNotNullableString:
-            type: string
-            nullable: false
+        <schema>
 ```
 
 ### Valid
@@ -87,17 +69,13 @@ schema:
   additionalProperties: false
   properties:
     requiredNullableString:
-      type: string
-      nullable: true
+      <schema>
     requiredNotNullableString:
-      type: string
-      nullable: false
+      <schema>
     optionalNullableString:
-      type: string
-      nullable: true
+      <schema>
     optionalNotNullableString:
-      type: string
-      nullable: false
+      <schema>
 ```
 
 ### Valid
@@ -226,8 +204,7 @@ required:
   - requiredNullableString
 properties:
   requiredNullableString:
-    type: string
-    nullable: true
+    <schema>
 ```
 
 ### Valid
@@ -297,8 +274,7 @@ required:
   - requiredNotNullableString
 properties:
   requiredNotNullableString:
-    type: string
-    nullable: false
+    <schema>
 ```
 
 ### Valid
@@ -366,8 +342,7 @@ false
 ```yaml
 properties:
   optionalNullableString:
-    type: string
-    nullable: true
+    <schema>
 ```
 
 ### Valid
@@ -435,8 +410,7 @@ false
 ```yaml
 properties:
   optionalNotNullableString:
-    type: string
-    nullable: false
+    <schema>
 ```
 
 ### Valid
