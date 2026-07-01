@@ -1,7 +1,0 @@
-		case "{{ .JSONName }}":
-			has{{ .Schema.Name }} = true
-
-			err = json.Unmarshal(value, &o.{{ .Schema.Name }})
-			if err != nil {
-				return err
-			}

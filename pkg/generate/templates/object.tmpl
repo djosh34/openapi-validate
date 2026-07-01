@@ -1,6 +1,26 @@
-{{- $name := .Name }}
+{{- define "object_required_property" }}
+		case "{{ .JSONName }}":
+			has{{ .Schema.Name }} = true
+
+			err = json.Unmarshal(value, &o.{{ .Schema.Name }})
+			if err != nil {
+				return err
+			}
+{{- end }}
+
+{{- define "object_optional_property" }}
+		case "{{ .JSONName }}":
+			var {{ .LocalName }} {{ .Schema.Name }}
+			err = json.Unmarshal(value, &{{ .LocalName }})
+			if err != nil {
+				return err
+			}
+			o.{{ .Schema.Name }} = &{{ .LocalName }}
+{{- end }}
+
+{{- $name := .Name -}}
 type {{ $name }} struct {
-{{- range .OrderedProperties }}
+{{- range .Properties }}
 	{{ .Schema.Name }} {{ .FieldType }} {{ .JSONTag }}
 {{- end }}
 }
@@ -25,8 +45,10 @@ func (o *{{ $name }}) UnmarshalJSON(data []byte) error {
 		return NotAnObjectError
 	}
 
-{{- range .RequiredProperties }}
+{{- range .Properties }}
+{{- if .Required }}
 	var has{{ .Schema.Name }} bool
+{{- end }}
 {{- end }}
 
 	for d.More() {
@@ -47,11 +69,11 @@ func (o *{{ $name }}) UnmarshalJSON(data []byte) error {
 		}
 
 		switch name {
-{{- range .OrderedProperties }}
+{{- range .Properties }}
 {{- if .Required }}
-{{ template "object_required_property.tmpl" . -}}
+{{- template "object_required_property" . }}
 {{- else }}
-{{ template "object_optional_property.tmpl" . -}}
+{{- template "object_optional_property" . }}
 {{- end }}
 {{- end }}
 		default:
@@ -71,10 +93,12 @@ func (o *{{ $name }}) UnmarshalJSON(data []byte) error {
 		}
 	}
 
-{{- range .RequiredProperties }}
+{{- range .Properties }}
+{{- if .Required }}
 	if !has{{ .Schema.Name }} {
 		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "{{ .JSONName }}")
 	}
+{{- end }}
 {{- end }}
 
 	return nil

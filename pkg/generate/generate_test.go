@@ -87,15 +87,25 @@ func TestGeneratePopulatesOperationsMap(t *testing.T) {
 	require.Equal(t, map[string]SchemaObject{
 		"objectKeysAdditionalPropertiesFalse": ObjectContext{
 			AdditionalProperties: false,
-			Required: []string{
-				"requiredNullableString",
-				"requiredNotNullableString",
-			},
-			Properties: map[string]SchemaObject{
-				"requiredNullableString":    StringContext{Nullable: true},
-				"requiredNotNullableString": StringContext{},
-				"optionalNullableString":    StringContext{Nullable: true},
-				"optionalNotNullableString": StringContext{},
+			Properties: map[string]ObjectPropertyContext{
+				"requiredNullableString": {
+					JSONName: "requiredNullableString",
+					Schema:   StringContext{Nullable: true},
+					Required: true,
+				},
+				"requiredNotNullableString": {
+					JSONName: "requiredNotNullableString",
+					Schema:   StringContext{},
+					Required: true,
+				},
+				"optionalNullableString": {
+					JSONName: "optionalNullableString",
+					Schema:   StringContext{Nullable: true},
+				},
+				"optionalNotNullableString": {
+					JSONName: "optionalNotNullableString",
+					Schema:   StringContext{},
+				},
 			},
 		},
 		"stringNoFormatNullable": StringContext{Nullable: true},
@@ -134,24 +144,34 @@ func TestObjectContextGenerateObjectKeysAdditionalPropertiesFalse(t *testing.T) 
 	schemaContext := ObjectContext{
 		ContextName:          "ObjectKeysAdditionalPropertiesFalse",
 		AdditionalProperties: false,
-		Required: []string{
-			"requiredNullableString",
-			"requiredNotNullableString",
-		},
-		Properties: map[string]SchemaObject{
-			"requiredNullableString": StringContext{
-				ContextName: "RequiredNullableString",
-				Nullable:    true,
+		Properties: map[string]ObjectPropertyContext{
+			"requiredNullableString": {
+				JSONName: "requiredNullableString",
+				Required: true,
+				Schema: StringContext{
+					ContextName: "RequiredNullableString",
+					Nullable:    true,
+				},
 			},
-			"requiredNotNullableString": StringContext{
-				ContextName: "RequiredNotNullableString",
+			"requiredNotNullableString": {
+				JSONName: "requiredNotNullableString",
+				Required: true,
+				Schema: StringContext{
+					ContextName: "RequiredNotNullableString",
+				},
 			},
-			"optionalNullableString": StringContext{
-				ContextName: "OptionalNullableString",
-				Nullable:    true,
+			"optionalNullableString": {
+				JSONName: "optionalNullableString",
+				Schema: StringContext{
+					ContextName: "OptionalNullableString",
+					Nullable:    true,
+				},
 			},
-			"optionalNotNullableString": StringContext{
-				ContextName: "OptionalNotNullableString",
+			"optionalNotNullableString": {
+				JSONName: "optionalNotNullableString",
+				Schema: StringContext{
+					ContextName: "OptionalNotNullableString",
+				},
 			},
 		},
 	}
@@ -160,10 +180,10 @@ func TestObjectContextGenerateObjectKeysAdditionalPropertiesFalse(t *testing.T) 
 	require.NoError(t, err)
 
 	require.Equal(t, `type ObjectKeysAdditionalPropertiesFalse struct {
-	RequiredNullableString    RequiredNullableString     `+"`"+`json:"requiredNullableString"`+"`"+`
-	RequiredNotNullableString RequiredNotNullableString  `+"`"+`json:"requiredNotNullableString"`+"`"+`
-	OptionalNullableString    *OptionalNullableString    `+"`"+`json:"optionalNullableString,omitzero"`+"`"+`
 	OptionalNotNullableString *OptionalNotNullableString `+"`"+`json:"optionalNotNullableString,omitzero"`+"`"+`
+	OptionalNullableString *OptionalNullableString `+"`"+`json:"optionalNullableString,omitzero"`+"`"+`
+	RequiredNotNullableString RequiredNotNullableString `+"`"+`json:"requiredNotNullableString"`+"`"+`
+	RequiredNullableString RequiredNullableString `+"`"+`json:"requiredNullableString"`+"`"+`
 }
 
 var _ json.Unmarshaler = (*ObjectKeysAdditionalPropertiesFalse)(nil)
@@ -179,8 +199,8 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 	if tok != json.Delim('{') {
 		return NotAnObjectError
 	}
-	var hasRequiredNullableString bool
 	var hasRequiredNotNullableString bool
+	var hasRequiredNullableString bool
 
 	for d.More() {
 		nameTok, nameErr := d.Token()
@@ -200,30 +220,6 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 		}
 
 		switch name {
-		case "requiredNullableString":
-			hasRequiredNullableString = true
-
-			err = json.Unmarshal(value, &o.RequiredNullableString)
-			if err != nil {
-				return err
-			}
-
-		case "requiredNotNullableString":
-			hasRequiredNotNullableString = true
-
-			err = json.Unmarshal(value, &o.RequiredNotNullableString)
-			if err != nil {
-				return err
-			}
-
-		case "optionalNullableString":
-			var optionalNullableString OptionalNullableString
-			err = json.Unmarshal(value, &optionalNullableString)
-			if err != nil {
-				return err
-			}
-			o.OptionalNullableString = &optionalNullableString
-
 		case "optionalNotNullableString":
 			var optionalNotNullableString OptionalNotNullableString
 			err = json.Unmarshal(value, &optionalNotNullableString)
@@ -231,16 +227,36 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 				return err
 			}
 			o.OptionalNotNullableString = &optionalNotNullableString
+		case "optionalNullableString":
+			var optionalNullableString OptionalNullableString
+			err = json.Unmarshal(value, &optionalNullableString)
+			if err != nil {
+				return err
+			}
+			o.OptionalNullableString = &optionalNullableString
+		case "requiredNotNullableString":
+			hasRequiredNotNullableString = true
 
+			err = json.Unmarshal(value, &o.RequiredNotNullableString)
+			if err != nil {
+				return err
+			}
+		case "requiredNullableString":
+			hasRequiredNullableString = true
+
+			err = json.Unmarshal(value, &o.RequiredNullableString)
+			if err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("%w: %s", AdditionalPropertyError, name)
 		}
 	}
-	if !hasRequiredNullableString {
-		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "requiredNullableString")
-	}
 	if !hasRequiredNotNullableString {
 		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "requiredNotNullableString")
+	}
+	if !hasRequiredNullableString {
+		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "requiredNullableString")
 	}
 
 	return nil

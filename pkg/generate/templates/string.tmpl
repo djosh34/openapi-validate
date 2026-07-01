@@ -1,9 +1,9 @@
-{{- $name := .Name }}
-{{- if .Nullable }}
+{{- $name := .Name -}}
+{{- if .Nullable -}}
 type {{ $name }} struct {
 	Value *string
 }
-{{- else }}
+{{- else -}}
 type {{ $name }} string
 {{- end }}
 

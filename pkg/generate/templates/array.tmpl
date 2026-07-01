@@ -1,10 +1,10 @@
-{{- $name := .Name }}
-{{- $items := .Items.Name }}
-{{- if .Nullable }}
+{{- $name := .Name -}}
+{{- $items := .Items.Name -}}
+{{- if .Nullable -}}
 type {{ $name }} struct {
 	Value []{{ $items }}
 }
-{{- else }}
+{{- else -}}
 type {{ $name }} []{{ $items }}
 {{- end }}
 

@@ -2,7 +2,6 @@ package generate
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
@@ -14,6 +13,7 @@ type GenerateContext struct {
 
 type SchemaObject interface {
 	Name() string
+	IsNullable() bool
 	Generate() (string, error)
 }
 
@@ -26,8 +26,13 @@ type ObjectContext struct {
 	Nullable                   bool
 	AdditionalProperties       bool
 	AdditionalPropertiesSchema SchemaObject
-	Required                   []string
-	Properties                 map[string]SchemaObject
+	Properties                 map[string]ObjectPropertyContext
+}
+
+type ObjectPropertyContext struct {
+	JSONName string
+	Schema   SchemaObject
+	Required bool
 }
 
 type StringContext struct {
@@ -43,6 +48,40 @@ type ArrayContext struct {
 func (o ObjectContext) Name() string { return o.ContextName }
 func (o StringContext) Name() string { return o.ContextName }
 func (o ArrayContext) Name() string  { return o.ContextName }
+
+func (o ObjectContext) IsNullable() bool { return o.Nullable }
+func (o StringContext) IsNullable() bool { return o.Nullable }
+func (o ArrayContext) IsNullable() bool  { return o.Nullable }
+
+func (o ObjectContext) HasRequiredProperty() bool {
+	for _, property := range o.Properties {
+		if property.Required {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (p ObjectPropertyContext) FieldType() string {
+	if p.Required {
+		return p.Schema.Name()
+	}
+
+	return "*" + p.Schema.Name()
+}
+
+func (p ObjectPropertyContext) JSONTag() string {
+	if p.Required {
+		return fmt.Sprintf("`json:%q`", p.JSONName)
+	}
+
+	return fmt.Sprintf("`json:%q`", p.JSONName+",omitzero")
+}
+
+func (p ObjectPropertyContext) LocalName() string {
+	return unexportedName(p.Schema.Name())
+}
 
 func (o ObjectContext) Generate() (string, error) {
 	return executeGoTemplate("object.tmpl", o)
@@ -140,8 +179,7 @@ func objectContextFromOpenAPISchema(schema *openapi3.Schema) (ObjectContext, err
 	objectContext := ObjectContext{
 		Nullable:             schema.PermitsNull(),
 		AdditionalProperties: true,
-		Required:             slices.Clone(schema.Required),
-		Properties:           make(map[string]SchemaObject, len(schema.Properties)),
+		Properties:           make(map[string]ObjectPropertyContext, len(schema.Properties)),
 	}
 
 	if hasAdditionalProperties := schema.AdditionalProperties.Has; hasAdditionalProperties != nil {
@@ -158,13 +196,23 @@ func objectContextFromOpenAPISchema(schema *openapi3.Schema) (ObjectContext, err
 		objectContext.AdditionalPropertiesSchema = additionalPropertiesObject
 	}
 
+	required := make(map[string]struct{}, len(schema.Required))
+	for _, propertyName := range schema.Required {
+		required[propertyName] = struct{}{}
+	}
+
 	for propertyName, propertySchema := range schema.Properties {
 		propertyObject, err := schemaObjectFromOpenAPISchemaRef(propertySchema)
 		if err != nil {
 			return ObjectContext{}, fmt.Errorf("property %q schema: %w", propertyName, err)
 		}
 
-		objectContext.Properties[propertyName] = propertyObject
+		_, isRequired := required[propertyName]
+		objectContext.Properties[propertyName] = ObjectPropertyContext{
+			JSONName: propertyName,
+			Schema:   propertyObject,
+			Required: isRequired,
+		}
 	}
 
 	return objectContext, nil
