@@ -114,7 +114,7 @@ func TestGeneratePopulatesOperationsMap(t *testing.T) {
 	err = generateContext.FilterOperations("objectKeysAdditionalPropertiesFalse", "stringNoFormatNullable")
 	require.NoError(t, err)
 
-	err = GenerateWithPathError(t, generateContext, t.TempDir())
+	operations, err := generateContext.JSONRequestBodySchemaObjects()
 	require.NoError(t, err)
 
 	require.Equal(t, map[string]SchemaObject{
@@ -142,7 +142,7 @@ func TestGeneratePopulatesOperationsMap(t *testing.T) {
 			},
 		},
 		"stringNoFormatNullable": StringContext{Nullable: true},
-	}, generateContext.Operations)
+	}, operations)
 }
 
 func TestStringContextGenerateRequiredNotNullableString(t *testing.T) {

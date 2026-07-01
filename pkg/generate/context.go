@@ -9,8 +9,7 @@ import (
 )
 
 type GenerateContext struct {
-	Document   *openapi3.T
-	Operations map[string]SchemaObject
+	Document *openapi3.T
 }
 
 type SchemaObject interface {

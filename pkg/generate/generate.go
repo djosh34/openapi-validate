@@ -25,15 +25,9 @@ func (fs FileSet) WriteToDir(dir string) error {
 }
 
 func (c *GenerateContext) GenerateInMemory() (FileSet, error) {
-	operations := c.Operations
-	if operations == nil {
-		var err error
-		operations, err = c.JSONRequestBodySchemaObjects()
-		if err != nil {
-			return nil, err
-		}
-
-		c.Operations = operations
+	operations, err := c.JSONRequestBodySchemaObjects()
+	if err != nil {
+		return nil, err
 	}
 
 	operationSchemas, err := namedOperationSchemas(operations)
