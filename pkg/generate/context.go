@@ -14,12 +14,14 @@ type GenerateContext struct {
 
 type Schema interface {
 	Base() *BaseSchema
+	ChildSchemas() []Schema
 	Generate() (string, error)
 	SchemaTypeName() string
+	SetTypeName(string)
 }
 
 type BaseSchema struct {
-	TypeName string
+	Name     string
 	Nullable bool
 }
 
@@ -32,7 +34,11 @@ func (b *BaseSchema) SchemaTypeName() string {
 		return ""
 	}
 
-	return b.TypeName
+	return b.Name
+}
+
+func (b *BaseSchema) SetTypeName(name string) {
+	b.Name = name
 }
 
 func (b *BaseSchema) LocalName() string {
@@ -65,6 +71,31 @@ type ArraySchema struct {
 	Items Schema
 }
 
+func (o *ObjectSchema) ChildSchemas() []Schema {
+	children := make([]Schema, 0, len(o.Properties)+1)
+	for _, property := range o.Properties {
+		children = append(children, property.Schema)
+	}
+
+	if o.AdditionalPropertiesSchema != nil {
+		children = append(children, o.AdditionalPropertiesSchema)
+	}
+
+	return children
+}
+
+func (s *StringSchema) ChildSchemas() []Schema {
+	return nil
+}
+
+func (a *ArraySchema) ChildSchemas() []Schema {
+	if a.Items == nil {
+		return nil
+	}
+
+	return []Schema{a.Items}
+}
+
 // TODO, put in tmpl
 func (p *ObjectFieldContext) FieldType() string {
 	if p.Required {
@@ -85,7 +116,11 @@ func (p *ObjectFieldContext) JSONTag() string {
 
 // TODO, we could decide to not care, and auto gen some valid var name
 func (p *ObjectFieldContext) LocalName() string {
-	return unexportedName(p.Schema.SchemaTypeName())
+	return unexportedName(p.PropertyName)
+}
+
+func (p *ObjectFieldContext) FieldName() string {
+	return exportedName(p.PropertyName)
 }
 
 func (o *ObjectFieldContext) Generate() (string, error) {
@@ -207,12 +242,16 @@ func (c *GenerateContext) JSONRequestBodyModelSchemas() ([]Schema, error) {
 				name = operation.OperationID
 			}
 
-			err = nameSchema(schema, name)
+			if schema.SchemaTypeName() == "" {
+				schema.SetTypeName(exportedName(name))
+			}
+
+			definitions, err := namedSchemaDefinitions(schema)
 			if err != nil {
 				return nil, fmt.Errorf("operation %q request body schema names: %w", operation.OperationID, err)
 			}
 
-			schemas = append(schemas, schema)
+			schemas = append(schemas, definitions...)
 		}
 	}
 
@@ -233,7 +272,7 @@ func SchemaFromOpenAPISchema(schema *openapi3.Schema) (Schema, error) {
 		Nullable: schema.PermitsNull(),
 	}
 	if schema.Title != "" {
-		base.TypeName = exportedName(schema.Title)
+		base.Name = exportedName(schema.Title)
 	}
 
 	switch schemaType {
@@ -278,6 +317,10 @@ func objectSchemaFromOpenAPISchema(schema *openapi3.Schema) (*ObjectSchema, erro
 		if err != nil {
 			return nil, fmt.Errorf("additionalProperties schema: %w", err)
 		}
+		err = setSchemaTypeNameIfEmpty(additionalPropertiesObject, "AdditionalProperty")
+		if err != nil {
+			return nil, fmt.Errorf("additionalProperties schema name: %w", err)
+		}
 
 		objectSchema.AdditionalProperties = true
 		objectSchema.AdditionalPropertiesSchema = additionalPropertiesObject
@@ -293,6 +336,10 @@ func objectSchemaFromOpenAPISchema(schema *openapi3.Schema) (*ObjectSchema, erro
 		propertyObject, err := schemaFromOpenAPISchemaRef(propertySchema)
 		if err != nil {
 			return nil, fmt.Errorf("property %q schema: %w", propertyName, err)
+		}
+		err = setSchemaTypeNameIfEmpty(propertyObject, propertyName)
+		if err != nil {
+			return nil, fmt.Errorf("property %q schema name: %w", propertyName, err)
 		}
 
 		_, isRequired := required[propertyName]
@@ -315,10 +362,30 @@ func arraySchemaFromOpenAPISchema(schema *openapi3.Schema) (*ArraySchema, error)
 	if err != nil {
 		return nil, fmt.Errorf("array items schema: %w", err)
 	}
+	err = setSchemaTypeNameIfEmpty(items, "Item")
+	if err != nil {
+		return nil, fmt.Errorf("array items schema name: %w", err)
+	}
 
 	return &ArraySchema{
 		Items: items,
 	}, nil
+}
+
+func setSchemaTypeNameIfEmpty(schema Schema, name string) error {
+	if schema == nil {
+		return fmt.Errorf("nil schema")
+	}
+
+	base := schema.Base()
+	if base == nil {
+		return fmt.Errorf("schema %T has nil base", schema)
+	}
+	if base.Name == "" {
+		base.Name = exportedName(name)
+	}
+
+	return nil
 }
 
 // TODO, I have high concern for this function. But we would need first to get better testing than this. It looks to me that it doesn't try to find the reffed value at all

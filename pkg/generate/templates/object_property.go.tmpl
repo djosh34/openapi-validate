@@ -1,6 +1,6 @@
 		case "{{ .PropertyName }}":
 			{{- if .Required }}
-			has{{ .SchemaTypeName }} = true
+			has{{ .FieldName }} = true
 			{{- end }}
 
 			var {{ .LocalName }} {{ .SchemaTypeName }}
@@ -9,7 +9,7 @@
 				return err
 			}
 			{{- if .Required }}
-			o.{{ .SchemaTypeName }} = {{ .LocalName }}
+			o.{{ .FieldName }} = {{ .LocalName }}
 			{{- else }}
-			o.{{ .SchemaTypeName }} = &{{ .LocalName }}
-			{{- end }}
+			o.{{ .FieldName }} = &{{ .LocalName }}
+			{{- end -}}

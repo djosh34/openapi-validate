@@ -18,10 +18,10 @@ var (
 var jsonNull = []byte("null")
 
 type ObjectKeysAdditionalPropertiesFalse struct {
-	OptionalNotNullableString *OptionalNotNullableString `json:"optionalNotNullableString,omitzero"`
-	OptionalNullableString    *OptionalNullableString    `json:"optionalNullableString,omitzero"`
-	RequiredNotNullableString RequiredNotNullableString  `json:"requiredNotNullableString"`
-	RequiredNullableString    RequiredNullableString     `json:"requiredNullableString"`
+	OptionalNotNullableString *ObjectKeysAdditionalPropertiesFalseOptionalNotNullableString `json:"optionalNotNullableString,omitzero"`
+	OptionalNullableString    *ObjectKeysAdditionalPropertiesFalseOptionalNullableString    `json:"optionalNullableString,omitzero"`
+	RequiredNotNullableString ObjectKeysAdditionalPropertiesFalseRequiredNotNullableString  `json:"requiredNotNullableString"`
+	RequiredNullableString    ObjectKeysAdditionalPropertiesFalseRequiredNullableString     `json:"requiredNullableString"`
 }
 
 var _ json.Unmarshaler = (*ObjectKeysAdditionalPropertiesFalse)(nil)
@@ -60,7 +60,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 		switch name {
 		case "optionalNotNullableString":
 
-			var optionalNotNullableString OptionalNotNullableString
+			var optionalNotNullableString ObjectKeysAdditionalPropertiesFalseOptionalNotNullableString
 			err = json.Unmarshal(value, &optionalNotNullableString)
 			if err != nil {
 				return err
@@ -68,7 +68,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 			o.OptionalNotNullableString = &optionalNotNullableString
 		case "optionalNullableString":
 
-			var optionalNullableString OptionalNullableString
+			var optionalNullableString ObjectKeysAdditionalPropertiesFalseOptionalNullableString
 			err = json.Unmarshal(value, &optionalNullableString)
 			if err != nil {
 				return err
@@ -77,7 +77,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 		case "requiredNotNullableString":
 			hasRequiredNotNullableString = true
 
-			var requiredNotNullableString RequiredNotNullableString
+			var requiredNotNullableString ObjectKeysAdditionalPropertiesFalseRequiredNotNullableString
 			err = json.Unmarshal(value, &requiredNotNullableString)
 			if err != nil {
 				return err
@@ -86,7 +86,7 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 		case "requiredNullableString":
 			hasRequiredNullableString = true
 
-			var requiredNullableString RequiredNullableString
+			var requiredNullableString ObjectKeysAdditionalPropertiesFalseRequiredNullableString
 			err = json.Unmarshal(value, &requiredNullableString)
 			if err != nil {
 				return err
@@ -106,11 +106,11 @@ func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type OptionalNotNullableString string
+type ObjectKeysAdditionalPropertiesFalseOptionalNotNullableString string
 
-var _ json.Unmarshaler = new(OptionalNotNullableString)
+var _ json.Unmarshaler = new(ObjectKeysAdditionalPropertiesFalseOptionalNotNullableString)
 
-func (s *OptionalNotNullableString) UnmarshalJSON(data []byte) error {
+func (s *ObjectKeysAdditionalPropertiesFalseOptionalNotNullableString) UnmarshalJSON(data []byte) error {
 	if bytes.Equal(data, jsonNull) {
 		return NullForNotNullableStringError
 	}
@@ -120,17 +120,17 @@ func (s *OptionalNotNullableString) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
-	*s = OptionalNotNullableString(value)
+	*s = ObjectKeysAdditionalPropertiesFalseOptionalNotNullableString(value)
 	return nil
 }
 
-type OptionalNullableString struct {
+type ObjectKeysAdditionalPropertiesFalseOptionalNullableString struct {
 	Value *string
 }
 
-var _ json.Unmarshaler = new(OptionalNullableString)
+var _ json.Unmarshaler = new(ObjectKeysAdditionalPropertiesFalseOptionalNullableString)
 
-func (s *OptionalNullableString) UnmarshalJSON(data []byte) error {
+func (s *ObjectKeysAdditionalPropertiesFalseOptionalNullableString) UnmarshalJSON(data []byte) error {
 	if bytes.Equal(data, jsonNull) {
 		s.Value = nil
 		return nil
@@ -145,11 +145,11 @@ func (s *OptionalNullableString) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type RequiredNotNullableString string
+type ObjectKeysAdditionalPropertiesFalseRequiredNotNullableString string
 
-var _ json.Unmarshaler = new(RequiredNotNullableString)
+var _ json.Unmarshaler = new(ObjectKeysAdditionalPropertiesFalseRequiredNotNullableString)
 
-func (s *RequiredNotNullableString) UnmarshalJSON(data []byte) error {
+func (s *ObjectKeysAdditionalPropertiesFalseRequiredNotNullableString) UnmarshalJSON(data []byte) error {
 	if bytes.Equal(data, jsonNull) {
 		return NullForNotNullableStringError
 	}
@@ -159,17 +159,17 @@ func (s *RequiredNotNullableString) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
-	*s = RequiredNotNullableString(value)
+	*s = ObjectKeysAdditionalPropertiesFalseRequiredNotNullableString(value)
 	return nil
 }
 
-type RequiredNullableString struct {
+type ObjectKeysAdditionalPropertiesFalseRequiredNullableString struct {
 	Value *string
 }
 
-var _ json.Unmarshaler = new(RequiredNullableString)
+var _ json.Unmarshaler = new(ObjectKeysAdditionalPropertiesFalseRequiredNullableString)
 
-func (s *RequiredNullableString) UnmarshalJSON(data []byte) error {
+func (s *ObjectKeysAdditionalPropertiesFalseRequiredNullableString) UnmarshalJSON(data []byte) error {
 	if bytes.Equal(data, jsonNull) {
 		s.Value = nil
 		return nil

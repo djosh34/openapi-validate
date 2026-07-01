@@ -5,8 +5,6 @@ import (
 	"embed"
 	"fmt"
 	"go/format"
-	"maps"
-	"slices"
 	"sync"
 	"text/template"
 )
@@ -70,67 +68,4 @@ func parsedGenerateTemplates() (*template.Template, error) {
 	}
 
 	return generateTemplates, nil
-}
-
-func schemaDefinitions(schemas []Schema) ([]Schema, error) {
-	definitionsByName := map[string]Schema{}
-	for _, schema := range schemas {
-		err := collectSchemaDefinitions(schema, definitionsByName)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	definitions := make([]Schema, 0, len(definitionsByName))
-	for _, name := range slices.Sorted(maps.Keys(definitionsByName)) {
-		definitions = append(definitions, definitionsByName[name])
-	}
-
-	return definitions, nil
-}
-
-func collectSchemaDefinitions(schema Schema, definitions map[string]Schema) error {
-	if schema == nil {
-		return fmt.Errorf("nil schema")
-	}
-
-	base := schema.Base()
-	if base == nil {
-		return fmt.Errorf("schema %T has nil base", schema)
-	}
-	if base.TypeName == "" {
-		return fmt.Errorf("schema %T has no type name", schema)
-	}
-
-	if _, exists := definitions[base.TypeName]; exists {
-		return nil
-	}
-	definitions[base.TypeName] = schema
-
-	switch schema := schema.(type) {
-	case *ObjectSchema:
-		for _, property := range schema.Properties {
-			err := collectSchemaDefinitions(property.Schema, definitions)
-			if err != nil {
-				return fmt.Errorf("property %q schema: %w", property.PropertyName, err)
-			}
-		}
-
-		if schema.AdditionalPropertiesSchema != nil {
-			err := collectSchemaDefinitions(schema.AdditionalPropertiesSchema, definitions)
-			if err != nil {
-				return fmt.Errorf("additionalProperties schema: %w", err)
-			}
-		}
-	case *ArraySchema:
-		err := collectSchemaDefinitions(schema.Items, definitions)
-		if err != nil {
-			return fmt.Errorf("array items schema: %w", err)
-		}
-	case *StringSchema:
-	default:
-		return fmt.Errorf("unsupported schema %T", schema)
-	}
-
-	return nil
 }

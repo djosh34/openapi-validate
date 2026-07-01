@@ -6,7 +6,17 @@ import (
 	"unicode"
 )
 
-func nameSchema(schema Schema, name string) error {
+func namedSchemaDefinitions(schema Schema) ([]Schema, error) {
+	var definitions []Schema
+	err := nameSchema(schema, "", &definitions)
+	if err != nil {
+		return nil, err
+	}
+
+	return definitions, nil
+}
+
+func nameSchema(schema Schema, parentName string, definitions *[]Schema) error {
 	if schema == nil {
 		return fmt.Errorf("nil schema")
 	}
@@ -15,33 +25,18 @@ func nameSchema(schema Schema, name string) error {
 	if base == nil {
 		return fmt.Errorf("schema %T has nil base", schema)
 	}
-	if base.TypeName == "" {
-		base.TypeName = exportedName(name)
+	if base.Name == "" {
+		return fmt.Errorf("schema %T has no type name", schema)
 	}
 
-	switch schema := schema.(type) {
-	case *ObjectSchema:
-		for _, property := range schema.Properties {
-			err := nameSchema(property.Schema, property.PropertyName)
-			if err != nil {
-				return fmt.Errorf("property %q schema: %w", property.PropertyName, err)
-			}
-		}
+	base.Name = exportedName(parentName + base.Name)
+	*definitions = append(*definitions, schema)
 
-		if schema.AdditionalPropertiesSchema != nil {
-			err := nameSchema(schema.AdditionalPropertiesSchema, base.TypeName+"AdditionalProperty")
-			if err != nil {
-				return fmt.Errorf("additionalProperties schema: %w", err)
-			}
-		}
-	case *ArraySchema:
-		err := nameSchema(schema.Items, base.TypeName+"Item")
+	for _, child := range schema.ChildSchemas() {
+		err := nameSchema(child, base.Name, definitions)
 		if err != nil {
-			return fmt.Errorf("array items schema: %w", err)
+			return fmt.Errorf("child schema: %w", err)
 		}
-	case *StringSchema:
-	default:
-		return fmt.Errorf("unsupported schema %T", schema)
 	}
 
 	return nil

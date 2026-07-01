@@ -25,12 +25,7 @@ func (fs FileSet) WriteToDir(dir string) error {
 }
 
 func (c *GenerateContext) GenerateInMemory() (FileSet, error) {
-	operations, err := c.JSONRequestBodyModelSchemas()
-	if err != nil {
-		return nil, err
-	}
-
-	schemas, err := schemaDefinitions(operations)
+	schemas, err := c.JSONRequestBodyModelSchemas()
 	if err != nil {
 		return nil, err
 	}

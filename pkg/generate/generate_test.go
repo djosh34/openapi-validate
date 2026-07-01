@@ -117,48 +117,57 @@ func TestGeneratePopulatesOperationsMap(t *testing.T) {
 	operations, err := generateContext.JSONRequestBodyModelSchemas()
 	require.NoError(t, err)
 
+	optionalNotNullableString := &StringSchema{
+		BaseSchema: BaseSchema{Name: "ObjectKeysAdditionalPropertiesFalseOptionalNotNullableString"},
+	}
+	optionalNullableString := &StringSchema{
+		BaseSchema: BaseSchema{Name: "ObjectKeysAdditionalPropertiesFalseOptionalNullableString", Nullable: true},
+	}
+	requiredNotNullableString := &StringSchema{
+		BaseSchema: BaseSchema{Name: "ObjectKeysAdditionalPropertiesFalseRequiredNotNullableString"},
+	}
+	requiredNullableString := &StringSchema{
+		BaseSchema: BaseSchema{Name: "ObjectKeysAdditionalPropertiesFalseRequiredNullableString", Nullable: true},
+	}
+
 	require.ElementsMatch(t, []Schema{
 		&ObjectSchema{
-			BaseSchema:           BaseSchema{TypeName: "ObjectKeysAdditionalPropertiesFalse"},
+			BaseSchema:           BaseSchema{Name: "ObjectKeysAdditionalPropertiesFalse"},
 			AdditionalProperties: false,
 			Properties: []ObjectFieldContext{
 				{
 					PropertyName: "optionalNotNullableString",
-					Schema: &StringSchema{
-						BaseSchema: BaseSchema{TypeName: "OptionalNotNullableString"},
-					},
+					Schema:       optionalNotNullableString,
 				},
 				{
 					PropertyName: "optionalNullableString",
-					Schema: &StringSchema{
-						BaseSchema: BaseSchema{TypeName: "OptionalNullableString", Nullable: true},
-					},
+					Schema:       optionalNullableString,
 				},
 				{
 					PropertyName: "requiredNotNullableString",
-					Schema: &StringSchema{
-						BaseSchema: BaseSchema{TypeName: "RequiredNotNullableString"},
-					},
-					Required: true,
+					Schema:       requiredNotNullableString,
+					Required:     true,
 				},
 				{
 					PropertyName: "requiredNullableString",
-					Schema: &StringSchema{
-						BaseSchema: BaseSchema{TypeName: "RequiredNullableString", Nullable: true},
-					},
-					Required: true,
+					Schema:       requiredNullableString,
+					Required:     true,
 				},
 			},
 		},
+		optionalNotNullableString,
+		optionalNullableString,
+		requiredNotNullableString,
+		requiredNullableString,
 		&StringSchema{
-			BaseSchema: BaseSchema{TypeName: "StringNoFormatNullable", Nullable: true},
+			BaseSchema: BaseSchema{Name: "StringNoFormatNullable", Nullable: true},
 		},
 	}, operations)
 }
 
 func TestStringSchemaGenerateRequiredNotNullableString(t *testing.T) {
 	schema := &StringSchema{
-		BaseSchema: BaseSchema{TypeName: "RequiredNotNullableString"},
+		BaseSchema: BaseSchema{Name: "RequiredNotNullableString"},
 	}
 
 	generated, err := schema.Generate()
@@ -186,33 +195,33 @@ func (s *RequiredNotNullableString) UnmarshalJSON(data []byte) error {
 
 func TestObjectSchemaGenerateObjectKeysAdditionalPropertiesFalse(t *testing.T) {
 	schema := &ObjectSchema{
-		BaseSchema:           BaseSchema{TypeName: "ObjectKeysAdditionalPropertiesFalse"},
+		BaseSchema:           BaseSchema{Name: "ObjectKeysAdditionalPropertiesFalse"},
 		AdditionalProperties: false,
 		Properties: []ObjectFieldContext{
 			{
 				PropertyName: "optionalNotNullableString",
 				Schema: &StringSchema{
-					BaseSchema: BaseSchema{TypeName: "OptionalNotNullableString"},
+					BaseSchema: BaseSchema{Name: "OptionalNotNullableString"},
 				},
 			},
 			{
 				PropertyName: "optionalNullableString",
 				Schema: &StringSchema{
-					BaseSchema: BaseSchema{TypeName: "OptionalNullableString", Nullable: true},
+					BaseSchema: BaseSchema{Name: "OptionalNullableString", Nullable: true},
 				},
 			},
 			{
 				PropertyName: "requiredNotNullableString",
 				Required:     true,
 				Schema: &StringSchema{
-					BaseSchema: BaseSchema{TypeName: "RequiredNotNullableString"},
+					BaseSchema: BaseSchema{Name: "RequiredNotNullableString"},
 				},
 			},
 			{
 				PropertyName: "requiredNullableString",
 				Required:     true,
 				Schema: &StringSchema{
-					BaseSchema: BaseSchema{TypeName: "RequiredNullableString", Nullable: true},
+					BaseSchema: BaseSchema{Name: "RequiredNullableString", Nullable: true},
 				},
 			},
 		},

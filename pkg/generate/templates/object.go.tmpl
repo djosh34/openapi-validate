@@ -1,7 +1,7 @@
-{{- $name := .TypeName -}}
+{{- $name := .Name -}}
 type {{ $name }} struct {
 {{- range .Properties }}
-	{{ .SchemaTypeName }} {{ .FieldType }} {{ .JSONTag }}
+	{{ .FieldName }} {{ .FieldType }} {{ .JSONTag }}
 {{- end }}
 }
 
@@ -27,7 +27,7 @@ func (o *{{ $name }}) UnmarshalJSON(data []byte) error {
 
 {{- range .Properties }}
 {{- if .Required }}
-	var has{{ .SchemaTypeName }} bool
+	var has{{ .FieldName }} bool
 {{- end }}
 {{- end }}
 
@@ -71,7 +71,7 @@ func (o *{{ $name }}) UnmarshalJSON(data []byte) error {
 
 {{- range .Properties }}
 {{- if .Required }}
-	if !has{{ .SchemaTypeName }} {
+	if !has{{ .FieldName }} {
 		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "{{ .PropertyName }}")
 	}
 {{- end }}
