@@ -18,27 +18,12 @@ type ObjectNode struct {
 }
 
 func (o *ObjectNode) ValidCases() []Case {
-	requiredNames, optionalNames, requiredObject := o.objectCaseData()
+	requiredNames, optionalNames, requiredObjects := o.objectCaseData()
+	requiredObject := requiredObjects[0]
 
 	cases := append([]Case{}, o.BaseNode.ValidCases()...)
-	cases = append(cases, objectCase("required properties", requiredObject))
-
-	for _, name := range requiredNames {
-		schema, ok := o.Properties[name]
-		if !ok {
-			continue
-		}
-
-		validCases := schema.ValidCases()
-		for index := 1; index < len(validCases); index++ {
-			object := cloneObject(requiredObject)
-			object[name] = validCases[index].Value
-
-			cases = append(cases, objectCase(
-				"required property "+name+" "+validCases[index].Name,
-				object,
-			))
-		}
+	for _, object := range requiredObjects {
+		cases = append(cases, objectCase("required properties", object))
 	}
 
 	for _, name := range optionalNames {
@@ -58,7 +43,8 @@ func (o *ObjectNode) ValidCases() []Case {
 }
 
 func (o *ObjectNode) InvalidCases() []Case {
-	requiredNames, optionalNames, requiredObject := o.objectCaseData()
+	requiredNames, optionalNames, requiredObjects := o.objectCaseData()
+	requiredObject := requiredObjects[0]
 
 	cases := append([]Case{}, o.BaseNode.InvalidCases()...)
 	cases = append(cases,
@@ -171,7 +157,7 @@ func (o *ObjectNode) additionalPropertyInvalidCases(requiredObject map[string]js
 	}
 }
 
-func (o *ObjectNode) objectCaseData() ([]string, []string, map[string]json.RawMessage) {
+func (o *ObjectNode) objectCaseData() ([]string, []string, []map[string]json.RawMessage) {
 	requiredNames := make([]string, 0, len(o.Required))
 	requiredSet := map[string]struct{}{}
 	for _, name := range o.Required {
@@ -183,7 +169,7 @@ func (o *ObjectNode) objectCaseData() ([]string, []string, map[string]json.RawMe
 		requiredNames = append(requiredNames, name)
 	}
 
-	requiredObject := map[string]json.RawMessage{}
+	requiredObjects := []map[string]json.RawMessage{{}}
 	for _, name := range requiredNames {
 		schema, ok := o.Properties[name]
 		if !ok {
@@ -191,9 +177,19 @@ func (o *ObjectNode) objectCaseData() ([]string, []string, map[string]json.RawMe
 		}
 
 		validCases := schema.ValidCases()
-		if len(validCases) > 0 {
-			requiredObject[name] = validCases[0].Value
+		if len(validCases) == 0 {
+			continue
 		}
+
+		nextObjects := make([]map[string]json.RawMessage, 0, len(requiredObjects)*len(validCases))
+		for _, object := range requiredObjects {
+			for _, validCase := range validCases {
+				nextObject := cloneObject(object)
+				nextObject[name] = validCase.Value
+				nextObjects = append(nextObjects, nextObject)
+			}
+		}
+		requiredObjects = nextObjects
 	}
 
 	optionalNames := make([]string, 0, len(o.Properties))
@@ -204,7 +200,7 @@ func (o *ObjectNode) objectCaseData() ([]string, []string, map[string]json.RawMe
 	}
 	sort.Strings(optionalNames)
 
-	return requiredNames, optionalNames, requiredObject
+	return requiredNames, optionalNames, requiredObjects
 }
 
 func (o *ObjectNode) additionalPropertyKey() string {

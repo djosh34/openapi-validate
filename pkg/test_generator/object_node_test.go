@@ -64,6 +64,26 @@ func TestObjectNodeInvalidCasesReachShapeMissingAdditionalAndPropertyCases(t *te
 
 }
 
+func TestObjectNodeValidCasesIncludeEveryRequiredPropertyValidCombination(t *testing.T) {
+	node := ObjectNode{
+		Required: []string{"left", "right"},
+		AdditionalProperties: AdditionalPropertiesNode{
+			Allowed: new(false),
+		},
+		Properties: map[string]SchemaNode{
+			"left":  stringSchema(true),
+			"right": stringSchema(true),
+		},
+	}
+
+	require.Equal(t, []string{
+		`{"left":"valid-string","right":"valid-string"}`,
+		`{"left":"valid-string","right":null}`,
+		`{"left":null,"right":"valid-string"}`,
+		`{"left":null,"right":null}`,
+	}, rawMessages(node.ValidCases()))
+}
+
 func TestObjectNodeAdditionalPropertiesDefaultAllowsExtraProperties(t *testing.T) {
 	node := ObjectNode{
 		Properties: map[string]SchemaNode{},
