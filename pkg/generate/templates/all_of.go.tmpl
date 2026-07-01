@@ -1,0 +1,31 @@
+{{- $name := .Name -}}
+type {{ $name }} struct {
+{{- range .Schemas }}
+	{{ .SchemaTypeName }}
+{{- end }}
+}
+
+var _ json.Unmarshaler = (*{{ $name }})(nil)
+
+func (a *{{ $name }}) UnmarshalJSON(data []byte) error {
+{{- if .EmptyBodyAllowed }}
+	if len(data) == 0 {
+		return nil
+	}
+
+{{- end }}
+{{- if .Nullable }}
+	if bytes.Equal(data, jsonNull) {
+		return nil
+	}
+
+{{- end }}
+	var errs []error
+{{- range .Schemas }}
+	if err := json.Unmarshal(data, &a.{{ .SchemaTypeName }}); err != nil {
+		errs = append(errs, err)
+	}
+{{- end }}
+
+	return errors.Join(errs...)
+}

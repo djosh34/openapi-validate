@@ -2,8 +2,6 @@ package testgenerator
 
 import "encoding/json"
 
-var _ Caseable = BaseNode{}
-
 func (b BaseNode) ValidCases() []Case {
 	if !b.Nullable {
 		return nil
@@ -18,10 +16,6 @@ func (b BaseNode) InvalidCases() []Case {
 	}
 
 	return []Case{nullCase()}
-}
-
-func (b BaseNode) Merge(SchemaNode) (SchemaNode, error) {
-	panic("TODO implement BaseNode.Merge")
 }
 
 func nullCase() Case {

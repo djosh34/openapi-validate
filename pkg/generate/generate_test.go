@@ -9,6 +9,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,6 +54,7 @@ func TestGenerateExample(t *testing.T) {
 }
 
 var exampleFixtureOperations = []string{
+	"allOfObject",
 	"arrayNullable",
 	"arrayNotNullable",
 	"objectKeysAdditionalPropertiesFalse",
@@ -203,6 +205,113 @@ func (s *RequiredNotNullableString) UnmarshalJSON(data []byte) error {
 	return nil
 }
 `, generated)
+}
+
+func TestAllOfSchemaGenerate(t *testing.T) {
+	schema := &AllOfSchema{
+		BaseSchema: BaseSchema{Name: "AllOfObject"},
+		Schemas: []Schema{
+			&ObjectSchema{BaseSchema: BaseSchema{Name: "AllOfObjectFirst"}},
+			&ObjectSchema{BaseSchema: BaseSchema{Name: "AllOfObjectSecond"}},
+		},
+	}
+
+	generated, err := schema.Generate()
+	require.NoError(t, err)
+
+	require.Equal(t, `type AllOfObject struct {
+	AllOfObjectFirst
+	AllOfObjectSecond
+}
+
+var _ json.Unmarshaler = (*AllOfObject)(nil)
+
+func (a *AllOfObject) UnmarshalJSON(data []byte) error {
+	var errs []error
+	if err := json.Unmarshal(data, &a.AllOfObjectFirst); err != nil {
+		errs = append(errs, err)
+	}
+	if err := json.Unmarshal(data, &a.AllOfObjectSecond); err != nil {
+		errs = append(errs, err)
+	}
+
+	return errors.Join(errs...)
+}
+`, generated)
+}
+
+func TestSchemaFromOpenAPISchemaAllOf(t *testing.T) {
+	schema, err := SchemaFromOpenAPISchema(&openapi3.Schema{
+		AllOf: openapi3.SchemaRefs{
+			{
+				Value: &openapi3.Schema{
+					Type:     &openapi3.Types{openapi3.TypeObject},
+					Required: []string{"first"},
+					Properties: openapi3.Schemas{
+						"first": &openapi3.SchemaRef{
+							Value: &openapi3.Schema{Type: &openapi3.Types{openapi3.TypeString}},
+						},
+					},
+				},
+			},
+			{
+				Value: &openapi3.Schema{
+					Type:     &openapi3.Types{openapi3.TypeObject},
+					Required: []string{"second"},
+					Properties: openapi3.Schemas{
+						"second": &openapi3.SchemaRef{
+							Value: &openapi3.Schema{Type: &openapi3.Types{openapi3.TypeString}},
+						},
+					},
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	schema.SetTypeName("AllOfObject")
+	definitions, err := namedSchemaDefinitions(schema)
+	require.NoError(t, err)
+
+	first := &StringSchema{
+		BaseSchema: BaseSchema{Name: "AllOfObjectAllOf1First"},
+	}
+	allOf1 := &ObjectSchema{
+		BaseSchema:           BaseSchema{Name: "AllOfObjectAllOf1"},
+		AdditionalProperties: true,
+		Properties: []ObjectFieldContext{
+			{
+				PropertyName: "first",
+				Schema:       first,
+				Required:     true,
+			},
+		},
+	}
+	second := &StringSchema{
+		BaseSchema: BaseSchema{Name: "AllOfObjectAllOf2Second"},
+	}
+	allOf2 := &ObjectSchema{
+		BaseSchema:           BaseSchema{Name: "AllOfObjectAllOf2"},
+		AdditionalProperties: true,
+		Properties: []ObjectFieldContext{
+			{
+				PropertyName: "second",
+				Schema:       second,
+				Required:     true,
+			},
+		},
+	}
+
+	require.Equal(t, []Schema{
+		&AllOfSchema{
+			BaseSchema: BaseSchema{Name: "AllOfObject"},
+			Schemas:    []Schema{allOf1, allOf2},
+		},
+		allOf1,
+		first,
+		allOf2,
+		second,
+	}, definitions)
 }
 
 func TestObjectSchemaGenerateObjectKeysAdditionalPropertiesFalse(t *testing.T) {

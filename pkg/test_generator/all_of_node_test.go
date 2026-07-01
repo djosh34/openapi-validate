@@ -32,6 +32,144 @@ func TestAllOfInvalidCasesComeFromMergedSchema(t *testing.T) {
 	require.Contains(t, caseNames(node.InvalidCases()), "missing required property last")
 }
 
+func TestAllOfUnmarshalRejectsImpossibleMerge(t *testing.T) {
+	content := []byte(`
+allOf:
+  - type: string
+  - type: number
+`)
+
+	var node SchemaNode
+	err := yaml.Unmarshal(content, &node)
+
+	require.ErrorContains(t, err, "merge allOf schema 2")
+	require.ErrorContains(t, err, `cannot merge schema type "string" with "number"`)
+}
+
+func TestAllOfMergedObjectInvalidCasesUseMergedPropertyRules(t *testing.T) {
+	content := []byte(`
+allOf:
+  - type: object
+    required:
+      - id
+    properties:
+      id:
+        type: string
+        nullable: true
+  - type: object
+    required:
+      - id
+    additionalProperties: false
+    properties:
+      id:
+        type: string
+        nullable: false
+`)
+
+	var node SchemaNode
+	err := yaml.Unmarshal(content, &node)
+	require.NoError(t, err)
+
+	require.Contains(t, rawMessages(node.ValidCases()), `{"id":"valid-string"}`)
+	require.NotContains(t, rawMessages(node.ValidCases()), `{"id":null}`)
+	require.Contains(t, rawMessages(node.InvalidCases()), `{"id":null}`)
+	require.Contains(t, rawMessages(node.InvalidCases()), `{"`+additionalPropertyCaseKey+`":"not-allowed","id":"valid-string"}`)
+	require.Equal(t, []string{"id"}, node.Object.Required)
+}
+
+func TestAllOfMergedNestedObjectInvalidCasesUseMergedRequiredProperties(t *testing.T) {
+	content := []byte(`
+allOf:
+  - type: object
+    required:
+      - child
+    properties:
+      child:
+        type: object
+        required:
+          - first
+        properties:
+          first:
+            type: string
+            nullable: false
+  - type: object
+    required:
+      - child
+    properties:
+      child:
+        type: object
+        required:
+          - second
+        additionalProperties: false
+        properties:
+          second:
+            type: boolean
+            nullable: false
+`)
+
+	var node SchemaNode
+	err := yaml.Unmarshal(content, &node)
+	require.NoError(t, err)
+
+	require.Contains(t, rawMessages(node.ValidCases()), `{"child":{"first":"valid-string","second":true}}`)
+	require.Contains(t, rawMessages(node.InvalidCases()), `{"child":{}}`)
+	require.Contains(t, rawMessages(node.InvalidCases()), `{"child":{"second":true}}`)
+	require.Contains(t, rawMessages(node.InvalidCases()), `{"child":{"first":"valid-string"}}`)
+	require.Contains(t, caseNames(node.InvalidCases()), "invalid property child missing required property first")
+	require.Contains(t, caseNames(node.InvalidCases()), "invalid property child missing required property second")
+}
+
+func TestAllOfUnmarshalRejectsObjectPropertyConflict(t *testing.T) {
+	content := []byte(`
+allOf:
+  - type: object
+    properties:
+      same:
+        type: string
+  - type: object
+    properties:
+      same:
+        type: number
+`)
+
+	var node SchemaNode
+	err := yaml.Unmarshal(content, &node)
+
+	require.ErrorContains(t, err, "merge allOf schema 2")
+	require.ErrorContains(t, err, `property "same"`)
+	require.ErrorContains(t, err, `cannot merge schema type "string" with "number"`)
+}
+
+func TestAllOfUnmarshalRejectsAdditionalPropertiesConflict(t *testing.T) {
+	content := []byte(`
+allOf:
+  - type: object
+    additionalProperties:
+      type: string
+  - type: object
+    additionalProperties:
+      type: number
+`)
+
+	var node SchemaNode
+	err := yaml.Unmarshal(content, &node)
+
+	require.ErrorContains(t, err, "merge allOf schema 2")
+	require.ErrorContains(t, err, "additionalProperties")
+	require.ErrorContains(t, err, `cannot merge schema type "string" with "number"`)
+}
+
+func TestAllOfUnmarshalRejectsEmptyAllOf(t *testing.T) {
+	content := []byte(`
+allOf: []
+`)
+
+	var node SchemaNode
+	err := yaml.Unmarshal(content, &node)
+
+	require.ErrorContains(t, err, "allOf must contain at least one schema")
+}
+
 func allOfThreeRequiredPropertiesSchema() []byte {
 	return []byte(`
 allOf:

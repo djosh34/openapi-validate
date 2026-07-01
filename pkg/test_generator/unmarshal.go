@@ -11,6 +11,38 @@ func (s *SchemaNode) UnmarshalYAML(value *yaml.Node) error {
 		return fmt.Errorf("missing schema")
 	}
 
+	for _, keyword := range []string{"anyOf", "oneOf"} {
+		if schemaMappingValue(value, keyword) != nil {
+			return fmt.Errorf("unsupported schema composition %q", keyword)
+		}
+	}
+
+	allOfNode := schemaMappingValue(value, "allOf")
+	if allOfNode != nil {
+		var allOf struct {
+			Schemas []SchemaNode `yaml:"allOf"`
+		}
+		err := value.Decode(&allOf)
+		if err != nil {
+			return err
+		}
+		if len(allOf.Schemas) == 0 {
+			return fmt.Errorf("allOf must contain at least one schema")
+		}
+
+		merged := allOf.Schemas[0]
+		for i, schema := range allOf.Schemas[1:] {
+			mergedSchema, err := merged.Merge(schema)
+			if err != nil {
+				return fmt.Errorf("merge allOf schema %d: %w", i+2, err)
+			}
+			merged = mergedSchema
+		}
+
+		*s = merged
+		return nil
+	}
+
 	var schema struct {
 		Type string `yaml:"type"`
 	}
@@ -88,6 +120,20 @@ func (s *SchemaNode) UnmarshalYAML(value *yaml.Node) error {
 	default:
 		return fmt.Errorf("unsupported schema type %q", schema.Type)
 	}
+}
+
+func schemaMappingValue(node *yaml.Node, key string) *yaml.Node {
+	if node == nil || node.Kind != yaml.MappingNode {
+		return nil
+	}
+
+	for i := 0; i < len(node.Content)-1; i += 2 {
+		if node.Content[i].Value == key {
+			return node.Content[i+1]
+		}
+	}
+
+	return nil
 }
 
 func (a *AdditionalPropertiesNode) UnmarshalYAML(value *yaml.Node) error {

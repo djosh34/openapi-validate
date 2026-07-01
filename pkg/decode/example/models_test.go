@@ -314,3 +314,10 @@ func TestArrayNotNullable(t *testing.T) {
 		return value.UnmarshalJSON(data)
 	})
 }
+
+func TestAllOfObject(t *testing.T) {
+	testgenerator.RunJSONRequestBodyOperationCases(t, exampleOpenAPI, "allOfObject", func(data []byte) error {
+		var value AllOfObject
+		return value.UnmarshalJSON(data)
+	})
+}

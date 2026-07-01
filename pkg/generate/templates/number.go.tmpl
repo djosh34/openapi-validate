@@ -1,0 +1,50 @@
+{{- $name := .Name -}}
+{{- if .Nullable -}}
+type {{ $name }} struct {
+	Value *json.Number
+}
+{{- else -}}
+type {{ $name }} json.Number
+{{- end }}
+
+var _ json.Unmarshaler = new({{ $name }})
+
+func (n *{{ $name }}) UnmarshalJSON(data []byte) error {
+{{- if .EmptyBodyAllowed }}
+	if len(data) == 0 {
+		return nil
+	}
+
+{{- end }}
+	if bytes.Equal(data, jsonNull) {
+{{- if .Nullable }}
+		n.Value = nil
+		return nil
+{{- else }}
+		return NullForNotNullableNumberError
+{{- end }}
+	}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+
+	tok, err := decoder.Token()
+	if err != nil {
+		return NonNumberForNumberSchemaError
+	}
+
+	value, ok := tok.(json.Number)
+	if !ok {
+		return NonNumberForNumberSchemaError
+	}
+	if len(bytes.TrimSpace(data[decoder.InputOffset():])) != 0 {
+		return NonNumberForNumberSchemaError
+	}
+
+{{- if .Nullable }}
+	n.Value = new(value)
+{{- else }}
+	*n = {{ $name }}(value)
+{{- end }}
+	return nil
+}

@@ -67,6 +67,9 @@ type ObjectSchema struct {
 var _ Schema = new(ObjectSchema)
 var _ Schema = new(StringSchema)
 var _ Schema = new(ArraySchema)
+var _ Schema = new(AllOfSchema)
+var _ Schema = new(BoolSchema)
+var _ Schema = new(NumberSchema)
 
 type ObjectFieldContext struct {
 	Schema
@@ -78,9 +81,22 @@ type StringSchema struct {
 	BaseSchema
 }
 
+type BoolSchema struct {
+	BaseSchema
+}
+
+type NumberSchema struct {
+	BaseSchema
+}
+
 type ArraySchema struct {
 	BaseSchema
 	Items Schema
+}
+
+type AllOfSchema struct {
+	BaseSchema
+	Schemas []Schema
 }
 
 func (o *ObjectSchema) ChildSchemas() []Schema {
@@ -100,12 +116,24 @@ func (s *StringSchema) ChildSchemas() []Schema {
 	return nil
 }
 
+func (b *BoolSchema) ChildSchemas() []Schema {
+	return nil
+}
+
+func (n *NumberSchema) ChildSchemas() []Schema {
+	return nil
+}
+
 func (a *ArraySchema) ChildSchemas() []Schema {
 	if a.Items == nil {
 		return nil
 	}
 
 	return []Schema{a.Items}
+}
+
+func (a *AllOfSchema) ChildSchemas() []Schema {
+	return a.Schemas
 }
 
 // TODO, put in tmpl
@@ -167,12 +195,36 @@ func (s *StringSchema) Generate() (string, error) {
 	return executeGoTemplate("string.go.tmpl", s)
 }
 
+func (b *BoolSchema) Generate() (string, error) {
+	if b == nil {
+		return "", fmt.Errorf("nil bool schema")
+	}
+
+	return executeGoTemplate("bool.go.tmpl", b)
+}
+
+func (n *NumberSchema) Generate() (string, error) {
+	if n == nil {
+		return "", fmt.Errorf("nil number schema")
+	}
+
+	return executeGoTemplate("number.go.tmpl", n)
+}
+
 func (a *ArraySchema) Generate() (string, error) {
 	if a == nil {
 		return "", fmt.Errorf("nil array schema")
 	}
 
 	return executeGoTemplate("array.go.tmpl", a)
+}
+
+func (a *AllOfSchema) Generate() (string, error) {
+	if a == nil {
+		return "", fmt.Errorf("nil allOf schema")
+	}
+
+	return executeGoTemplate("all_of.go.tmpl", a)
 }
 
 func (a *ArraySchema) ItemsTypeName() string {
@@ -285,16 +337,26 @@ func SchemaFromOpenAPISchema(schema *openapi3.Schema) (Schema, error) {
 		return nil, fmt.Errorf("openapi schema is nil")
 	}
 
-	schemaType, err := schemaType(schema)
-	if err != nil {
-		return nil, err
-	}
-
 	base := BaseSchema{
 		Nullable: schema.PermitsNull(),
 	}
 	if schema.Title != "" {
 		base.Name = exportedName(schema.Title)
+	}
+
+	if len(schema.AllOf) != 0 {
+		allOfSchema, err := allOfSchemaFromOpenAPISchema(schema)
+		if err != nil {
+			return nil, err
+		}
+
+		allOfSchema.BaseSchema = base
+		return allOfSchema, nil
+	}
+
+	schemaType, err := schemaType(schema)
+	if err != nil {
+		return nil, err
 	}
 
 	switch schemaType {
@@ -318,9 +380,43 @@ func SchemaFromOpenAPISchema(schema *openapi3.Schema) (Schema, error) {
 		return &StringSchema{
 			BaseSchema: base,
 		}, nil
+	case openapi3.TypeBoolean:
+		return &BoolSchema{
+			BaseSchema: base,
+		}, nil
+	case openapi3.TypeNumber:
+		return &NumberSchema{
+			BaseSchema: base,
+		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported schema type %q", schemaType)
 	}
+}
+
+func allOfSchemaFromOpenAPISchema(schema *openapi3.Schema) (*AllOfSchema, error) {
+	if len(schema.AllOf) == 0 {
+		return nil, fmt.Errorf("allOf schema has no items")
+	}
+
+	allOfSchema := &AllOfSchema{
+		Schemas: make([]Schema, 0, len(schema.AllOf)),
+	}
+
+	for i, schemaRef := range schema.AllOf {
+		childSchema, err := schemaFromOpenAPISchemaRef(schemaRef)
+		if err != nil {
+			return nil, fmt.Errorf("allOf schema %d: %w", i+1, err)
+		}
+
+		err = setSchemaTypeNameIfEmpty(childSchema, fmt.Sprintf("AllOf%d", i+1))
+		if err != nil {
+			return nil, fmt.Errorf("allOf schema %d name: %w", i+1, err)
+		}
+
+		allOfSchema.Schemas = append(allOfSchema.Schemas, childSchema)
+	}
+
+	return allOfSchema, nil
 }
 
 func objectSchemaFromOpenAPISchema(schema *openapi3.Schema) (*ObjectSchema, error) {

@@ -2,6 +2,7 @@ package testgenerator
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 	"strconv"
 )
@@ -80,8 +81,78 @@ func (o *ObjectNode) InvalidCases() []Case {
 	return append(cases, o.additionalPropertyInvalidCases(baselineRequiredObject)...)
 }
 
-func (o *ObjectNode) Merge(SchemaNode) (SchemaNode, error) {
-	panic("TODO implement ObjectNode.Merge")
+func (o *ObjectNode) Merge(schema SchemaNode) (SchemaNode, error) {
+	if schema.Type != "object" {
+		return SchemaNode{}, fmt.Errorf("cannot merge schema type %q with %q", "object", schema.Type)
+	}
+	if schema.Object == nil {
+		return SchemaNode{}, fmt.Errorf("object schema is missing object node")
+	}
+
+	var properties map[string]SchemaNode
+	if len(o.Properties)+len(schema.Object.Properties) > 0 {
+		properties = make(map[string]SchemaNode, len(o.Properties)+len(schema.Object.Properties))
+		for name, property := range o.Properties {
+			properties[name] = property
+		}
+		for name, property := range schema.Object.Properties {
+			leftProperty, ok := properties[name]
+			if !ok {
+				properties[name] = property
+				continue
+			}
+
+			merged, err := leftProperty.Merge(property)
+			if err != nil {
+				return SchemaNode{}, fmt.Errorf("property %q: %w", name, err)
+			}
+			properties[name] = merged
+		}
+	}
+
+	required := make([]string, 0, len(o.Required)+len(schema.Object.Required))
+	seenRequired := map[string]struct{}{}
+	for _, names := range [][]string{o.Required, schema.Object.Required} {
+		for _, name := range names {
+			if _, ok := seenRequired[name]; ok {
+				continue
+			}
+
+			seenRequired[name] = struct{}{}
+			required = append(required, name)
+		}
+	}
+
+	var additionalProperties AdditionalPropertiesNode
+	leftAdditionalPropertiesFalse := o.AdditionalProperties.Allowed != nil && !*o.AdditionalProperties.Allowed
+	rightAdditionalPropertiesFalse := schema.Object.AdditionalProperties.Allowed != nil && !*schema.Object.AdditionalProperties.Allowed
+
+	switch {
+	case leftAdditionalPropertiesFalse || rightAdditionalPropertiesFalse:
+		additionalProperties.Allowed = new(false)
+	case o.AdditionalProperties.Schema != nil && schema.Object.AdditionalProperties.Schema != nil:
+		merged, err := o.AdditionalProperties.Schema.Merge(*schema.Object.AdditionalProperties.Schema)
+		if err != nil {
+			return SchemaNode{}, fmt.Errorf("additionalProperties: %w", err)
+		}
+		additionalProperties.Schema = &merged
+	case o.AdditionalProperties.Schema != nil:
+		additionalProperties.Schema = o.AdditionalProperties.Schema
+	case schema.Object.AdditionalProperties.Schema != nil:
+		additionalProperties.Schema = schema.Object.AdditionalProperties.Schema
+	case o.AdditionalProperties.Allowed != nil || schema.Object.AdditionalProperties.Allowed != nil:
+		additionalProperties.Allowed = new(true)
+	}
+
+	return SchemaNode{
+		Type: "object",
+		Object: &ObjectNode{
+			BaseNode:             mergeBaseNode(o.BaseNode, schema.Object.BaseNode),
+			Required:             required,
+			AdditionalProperties: additionalProperties,
+			Properties:           properties,
+		},
+	}, nil
 }
 
 type AdditionalPropertiesNode struct {

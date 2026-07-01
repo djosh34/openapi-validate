@@ -1,6 +1,9 @@
 package testgenerator
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 var _ Caseable = new(BoolNode)
 
@@ -30,6 +33,18 @@ func (b *BoolNode) InvalidCases() []Case {
 	)
 }
 
-func (b *BoolNode) Merge(SchemaNode) (SchemaNode, error) {
-	panic("TODO implement BoolNode.Merge")
+func (b *BoolNode) Merge(schema SchemaNode) (SchemaNode, error) {
+	if schema.Type != "boolean" {
+		return SchemaNode{}, fmt.Errorf("cannot merge schema type %q with %q", "boolean", schema.Type)
+	}
+	if schema.Bool == nil {
+		return SchemaNode{}, fmt.Errorf("boolean schema is missing boolean node")
+	}
+
+	return SchemaNode{
+		Type: "boolean",
+		Bool: &BoolNode{
+			BaseNode: mergeBaseNode(b.BaseNode, schema.Bool.BaseNode),
+		},
+	}, nil
 }

@@ -1,6 +1,9 @@
 package testgenerator
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 var _ Caseable = new(NumberNode)
 
@@ -36,6 +39,18 @@ func (n *NumberNode) InvalidCases() []Case {
 	)
 }
 
-func (n *NumberNode) Merge(SchemaNode) (SchemaNode, error) {
-	panic("TODO implement NumberNode.Merge")
+func (n *NumberNode) Merge(schema SchemaNode) (SchemaNode, error) {
+	if schema.Type != "number" {
+		return SchemaNode{}, fmt.Errorf("cannot merge schema type %q with %q", "number", schema.Type)
+	}
+	if schema.Number == nil {
+		return SchemaNode{}, fmt.Errorf("number schema is missing number node")
+	}
+
+	return SchemaNode{
+		Type: "number",
+		Number: &NumberNode{
+			BaseNode: mergeBaseNode(n.BaseNode, schema.Number.BaseNode),
+		},
+	}, nil
 }

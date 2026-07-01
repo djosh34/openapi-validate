@@ -2,6 +2,7 @@ package testgenerator
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 var _ Caseable = new(ArrayNode)
@@ -53,8 +54,26 @@ func (a *ArrayNode) InvalidCases() []Case {
 	return cases
 }
 
-func (a *ArrayNode) Merge(SchemaNode) (SchemaNode, error) {
-	panic("TODO implement ArrayNode.Merge")
+func (a *ArrayNode) Merge(schema SchemaNode) (SchemaNode, error) {
+	if schema.Type != "array" {
+		return SchemaNode{}, fmt.Errorf("cannot merge schema type %q with %q", "array", schema.Type)
+	}
+	if schema.Array == nil {
+		return SchemaNode{}, fmt.Errorf("array schema is missing array node")
+	}
+
+	items, err := a.Items.Merge(schema.Array.Items)
+	if err != nil {
+		return SchemaNode{}, fmt.Errorf("array items: %w", err)
+	}
+
+	return SchemaNode{
+		Type: "array",
+		Array: &ArrayNode{
+			BaseNode: mergeBaseNode(a.BaseNode, schema.Array.BaseNode),
+			Items:    items,
+		},
+	}, nil
 }
 
 func arrayCase(name string, items ...json.RawMessage) Case {

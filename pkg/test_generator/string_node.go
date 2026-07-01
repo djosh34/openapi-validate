@@ -1,6 +1,9 @@
 package testgenerator
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type StringNode struct {
 	BaseNode `yaml:",inline"`
@@ -29,8 +32,29 @@ func (s *StringNode) InvalidCases() []Case {
 	)
 }
 
-func (s *StringNode) Merge(SchemaNode) (SchemaNode, error) {
-	panic("TODO implement StringNode.Merge")
+func (s *StringNode) Merge(schema SchemaNode) (SchemaNode, error) {
+	if schema.Type != "string" {
+		return SchemaNode{}, fmt.Errorf("cannot merge schema type %q with %q", "string", schema.Type)
+	}
+	if schema.String == nil {
+		return SchemaNode{}, fmt.Errorf("string schema is missing string node")
+	}
+
+	format := s.Format
+	if format == "" {
+		format = schema.String.Format
+	}
+	if schema.String.Format != "" && format != schema.String.Format {
+		return SchemaNode{}, fmt.Errorf("cannot merge string format %q with %q", s.Format, schema.String.Format)
+	}
+
+	return SchemaNode{
+		Type: "string",
+		String: &StringNode{
+			BaseNode: mergeBaseNode(s.BaseNode, schema.String.BaseNode),
+			Format:   format,
+		},
+	}, nil
 }
 
 func (s *StringNode) stringCase() Case {

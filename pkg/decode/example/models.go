@@ -11,6 +11,10 @@ var (
 	NotAnObjectError              = errors.New("not an object")
 	AdditionalPropertyError       = errors.New("additional property")
 	MissingRequiredPropertyError  = errors.New("missing required property")
+	NullForNotNullableBoolError   = errors.New("null for not nullable bool")
+	NonBoolForBoolSchemaError     = errors.New("non-bool for bool schema")
+	NullForNotNullableNumberError = errors.New("null for not nullable number")
+	NonNumberForNumberSchemaError = errors.New("non-number for number schema")
 	NullForNotNullableStringError = errors.New("null for not nullable string")
 	NonStringForStringSchemaError = errors.New("non-string for string schema")
 )
@@ -298,5 +302,263 @@ func (s *ArrayNotNullableItem) UnmarshalJSON(data []byte) error {
 		return NonStringForStringSchemaError
 	}
 	*s = ArrayNotNullableItem(value)
+	return nil
+}
+
+type AllOfObject struct {
+	AllOfObjectAllOf1
+	AllOfObjectAllOf2
+	AllOfObjectAllOf3
+}
+
+var _ json.Unmarshaler = (*AllOfObject)(nil)
+
+func (a *AllOfObject) UnmarshalJSON(data []byte) error {
+	var errs []error
+	if err := json.Unmarshal(data, &a.AllOfObjectAllOf1); err != nil {
+		errs = append(errs, err)
+	}
+	if err := json.Unmarshal(data, &a.AllOfObjectAllOf2); err != nil {
+		errs = append(errs, err)
+	}
+	if err := json.Unmarshal(data, &a.AllOfObjectAllOf3); err != nil {
+		errs = append(errs, err)
+	}
+
+	return errors.Join(errs...)
+}
+
+type AllOfObjectAllOf1 struct {
+	First AllOfObjectAllOf1First `json:"first"`
+}
+
+var _ json.Unmarshaler = (*AllOfObjectAllOf1)(nil)
+
+func (o *AllOfObjectAllOf1) UnmarshalJSON(data []byte) error {
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber()
+
+	tok, err := d.Token()
+	if err != nil {
+		return err
+	}
+	if tok != json.Delim('{') {
+		return NotAnObjectError
+	}
+	var hasFirst bool
+
+	for d.More() {
+		nameTok, nameErr := d.Token()
+		if nameErr != nil {
+			return nameErr
+		}
+
+		name, ok := nameTok.(string)
+		if !ok {
+			return NotAnObjectError
+		}
+
+		var value json.RawMessage
+		err = d.Decode(&value)
+		if err != nil {
+			return err
+		}
+
+		switch name {
+		case "first":
+			hasFirst = true
+
+			var first AllOfObjectAllOf1First
+			err = json.Unmarshal(value, &first)
+			if err != nil {
+				return err
+			}
+			o.First = first
+		default:
+			continue
+		}
+	}
+	if !hasFirst {
+		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "first")
+	}
+
+	return nil
+}
+
+type AllOfObjectAllOf1First string
+
+var _ json.Unmarshaler = new(AllOfObjectAllOf1First)
+
+func (s *AllOfObjectAllOf1First) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+		return NullForNotNullableStringError
+	}
+
+	var value string
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonStringForStringSchemaError
+	}
+	*s = AllOfObjectAllOf1First(value)
+	return nil
+}
+
+type AllOfObjectAllOf2 struct {
+	Second AllOfObjectAllOf2Second `json:"second"`
+}
+
+var _ json.Unmarshaler = (*AllOfObjectAllOf2)(nil)
+
+func (o *AllOfObjectAllOf2) UnmarshalJSON(data []byte) error {
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber()
+
+	tok, err := d.Token()
+	if err != nil {
+		return err
+	}
+	if tok != json.Delim('{') {
+		return NotAnObjectError
+	}
+	var hasSecond bool
+
+	for d.More() {
+		nameTok, nameErr := d.Token()
+		if nameErr != nil {
+			return nameErr
+		}
+
+		name, ok := nameTok.(string)
+		if !ok {
+			return NotAnObjectError
+		}
+
+		var value json.RawMessage
+		err = d.Decode(&value)
+		if err != nil {
+			return err
+		}
+
+		switch name {
+		case "second":
+			hasSecond = true
+
+			var second AllOfObjectAllOf2Second
+			err = json.Unmarshal(value, &second)
+			if err != nil {
+				return err
+			}
+			o.Second = second
+		default:
+			continue
+		}
+	}
+	if !hasSecond {
+		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "second")
+	}
+
+	return nil
+}
+
+type AllOfObjectAllOf2Second bool
+
+var _ json.Unmarshaler = new(AllOfObjectAllOf2Second)
+
+func (b *AllOfObjectAllOf2Second) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+		return NullForNotNullableBoolError
+	}
+
+	var value bool
+	err := json.Unmarshal(data, &value)
+	if err != nil {
+		return NonBoolForBoolSchemaError
+	}
+	*b = AllOfObjectAllOf2Second(value)
+	return nil
+}
+
+type AllOfObjectAllOf3 struct {
+	Last AllOfObjectAllOf3Last `json:"last"`
+}
+
+var _ json.Unmarshaler = (*AllOfObjectAllOf3)(nil)
+
+func (o *AllOfObjectAllOf3) UnmarshalJSON(data []byte) error {
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber()
+
+	tok, err := d.Token()
+	if err != nil {
+		return err
+	}
+	if tok != json.Delim('{') {
+		return NotAnObjectError
+	}
+	var hasLast bool
+
+	for d.More() {
+		nameTok, nameErr := d.Token()
+		if nameErr != nil {
+			return nameErr
+		}
+
+		name, ok := nameTok.(string)
+		if !ok {
+			return NotAnObjectError
+		}
+
+		var value json.RawMessage
+		err = d.Decode(&value)
+		if err != nil {
+			return err
+		}
+
+		switch name {
+		case "last":
+			hasLast = true
+
+			var last AllOfObjectAllOf3Last
+			err = json.Unmarshal(value, &last)
+			if err != nil {
+				return err
+			}
+			o.Last = last
+		default:
+			continue
+		}
+	}
+	if !hasLast {
+		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "last")
+	}
+
+	return nil
+}
+
+type AllOfObjectAllOf3Last json.Number
+
+var _ json.Unmarshaler = new(AllOfObjectAllOf3Last)
+
+func (n *AllOfObjectAllOf3Last) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, jsonNull) {
+		return NullForNotNullableNumberError
+	}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+
+	tok, err := decoder.Token()
+	if err != nil {
+		return NonNumberForNumberSchemaError
+	}
+
+	value, ok := tok.(json.Number)
+	if !ok {
+		return NonNumberForNumberSchemaError
+	}
+	if len(bytes.TrimSpace(data[decoder.InputOffset():])) != 0 {
+		return NonNumberForNumberSchemaError
+	}
+	*n = AllOfObjectAllOf3Last(value)
 	return nil
 }
