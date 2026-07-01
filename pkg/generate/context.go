@@ -2,6 +2,8 @@ package generate
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
@@ -26,8 +28,7 @@ type ObjectContext struct {
 	Nullable                   bool
 	AdditionalProperties       bool
 	AdditionalPropertiesSchema SchemaObject
-	// TODO, change to array instead. the map doesn't add value imho
-	Properties map[string]ObjectFieldContext
+	Properties                 []ObjectFieldContext
 }
 
 type ObjectFieldContext struct {
@@ -174,7 +175,7 @@ func objectContextFromOpenAPISchema(schema *openapi3.Schema) (ObjectContext, err
 	objectContext := ObjectContext{
 		Nullable:             schema.PermitsNull(),
 		AdditionalProperties: true,
-		Properties:           make(map[string]ObjectFieldContext, len(schema.Properties)),
+		Properties:           make([]ObjectFieldContext, 0, len(schema.Properties)),
 	}
 
 	// TODO, I keep seeing this overly double and bad verbose ways. Why not just one if check, like i can't phathom why double if check is needed??
@@ -197,18 +198,19 @@ func objectContextFromOpenAPISchema(schema *openapi3.Schema) (ObjectContext, err
 		required[propertyName] = struct{}{}
 	}
 
-	for propertyName, propertySchema := range schema.Properties {
+	for _, propertyName := range slices.Sorted(maps.Keys(schema.Properties)) {
+		propertySchema := schema.Properties[propertyName]
 		propertyObject, err := schemaObjectFromOpenAPISchemaRef(propertySchema)
 		if err != nil {
 			return ObjectContext{}, fmt.Errorf("property %q schema: %w", propertyName, err)
 		}
 
 		_, isRequired := required[propertyName]
-		objectContext.Properties[propertyName] = ObjectFieldContext{
+		objectContext.Properties = append(objectContext.Properties, ObjectFieldContext{
 			PropertyName: propertyName,
 			Schema:       propertyObject,
 			Required:     isRequired,
-		}
+		})
 	}
 
 	return objectContext, nil

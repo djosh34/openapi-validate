@@ -51,24 +51,24 @@ func TestJSONRequestBodySchemaObjectsConvertsRequestBodySchemas(t *testing.T) {
 	require.Equal(t, map[string]SchemaObject{
 		"objectKeysAdditionalPropertiesFalse": ObjectContext{
 			AdditionalProperties: false,
-			Properties: map[string]ObjectFieldContext{
-				"requiredNullableString": {
-					PropertyName: "requiredNullableString",
-					Schema:       StringContext{Nullable: true},
-					Required:     true,
+			Properties: []ObjectFieldContext{
+				{
+					PropertyName: "optionalNotNullableString",
+					Schema:       StringContext{},
 				},
-				"requiredNotNullableString": {
+				{
+					PropertyName: "optionalNullableString",
+					Schema:       StringContext{Nullable: true},
+				},
+				{
 					PropertyName: "requiredNotNullableString",
 					Schema:       StringContext{},
 					Required:     true,
 				},
-				"optionalNullableString": {
-					PropertyName: "optionalNullableString",
+				{
+					PropertyName: "requiredNullableString",
 					Schema:       StringContext{Nullable: true},
-				},
-				"optionalNotNullableString": {
-					PropertyName: "optionalNotNullableString",
-					Schema:       StringContext{},
+					Required:     true,
 				},
 			},
 		},
@@ -90,19 +90,19 @@ func TestSchemaObjectFromOpenAPISchemaRecursesObjectProperties(t *testing.T) {
 
 	require.Equal(t, ObjectContext{
 		AdditionalProperties: false,
-		Properties: map[string]ObjectFieldContext{
-			"name": {
+		Properties: []ObjectFieldContext{
+			{
 				PropertyName: "name",
 				Schema:       StringContext{},
 				Required:     true,
 			},
-			"nested": {
+			{
 				PropertyName: "nested",
 				Required:     true,
 				Schema: ObjectContext{
 					AdditionalProperties: true,
-					Properties: map[string]ObjectFieldContext{
-						"child": {
+					Properties: []ObjectFieldContext{
+						{
 							PropertyName: "child",
 							Schema:       StringContext{Nullable: true},
 						},
@@ -136,7 +136,7 @@ func TestSchemaObjectFromOpenAPISchemaConvertsAdditionalPropertiesSchema(t *test
 	require.Equal(t, ObjectContext{
 		AdditionalProperties:       true,
 		AdditionalPropertiesSchema: StringContext{Nullable: true},
-		Properties:                 map[string]ObjectFieldContext{},
+		Properties:                 []ObjectFieldContext{},
 	}, schemaObject)
 }
 
