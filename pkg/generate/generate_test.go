@@ -45,21 +45,9 @@ func TestGenerateExample(t *testing.T) {
 
 	generateOutputDir := filepath.Join(GetRepoRoot(t), "pkg", "decode", "example_gen")
 
-	err = generateContext.FilterOperations(exampleFixtureOperations...)
-	require.NoError(t, err)
-
 	err = GenerateWithPathError(t, generateContext, generateOutputDir)
 	require.NoError(t, err)
 
-}
-
-var exampleFixtureOperations = []string{
-	"allOfObject",
-	"arrayNullable",
-	"arrayNotNullable",
-	"objectKeysAdditionalPropertiesFalse",
-	"optionalArrayNullable",
-	"refObject",
 }
 
 func SharedGenerateExampleMatchesFixture(t *testing.T, regen bool) {
@@ -71,9 +59,6 @@ func SharedGenerateExampleMatchesFixture(t *testing.T, regen bool) {
 	generateOutputDir := filepath.Join(repoRoot, "pkg", "decode", "example_gen")
 
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
-	require.NoError(t, err)
-
-	err = generateContext.FilterOperations(exampleFixtureOperations...)
 	require.NoError(t, err)
 
 	err = os.MkdirAll(generateOutputDir, 0o755)
