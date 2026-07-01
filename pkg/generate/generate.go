@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 )
@@ -37,8 +38,34 @@ func (c *GenerateContext) GenerateInMemory() (FileSet, error) {
 
 	fileSet := make(FileSet)
 	fileSet["models.go"] = models
+	if len(c.JSONRequestBodyOperations) != 0 {
+		openAPI, err := c.openAPISourceForTests()
+		if err != nil {
+			return nil, err
+		}
+
+		modelTests, err := renderModelsTestFile(openAPI, c.JSONRequestBodyOperations)
+		if err != nil {
+			return nil, err
+		}
+
+		fileSet["models_test.go"] = modelTests
+	}
 
 	return fileSet, nil
+}
+
+func (c *GenerateContext) openAPISourceForTests() ([]byte, error) {
+	if len(c.OpenAPISource) != 0 {
+		return c.OpenAPISource, nil
+	}
+
+	openAPI, err := json.MarshalIndent(c.Document, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return append(openAPI, '\n'), nil
 }
 
 func (c *GenerateContext) Generate(dir string) error {

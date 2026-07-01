@@ -24,6 +24,11 @@ type fileTemplateContext struct {
 	Schemas []Schema
 }
 
+type modelsTestTemplateContext struct {
+	OpenAPI    string
+	Operations []JSONRequestBodyOperation
+}
+
 func renderModelsFile(schemas []Schema) ([]byte, error) {
 	templates, err := parsedGenerateTemplates()
 	if err != nil {
@@ -39,6 +44,33 @@ func renderModelsFile(schemas []Schema) ([]byte, error) {
 	formatted, err := format.Source(out.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("format generated models.go: %w", err)
+	}
+
+	return formatted, nil
+}
+
+func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation) ([]byte, error) {
+	if bytes.Contains(openAPI, []byte("`")) {
+		return nil, fmt.Errorf("openapi source contains backtick")
+	}
+
+	templates, err := parsedGenerateTemplates()
+	if err != nil {
+		return nil, err
+	}
+
+	var out bytes.Buffer
+	err = templates.ExecuteTemplate(&out, "models_test.go.tmpl", modelsTestTemplateContext{
+		OpenAPI:    string(openAPI),
+		Operations: operations,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	formatted, err := format.Source(out.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("format generated models_test.go: %w", err)
 	}
 
 	return formatted, nil

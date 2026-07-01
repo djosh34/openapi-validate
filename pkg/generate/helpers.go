@@ -4,12 +4,18 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"os"
 	"slices"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
 func LoadOpenapi(ctx context.Context, path string) (*GenerateContext, error) {
+	openAPISource, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
 	loader := &openapi3.Loader{Context: ctx, IsExternalRefsAllowed: false}
 	doc, err := loader.LoadFromFile(path)
 	if err != nil {
@@ -22,7 +28,8 @@ func LoadOpenapi(ctx context.Context, path string) (*GenerateContext, error) {
 	}
 
 	return &GenerateContext{
-		Document: doc,
+		Document:      doc,
+		OpenAPISource: openAPISource,
 	}, nil
 }
 

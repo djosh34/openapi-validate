@@ -9,7 +9,9 @@ import (
 )
 
 type GenerateContext struct {
-	Document *openapi3.T
+	Document                  *openapi3.T
+	OpenAPISource             []byte
+	JSONRequestBodyOperations []JSONRequestBodyOperation
 }
 
 type Schema interface {
@@ -24,6 +26,15 @@ type BaseSchema struct {
 	Name             string
 	Nullable         bool
 	EmptyBodyAllowed bool
+}
+
+type JSONRequestBodyOperation struct {
+	OperationID string
+	TypeName    string
+}
+
+func (o JSONRequestBodyOperation) TestName() string {
+	return exportedName(o.OperationID)
 }
 
 func (b *BaseSchema) Base() *BaseSchema {
@@ -212,6 +223,7 @@ func (c *GenerateContext) JSONRequestBodySchemas() (map[*openapi3.Operation]*ope
 
 func (c *GenerateContext) JSONRequestBodyModelSchemas() ([]Schema, error) {
 	var schemas []Schema
+	c.JSONRequestBodyOperations = nil
 
 	if c.Document == nil || c.Document.Paths == nil {
 		return nil, fmt.Errorf("openapi document has no paths")
@@ -244,6 +256,9 @@ func (c *GenerateContext) JSONRequestBodyModelSchemas() ([]Schema, error) {
 			if name == "" {
 				name = operation.OperationID
 			}
+			if operation.OperationID == "" {
+				return nil, fmt.Errorf("json request body operation has no operationId")
+			}
 
 			if schema.SchemaTypeName() == "" {
 				schema.SetTypeName(exportedName(name))
@@ -255,6 +270,10 @@ func (c *GenerateContext) JSONRequestBodyModelSchemas() ([]Schema, error) {
 			}
 
 			schemas = append(schemas, definitions...)
+			c.JSONRequestBodyOperations = append(c.JSONRequestBodyOperations, JSONRequestBodyOperation{
+				OperationID: operation.OperationID,
+				TypeName:    schema.SchemaTypeName(),
+			})
 		}
 	}
 
