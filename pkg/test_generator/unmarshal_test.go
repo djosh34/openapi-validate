@@ -14,7 +14,19 @@ func TestNullableObjectNodeHasOneNullableStringProperty(t *testing.T) {
 	content, err := os.ReadFile(openapiPath)
 	require.NoError(t, err)
 
-	var doc OpenAPINode
+	var doc struct {
+		Paths map[string]struct {
+			Post *struct {
+				OperationID string `yaml:"operationId"`
+				RequestBody struct {
+					Required bool `yaml:"required"`
+					Content  map[string]struct {
+						Schema SchemaNode `yaml:"schema"`
+					} `yaml:"content"`
+				} `yaml:"requestBody"`
+			} `yaml:"post"`
+		} `yaml:"paths"`
+	}
 	err = yaml.Unmarshal(content, &doc)
 	require.NoError(t, err)
 
