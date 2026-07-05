@@ -19,3 +19,13 @@ func Test{{ .TestName }}(t *testing.T) {
 	})
 }
 {{- end }}
+
+{{- range .ObjectSchemas }}
+
+func Test{{ .TestName }}(t *testing.T) {
+	testgenerator.RunMalformedObjectCases(t, func(data []byte) error {
+		var value {{ .TypeName }}
+		return value.UnmarshalJSON(data)
+	})
+}
+{{- end }}

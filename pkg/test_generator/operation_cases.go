@@ -79,6 +79,31 @@ func RunJSONRequestBodyOperationCases(t *testing.T, openAPI []byte, operationID 
 	})
 }
 
+func RunMalformedObjectCases(t *testing.T, unmarshal func([]byte) error) {
+	t.Helper()
+
+	if unmarshal == nil {
+		t.Fatal("nil unmarshal function")
+	}
+
+	invalidCases := []Case{
+		{Name: "empty", Value: nil},
+		{Name: "malformed object key", Value: []byte(`{"`)},
+		{Name: "malformed object value", Value: []byte(`{"decode_and_validate_generator":`)},
+		{Name: "missing closing object delimiter", Value: []byte(`{`)},
+		{Name: "trailing JSON value", Value: []byte(`{} true`)},
+	}
+
+	for _, testCase := range invalidCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			err := unmarshal(testCase.Value)
+			if err == nil {
+				t.Fatalf("expected malformed object case %q to fail", testCase.Value)
+			}
+		})
+	}
+}
+
 func jsonRequestBodySchemaNode(openAPI []byte, operationID string) (*yaml.Node, *yaml.Node, bool, error) {
 	var document yaml.Node
 	err := yaml.Unmarshal(openAPI, &document)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 )
 
 var (
@@ -5978,6 +5979,10 @@ func (s *CompositeObjectStringFormatNotNullable) UnmarshalJSON(data []byte) erro
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
+	_, err = time.Parse(time.RFC3339, value)
+	if err != nil {
+		return err
+	}
 	*s = CompositeObjectStringFormatNotNullable(value)
 	return nil
 }
@@ -5998,6 +6003,10 @@ func (s *CompositeObjectStringFormatNullable) UnmarshalJSON(data []byte) error {
 	err := json.Unmarshal(data, &value)
 	if err != nil {
 		return NonStringForStringSchemaError
+	}
+	_, err = time.Parse(time.RFC3339, value)
+	if err != nil {
+		return err
 	}
 	s.Value = new(value)
 	return nil

@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+{{- if .UsesRFC3339 }}
+	"time"
+{{- end }}
 )
 
 var (

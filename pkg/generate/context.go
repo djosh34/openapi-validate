@@ -79,6 +79,7 @@ type ObjectFieldContext struct {
 
 type StringSchema struct {
 	BaseSchema
+	Format string
 }
 
 type BoolSchema struct {
@@ -379,6 +380,7 @@ func SchemaFromOpenAPISchema(schema *openapi3.Schema) (Schema, error) {
 	case openapi3.TypeString:
 		return &StringSchema{
 			BaseSchema: base,
+			Format:     schema.Format,
 		}, nil
 	case openapi3.TypeBoolean:
 		return &BoolSchema{

@@ -21,12 +21,22 @@ var (
 )
 
 type fileTemplateContext struct {
-	Schemas []Schema
+	Schemas     []Schema
+	UsesRFC3339 bool
 }
 
 type modelsTestTemplateContext struct {
-	OpenAPI    string
-	Operations []JSONRequestBodyOperation
+	OpenAPI       string
+	Operations    []JSONRequestBodyOperation
+	ObjectSchemas []modelObjectSchemaTest
+}
+
+type modelObjectSchemaTest struct {
+	TypeName string
+}
+
+func (m modelObjectSchemaTest) TestName() string {
+	return m.TypeName + "MalformedObjectJSON"
 }
 
 func renderModelsFile(schemas []Schema) ([]byte, error) {
@@ -36,7 +46,10 @@ func renderModelsFile(schemas []Schema) ([]byte, error) {
 	}
 
 	var out bytes.Buffer
-	err = templates.ExecuteTemplate(&out, "file.go.tmpl", fileTemplateContext{Schemas: schemas})
+	err = templates.ExecuteTemplate(&out, "file.go.tmpl", fileTemplateContext{
+		Schemas:     schemas,
+		UsesRFC3339: usesRFC3339(schemas),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +62,18 @@ func renderModelsFile(schemas []Schema) ([]byte, error) {
 	return formatted, nil
 }
 
-func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation) ([]byte, error) {
+func usesRFC3339(schemas []Schema) bool {
+	for _, schema := range schemas {
+		stringSchema, ok := schema.(*StringSchema)
+		if ok && stringSchema.Format == "date-time" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation, schemas []Schema) ([]byte, error) {
 	if bytes.Contains(openAPI, []byte("`")) {
 		return nil, fmt.Errorf("openapi source contains backtick")
 	}
@@ -61,8 +85,9 @@ func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation)
 
 	var out bytes.Buffer
 	err = templates.ExecuteTemplate(&out, "models_test.go.tmpl", modelsTestTemplateContext{
-		OpenAPI:    string(openAPI),
-		Operations: operations,
+		OpenAPI:       string(openAPI),
+		Operations:    operations,
+		ObjectSchemas: objectSchemaTests(schemas),
 	})
 	if err != nil {
 		return nil, err
@@ -74,6 +99,19 @@ func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation)
 	}
 
 	return formatted, nil
+}
+
+func objectSchemaTests(schemas []Schema) []modelObjectSchemaTest {
+	tests := make([]modelObjectSchemaTest, 0, len(schemas))
+	for _, schema := range schemas {
+		if _, ok := schema.(*ObjectSchema); !ok {
+			continue
+		}
+
+		tests = append(tests, modelObjectSchemaTest{TypeName: schema.SchemaTypeName()})
+	}
+
+	return tests
 }
 
 func executeGoTemplate(name string, data any) (string, error) {
