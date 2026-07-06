@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"go/format"
+	"strings"
 	"sync"
 	"text/template"
 )
@@ -32,7 +33,8 @@ type modelsTestTemplateContext struct {
 }
 
 type modelObjectSchemaTest struct {
-	TypeName string
+	OperationID string
+	TypeName    string
 }
 
 func (m modelObjectSchemaTest) TestName() string {
@@ -83,11 +85,16 @@ func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation,
 		return nil, err
 	}
 
+	objectTests, err := objectSchemaTests(operations, schemas)
+	if err != nil {
+		return nil, err
+	}
+
 	var out bytes.Buffer
 	err = templates.ExecuteTemplate(&out, "models_test.go.tmpl", modelsTestTemplateContext{
 		OpenAPI:       string(openAPI),
 		Operations:    operations,
-		ObjectSchemas: objectSchemaTests(schemas),
+		ObjectSchemas: objectTests,
 	})
 	if err != nil {
 		return nil, err
@@ -101,17 +108,43 @@ func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation,
 	return formatted, nil
 }
 
-func objectSchemaTests(schemas []Schema) []modelObjectSchemaTest {
+func objectSchemaTests(operations []JSONRequestBodyOperation, schemas []Schema) ([]modelObjectSchemaTest, error) {
 	tests := make([]modelObjectSchemaTest, 0, len(schemas))
 	for _, schema := range schemas {
 		if _, ok := schema.(*ObjectSchema); !ok {
 			continue
 		}
 
-		tests = append(tests, modelObjectSchemaTest{TypeName: schema.SchemaTypeName()})
+		operationID, err := schemaOperationID(operations, schema.SchemaTypeName())
+		if err != nil {
+			return nil, err
+		}
+		tests = append(tests, modelObjectSchemaTest{
+			OperationID: operationID,
+			TypeName:    schema.SchemaTypeName(),
+		})
 	}
 
-	return tests
+	return tests, nil
+}
+
+func schemaOperationID(operations []JSONRequestBodyOperation, schemaTypeName string) (string, error) {
+	var match JSONRequestBodyOperation
+	for _, operation := range operations {
+		if schemaTypeName != operation.TypeName && !strings.HasPrefix(schemaTypeName, operation.TypeName) {
+			continue
+		}
+		if len(operation.TypeName) <= len(match.TypeName) {
+			continue
+		}
+
+		match = operation
+	}
+	if match.OperationID == "" {
+		return "", fmt.Errorf("object schema %q has no source operation", schemaTypeName)
+	}
+
+	return match.OperationID, nil
 }
 
 func executeGoTemplate(name string, data any) (string, error) {

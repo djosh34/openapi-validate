@@ -742,7 +742,7 @@ func TestAllOfObject(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf1AllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -750,7 +750,7 @@ func TestRefStressObjectPutAllOf1AllOf1MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf1AllOf1NestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf1NestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf1Nested
 		return value.UnmarshalJSON(data)
 	})
@@ -758,7 +758,7 @@ func TestRefStressObjectPutAllOf1AllOf1NestedMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf1AllOf2AllOf1AllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf2AllOf1AllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf2AllOf1AllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -766,7 +766,7 @@ func TestRefStressObjectPutAllOf1AllOf2AllOf1AllOf1MalformedObjectJSON(t *testin
 }
 
 func TestRefStressObjectPutAllOf1AllOf2AllOf1AllOf1NestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf2AllOf1AllOf1NestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf2AllOf1AllOf1Nested
 		return value.UnmarshalJSON(data)
 	})
@@ -774,7 +774,7 @@ func TestRefStressObjectPutAllOf1AllOf2AllOf1AllOf1NestedMalformedObjectJSON(t *
 }
 
 func TestRefStressObjectPutAllOf1AllOf2AllOf1AllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf2AllOf1AllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf2AllOf1AllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -782,7 +782,7 @@ func TestRefStressObjectPutAllOf1AllOf2AllOf1AllOf2MalformedObjectJSON(t *testin
 }
 
 func TestRefStressObjectPutAllOf1AllOf2AllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf2AllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf2AllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -790,7 +790,7 @@ func TestRefStressObjectPutAllOf1AllOf2AllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -798,7 +798,7 @@ func TestRefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf1MalformedObjectJSON(t *
 }
 
 func TestRefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -806,7 +806,7 @@ func TestRefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf2MalformedObjectJSON(t *
 }
 
 func TestRefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -814,7 +814,7 @@ func TestRefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf3MalformedObjectJSON(t *
 }
 
 func TestRefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf3SealedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf3SealedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf3Sealed
 		return value.UnmarshalJSON(data)
 	})
@@ -822,7 +822,7 @@ func TestRefStressObjectPutAllOf1AllOf2AllOf2NestedAllOf3SealedMalformedObjectJS
 }
 
 func TestRefStressObjectPutAllOf1AllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -830,7 +830,7 @@ func TestRefStressObjectPutAllOf1AllOf3MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf1AllOf3FinalMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf3FinalMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf3Final
 		return value.UnmarshalJSON(data)
 	})
@@ -838,7 +838,7 @@ func TestRefStressObjectPutAllOf1AllOf3FinalMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf1AllOf3FinalNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf3FinalNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf3FinalNested
 		return value.UnmarshalJSON(data)
 	})
@@ -846,7 +846,7 @@ func TestRefStressObjectPutAllOf1AllOf3FinalNestedMalformedObjectJSON(t *testing
 }
 
 func TestRefStressObjectPutAllOf1AllOf3NestedAllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf3NestedAllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf3NestedAllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -854,7 +854,7 @@ func TestRefStressObjectPutAllOf1AllOf3NestedAllOf1MalformedObjectJSON(t *testin
 }
 
 func TestRefStressObjectPutAllOf1AllOf3NestedAllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf3NestedAllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf3NestedAllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -862,7 +862,7 @@ func TestRefStressObjectPutAllOf1AllOf3NestedAllOf2MalformedObjectJSON(t *testin
 }
 
 func TestRefStressObjectPutAllOf1AllOf3NestedAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf3NestedAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf3NestedAllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -870,7 +870,7 @@ func TestRefStressObjectPutAllOf1AllOf3NestedAllOf3MalformedObjectJSON(t *testin
 }
 
 func TestRefStressObjectPutAllOf1AllOf3NestedAllOf3SealedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf1AllOf3NestedAllOf3SealedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf1AllOf3NestedAllOf3Sealed
 		return value.UnmarshalJSON(data)
 	})
@@ -878,7 +878,7 @@ func TestRefStressObjectPutAllOf1AllOf3NestedAllOf3SealedMalformedObjectJSON(t *
 }
 
 func TestRefStressObjectPutAllOf2AllOf1AllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf1AllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf1AllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -886,7 +886,7 @@ func TestRefStressObjectPutAllOf2AllOf1AllOf1MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf2AllOf1AllOf1NestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf1AllOf1NestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf1AllOf1Nested
 		return value.UnmarshalJSON(data)
 	})
@@ -894,7 +894,7 @@ func TestRefStressObjectPutAllOf2AllOf1AllOf1NestedMalformedObjectJSON(t *testin
 }
 
 func TestRefStressObjectPutAllOf2AllOf1AllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf1AllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf1AllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -902,7 +902,7 @@ func TestRefStressObjectPutAllOf2AllOf1AllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf2AllOf1AllOf2FinalMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf1AllOf2FinalMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf1AllOf2Final
 		return value.UnmarshalJSON(data)
 	})
@@ -910,7 +910,7 @@ func TestRefStressObjectPutAllOf2AllOf1AllOf2FinalMalformedObjectJSON(t *testing
 }
 
 func TestRefStressObjectPutAllOf2AllOf1AllOf2FinalNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf1AllOf2FinalNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf1AllOf2FinalNested
 		return value.UnmarshalJSON(data)
 	})
@@ -918,7 +918,7 @@ func TestRefStressObjectPutAllOf2AllOf1AllOf2FinalNestedMalformedObjectJSON(t *t
 }
 
 func TestRefStressObjectPutAllOf2AllOf1AllOf2MetadataMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf1AllOf2MetadataMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf1AllOf2Metadata
 		return value.UnmarshalJSON(data)
 	})
@@ -926,7 +926,7 @@ func TestRefStressObjectPutAllOf2AllOf1AllOf2MetadataMalformedObjectJSON(t *test
 }
 
 func TestRefStressObjectPutAllOf2AllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -934,7 +934,7 @@ func TestRefStressObjectPutAllOf2AllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf2AllOf2FinalsItemMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf2FinalsItemMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf2FinalsItem
 		return value.UnmarshalJSON(data)
 	})
@@ -942,7 +942,7 @@ func TestRefStressObjectPutAllOf2AllOf2FinalsItemMalformedObjectJSON(t *testing.
 }
 
 func TestRefStressObjectPutAllOf2AllOf2FinalsItemNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf2FinalsItemNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf2FinalsItemNested
 		return value.UnmarshalJSON(data)
 	})
@@ -950,7 +950,7 @@ func TestRefStressObjectPutAllOf2AllOf2FinalsItemNestedMalformedObjectJSON(t *te
 }
 
 func TestRefStressObjectPutAllOf2AllOf2MetadataMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf2AllOf2MetadataMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf2AllOf2Metadata
 		return value.UnmarshalJSON(data)
 	})
@@ -958,7 +958,7 @@ func TestRefStressObjectPutAllOf2AllOf2MetadataMalformedObjectJSON(t *testing.T)
 }
 
 func TestRefStressObjectPutAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -966,7 +966,7 @@ func TestRefStressObjectPutAllOf3MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf3FinalMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3FinalMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3Final
 		return value.UnmarshalJSON(data)
 	})
@@ -974,7 +974,7 @@ func TestRefStressObjectPutAllOf3FinalMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf3FinalNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3FinalNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3FinalNested
 		return value.UnmarshalJSON(data)
 	})
@@ -982,7 +982,7 @@ func TestRefStressObjectPutAllOf3FinalNestedMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf3FinalsItemMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3FinalsItemMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3FinalsItem
 		return value.UnmarshalJSON(data)
 	})
@@ -990,7 +990,7 @@ func TestRefStressObjectPutAllOf3FinalsItemMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf3FinalsItemNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3FinalsItemNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3FinalsItemNested
 		return value.UnmarshalJSON(data)
 	})
@@ -998,7 +998,7 @@ func TestRefStressObjectPutAllOf3FinalsItemNestedMalformedObjectJSON(t *testing.
 }
 
 func TestRefStressObjectPutAllOf3MetadataMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3MetadataMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3Metadata
 		return value.UnmarshalJSON(data)
 	})
@@ -1006,7 +1006,7 @@ func TestRefStressObjectPutAllOf3MetadataMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf3NestedAllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3NestedAllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3NestedAllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -1014,7 +1014,7 @@ func TestRefStressObjectPutAllOf3NestedAllOf1MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf3NestedAllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3NestedAllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3NestedAllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1022,7 +1022,7 @@ func TestRefStressObjectPutAllOf3NestedAllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf3NestedAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3NestedAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3NestedAllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -1030,7 +1030,7 @@ func TestRefStressObjectPutAllOf3NestedAllOf3MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectPutAllOf3NestedAllOf3SealedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectPutAllOf3NestedAllOf3SealedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
 		var value RefStressObjectPutAllOf3NestedAllOf3Sealed
 		return value.UnmarshalJSON(data)
 	})
@@ -1038,7 +1038,7 @@ func TestRefStressObjectPutAllOf3NestedAllOf3SealedMalformedObjectJSON(t *testin
 }
 
 func TestRefStressObjectAllOf1AllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -1046,7 +1046,7 @@ func TestRefStressObjectAllOf1AllOf1MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf1AllOf1NestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf1NestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf1Nested
 		return value.UnmarshalJSON(data)
 	})
@@ -1054,7 +1054,7 @@ func TestRefStressObjectAllOf1AllOf1NestedMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf1AllOf2AllOf1AllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf2AllOf1AllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf2AllOf1AllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -1062,7 +1062,7 @@ func TestRefStressObjectAllOf1AllOf2AllOf1AllOf1MalformedObjectJSON(t *testing.T
 }
 
 func TestRefStressObjectAllOf1AllOf2AllOf1AllOf1NestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf2AllOf1AllOf1NestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf2AllOf1AllOf1Nested
 		return value.UnmarshalJSON(data)
 	})
@@ -1070,7 +1070,7 @@ func TestRefStressObjectAllOf1AllOf2AllOf1AllOf1NestedMalformedObjectJSON(t *tes
 }
 
 func TestRefStressObjectAllOf1AllOf2AllOf1AllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf2AllOf1AllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf2AllOf1AllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1078,7 +1078,7 @@ func TestRefStressObjectAllOf1AllOf2AllOf1AllOf2MalformedObjectJSON(t *testing.T
 }
 
 func TestRefStressObjectAllOf1AllOf2AllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf2AllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf2AllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1086,7 +1086,7 @@ func TestRefStressObjectAllOf1AllOf2AllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf1AllOf2AllOf2NestedAllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf2AllOf2NestedAllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf2AllOf2NestedAllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -1094,7 +1094,7 @@ func TestRefStressObjectAllOf1AllOf2AllOf2NestedAllOf1MalformedObjectJSON(t *tes
 }
 
 func TestRefStressObjectAllOf1AllOf2AllOf2NestedAllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf2AllOf2NestedAllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf2AllOf2NestedAllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1102,7 +1102,7 @@ func TestRefStressObjectAllOf1AllOf2AllOf2NestedAllOf2MalformedObjectJSON(t *tes
 }
 
 func TestRefStressObjectAllOf1AllOf2AllOf2NestedAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf2AllOf2NestedAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf2AllOf2NestedAllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -1110,7 +1110,7 @@ func TestRefStressObjectAllOf1AllOf2AllOf2NestedAllOf3MalformedObjectJSON(t *tes
 }
 
 func TestRefStressObjectAllOf1AllOf2AllOf2NestedAllOf3SealedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf2AllOf2NestedAllOf3SealedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf2AllOf2NestedAllOf3Sealed
 		return value.UnmarshalJSON(data)
 	})
@@ -1118,7 +1118,7 @@ func TestRefStressObjectAllOf1AllOf2AllOf2NestedAllOf3SealedMalformedObjectJSON(
 }
 
 func TestRefStressObjectAllOf1AllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -1126,7 +1126,7 @@ func TestRefStressObjectAllOf1AllOf3MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf1AllOf3FinalMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf3FinalMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf3Final
 		return value.UnmarshalJSON(data)
 	})
@@ -1134,7 +1134,7 @@ func TestRefStressObjectAllOf1AllOf3FinalMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf1AllOf3FinalNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf3FinalNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf3FinalNested
 		return value.UnmarshalJSON(data)
 	})
@@ -1142,7 +1142,7 @@ func TestRefStressObjectAllOf1AllOf3FinalNestedMalformedObjectJSON(t *testing.T)
 }
 
 func TestRefStressObjectAllOf1AllOf3NestedAllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf3NestedAllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf3NestedAllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -1150,7 +1150,7 @@ func TestRefStressObjectAllOf1AllOf3NestedAllOf1MalformedObjectJSON(t *testing.T
 }
 
 func TestRefStressObjectAllOf1AllOf3NestedAllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf3NestedAllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf3NestedAllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1158,7 +1158,7 @@ func TestRefStressObjectAllOf1AllOf3NestedAllOf2MalformedObjectJSON(t *testing.T
 }
 
 func TestRefStressObjectAllOf1AllOf3NestedAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf3NestedAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf3NestedAllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -1166,7 +1166,7 @@ func TestRefStressObjectAllOf1AllOf3NestedAllOf3MalformedObjectJSON(t *testing.T
 }
 
 func TestRefStressObjectAllOf1AllOf3NestedAllOf3SealedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf1AllOf3NestedAllOf3SealedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf1AllOf3NestedAllOf3Sealed
 		return value.UnmarshalJSON(data)
 	})
@@ -1174,7 +1174,7 @@ func TestRefStressObjectAllOf1AllOf3NestedAllOf3SealedMalformedObjectJSON(t *tes
 }
 
 func TestRefStressObjectAllOf2AllOf1AllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf1AllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf1AllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -1182,7 +1182,7 @@ func TestRefStressObjectAllOf2AllOf1AllOf1MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf2AllOf1AllOf1NestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf1AllOf1NestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf1AllOf1Nested
 		return value.UnmarshalJSON(data)
 	})
@@ -1190,7 +1190,7 @@ func TestRefStressObjectAllOf2AllOf1AllOf1NestedMalformedObjectJSON(t *testing.T
 }
 
 func TestRefStressObjectAllOf2AllOf1AllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf1AllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf1AllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1198,7 +1198,7 @@ func TestRefStressObjectAllOf2AllOf1AllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf2AllOf1AllOf2FinalMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf1AllOf2FinalMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf1AllOf2Final
 		return value.UnmarshalJSON(data)
 	})
@@ -1206,7 +1206,7 @@ func TestRefStressObjectAllOf2AllOf1AllOf2FinalMalformedObjectJSON(t *testing.T)
 }
 
 func TestRefStressObjectAllOf2AllOf1AllOf2FinalNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf1AllOf2FinalNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf1AllOf2FinalNested
 		return value.UnmarshalJSON(data)
 	})
@@ -1214,7 +1214,7 @@ func TestRefStressObjectAllOf2AllOf1AllOf2FinalNestedMalformedObjectJSON(t *test
 }
 
 func TestRefStressObjectAllOf2AllOf1AllOf2MetadataMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf1AllOf2MetadataMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf1AllOf2Metadata
 		return value.UnmarshalJSON(data)
 	})
@@ -1222,7 +1222,7 @@ func TestRefStressObjectAllOf2AllOf1AllOf2MetadataMalformedObjectJSON(t *testing
 }
 
 func TestRefStressObjectAllOf2AllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1230,7 +1230,7 @@ func TestRefStressObjectAllOf2AllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf2AllOf2FinalsItemMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf2FinalsItemMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf2FinalsItem
 		return value.UnmarshalJSON(data)
 	})
@@ -1238,7 +1238,7 @@ func TestRefStressObjectAllOf2AllOf2FinalsItemMalformedObjectJSON(t *testing.T) 
 }
 
 func TestRefStressObjectAllOf2AllOf2FinalsItemNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf2FinalsItemNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf2FinalsItemNested
 		return value.UnmarshalJSON(data)
 	})
@@ -1246,7 +1246,7 @@ func TestRefStressObjectAllOf2AllOf2FinalsItemNestedMalformedObjectJSON(t *testi
 }
 
 func TestRefStressObjectAllOf2AllOf2MetadataMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf2AllOf2MetadataMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf2AllOf2Metadata
 		return value.UnmarshalJSON(data)
 	})
@@ -1254,7 +1254,7 @@ func TestRefStressObjectAllOf2AllOf2MetadataMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -1262,7 +1262,7 @@ func TestRefStressObjectAllOf3MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3FinalMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3FinalMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3Final
 		return value.UnmarshalJSON(data)
 	})
@@ -1270,7 +1270,7 @@ func TestRefStressObjectAllOf3FinalMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3FinalNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3FinalNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3FinalNested
 		return value.UnmarshalJSON(data)
 	})
@@ -1278,7 +1278,7 @@ func TestRefStressObjectAllOf3FinalNestedMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3FinalsItemMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3FinalsItemMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3FinalsItem
 		return value.UnmarshalJSON(data)
 	})
@@ -1286,7 +1286,7 @@ func TestRefStressObjectAllOf3FinalsItemMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3FinalsItemNestedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3FinalsItemNestedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3FinalsItemNested
 		return value.UnmarshalJSON(data)
 	})
@@ -1294,7 +1294,7 @@ func TestRefStressObjectAllOf3FinalsItemNestedMalformedObjectJSON(t *testing.T) 
 }
 
 func TestRefStressObjectAllOf3MetadataMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3MetadataMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3Metadata
 		return value.UnmarshalJSON(data)
 	})
@@ -1302,7 +1302,7 @@ func TestRefStressObjectAllOf3MetadataMalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3NestedAllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3NestedAllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3NestedAllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -1310,7 +1310,7 @@ func TestRefStressObjectAllOf3NestedAllOf1MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3NestedAllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3NestedAllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3NestedAllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1318,7 +1318,7 @@ func TestRefStressObjectAllOf3NestedAllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3NestedAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3NestedAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3NestedAllOf3
 		return value.UnmarshalJSON(data)
 	})
@@ -1326,7 +1326,7 @@ func TestRefStressObjectAllOf3NestedAllOf3MalformedObjectJSON(t *testing.T) {
 }
 
 func TestRefStressObjectAllOf3NestedAllOf3SealedMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefStressObjectAllOf3NestedAllOf3SealedMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refStressObject", func(data []byte) error {
 		var value RefStressObjectAllOf3NestedAllOf3Sealed
 		return value.UnmarshalJSON(data)
 	})
@@ -1334,7 +1334,7 @@ func TestRefStressObjectAllOf3NestedAllOf3SealedMalformedObjectJSON(t *testing.T
 }
 
 func TestRefObjectMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "RefObjectMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "refObject", func(data []byte) error {
 		var value RefObject
 		return value.UnmarshalJSON(data)
 	})
@@ -1342,7 +1342,7 @@ func TestRefObjectMalformedObjectJSON(t *testing.T) {
 }
 
 func TestObjectKeysAdditionalPropertiesFalseMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "ObjectKeysAdditionalPropertiesFalseMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "objectKeysAdditionalPropertiesFalse", func(data []byte) error {
 		var value ObjectKeysAdditionalPropertiesFalse
 		return value.UnmarshalJSON(data)
 	})
@@ -1350,7 +1350,7 @@ func TestObjectKeysAdditionalPropertiesFalseMalformedObjectJSON(t *testing.T) {
 }
 
 func TestNullableObjectKeysAdditionalPropertiesFalseMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "NullableObjectKeysAdditionalPropertiesFalseMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "nullableObjectKeysAdditionalPropertiesFalse", func(data []byte) error {
 		var value NullableObjectKeysAdditionalPropertiesFalse
 		return value.UnmarshalJSON(data)
 	})
@@ -1358,7 +1358,7 @@ func TestNullableObjectKeysAdditionalPropertiesFalseMalformedObjectJSON(t *testi
 }
 
 func TestCompositeObjectMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "CompositeObjectMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "compositeObject", func(data []byte) error {
 		var value CompositeObject
 		return value.UnmarshalJSON(data)
 	})
@@ -1366,7 +1366,7 @@ func TestCompositeObjectMalformedObjectJSON(t *testing.T) {
 }
 
 func TestCompositeObjectObjectAdditionalPropertiesImplicitMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "CompositeObjectObjectAdditionalPropertiesImplicitMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "compositeObject", func(data []byte) error {
 		var value CompositeObjectObjectAdditionalPropertiesImplicit
 		return value.UnmarshalJSON(data)
 	})
@@ -1374,7 +1374,7 @@ func TestCompositeObjectObjectAdditionalPropertiesImplicitMalformedObjectJSON(t 
 }
 
 func TestCompositeObjectObjectAdditionalPropertiesSchemaMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "CompositeObjectObjectAdditionalPropertiesSchemaMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "compositeObject", func(data []byte) error {
 		var value CompositeObjectObjectAdditionalPropertiesSchema
 		return value.UnmarshalJSON(data)
 	})
@@ -1382,7 +1382,7 @@ func TestCompositeObjectObjectAdditionalPropertiesSchemaMalformedObjectJSON(t *t
 }
 
 func TestCompositeObjectObjectAdditionalPropertiesTrueMalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "CompositeObjectObjectAdditionalPropertiesTrueMalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "compositeObject", func(data []byte) error {
 		var value CompositeObjectObjectAdditionalPropertiesTrue
 		return value.UnmarshalJSON(data)
 	})
@@ -1390,7 +1390,7 @@ func TestCompositeObjectObjectAdditionalPropertiesTrueMalformedObjectJSON(t *tes
 }
 
 func TestAllOfObjectAllOf1MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "AllOfObjectAllOf1MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "allOfObject", func(data []byte) error {
 		var value AllOfObjectAllOf1
 		return value.UnmarshalJSON(data)
 	})
@@ -1398,7 +1398,7 @@ func TestAllOfObjectAllOf1MalformedObjectJSON(t *testing.T) {
 }
 
 func TestAllOfObjectAllOf2MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "AllOfObjectAllOf2MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "allOfObject", func(data []byte) error {
 		var value AllOfObjectAllOf2
 		return value.UnmarshalJSON(data)
 	})
@@ -1406,7 +1406,7 @@ func TestAllOfObjectAllOf2MalformedObjectJSON(t *testing.T) {
 }
 
 func TestAllOfObjectAllOf3MalformedObjectJSON(t *testing.T) {
-	err := testgenerator.GenerateInvalid(exampleOpenAPI, "AllOfObjectAllOf3MalformedObjectJSON", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "allOfObject", func(data []byte) error {
 		var value AllOfObjectAllOf3
 		return value.UnmarshalJSON(data)
 	})

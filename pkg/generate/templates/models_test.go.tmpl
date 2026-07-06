@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"decode_and_validate_generator/pkg/test_generator"
+
+	"github.com/stretchr/testify/require"
 )
 
 var exampleOpenAPI = []byte(`
@@ -13,19 +15,21 @@ var exampleOpenAPI = []byte(`
 {{- range .Operations }}
 
 func Test{{ .TestName }}(t *testing.T) {
-	testgenerator.GenerateValid(exampleOpenAPI, "{{ .OperationID }}", func(data []byte) error {
+	err := testgenerator.GenerateValid(exampleOpenAPI, "{{ .OperationID }}", func(data []byte) error {
 		var value {{ .TypeName }}
 		return value.UnmarshalJSON(data)
 	})
+	require.NoError(t, err)
 }
 {{- end }}
 
 {{- range .ObjectSchemas }}
 
 func Test{{ .TestName }}(t *testing.T) {
-	testgenerator.GenerateInvalid(exampleOpenAPI, "{{ .TestName }}", func(data []byte) error {
+	err := testgenerator.GenerateInvalid(exampleOpenAPI, "{{ .OperationID }}", func(data []byte) error {
 		var value {{ .TypeName }}
 		return value.UnmarshalJSON(data)
 	})
+	require.NoError(t, err)
 }
 {{- end }}
