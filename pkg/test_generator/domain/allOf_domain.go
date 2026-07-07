@@ -182,10 +182,6 @@ func (dc *DomainContext) ParseAllOf(node *json.RawMessage) (allOfDomain AllOfDom
 			return AllOfDomain{}, errors.New("allOf item must be object")
 		}
 
-		if itemKV == nil {
-			return AllOfDomain{}, errors.New("allOf item must be object")
-		}
-
 		if len(itemKV) == 0 {
 			return AllOfDomain{}, errors.New("allOf item cannot be empty schema")
 		}

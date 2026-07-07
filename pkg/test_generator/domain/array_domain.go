@@ -27,10 +27,7 @@ func (a *ArrayDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 	}
 
 	if allOfDomain, ok := domain.(*AllOfDomain); ok {
-		mergedAllOf := &AllOfDomain{}
-		if _, err := mergedAllOf.AllOfMerge(a); err != nil {
-			return nil, err
-		}
+		mergedAllOf := &AllOfDomain{Domains: []types.Domain{a}, MergedDomain: a}
 
 		return mergedAllOf.AllOfMerge(allOfDomain)
 	}
@@ -165,10 +162,6 @@ func (dc *DomainContext) ParseArray(node *json.RawMessage) (ArrayDomain, error) 
 
 	itemsObject := JSONKV{}
 	if err := json.Unmarshal(itemsRaw, &itemsObject); err != nil {
-		return ArrayDomain{}, errors.New("items must be object")
-	}
-
-	if itemsObject == nil {
 		return ArrayDomain{}, errors.New("items must be object")
 	}
 

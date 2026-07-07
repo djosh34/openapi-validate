@@ -20,10 +20,7 @@ func (b *BoolDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 	}
 
 	if allOfDomain, ok := domain.(*AllOfDomain); ok {
-		mergedAllOf := &AllOfDomain{}
-		if _, err := mergedAllOf.AllOfMerge(b); err != nil {
-			return nil, err
-		}
+		mergedAllOf := &AllOfDomain{Domains: []types.Domain{b}, MergedDomain: b}
 
 		return mergedAllOf.AllOfMerge(allOfDomain)
 	}

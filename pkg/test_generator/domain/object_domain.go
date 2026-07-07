@@ -76,10 +76,7 @@ func (o *ObjectDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 	}
 
 	if allOfDomain, ok := domain.(*AllOfDomain); ok {
-		mergedAllOf := &AllOfDomain{}
-		if _, err := mergedAllOf.AllOfMerge(o); err != nil {
-			return nil, err
-		}
+		mergedAllOf := &AllOfDomain{Domains: []types.Domain{o}, MergedDomain: o}
 
 		return mergedAllOf.AllOfMerge(allOfDomain)
 	}
@@ -399,12 +396,6 @@ func (dc *DomainContext) ParseObject(node *json.RawMessage) (objectDomain Object
 
 			if _, writeOnlyOk := propertyJSONKV["writeOnly"]; writeOnlyOk {
 				return ObjectDomain{}, errors.New("writeOnly is not allowed in object properties")
-			}
-
-			if _, propertyOk := properties[propertyKey]; propertyOk {
-				return ObjectDomain{}, &PropertyAlreadyExistsError{
-					Key: propertyKey,
-				}
 			}
 
 			propertyDomain, propertyErr := dc.Parse(&propertyValue)

@@ -89,6 +89,11 @@ func (dc *DomainContext) parseDefault(node *json.RawMessage) (types.Domain, erro
 		return &allOfDomain, nil
 	}
 
+	jsonKV := JSONKV{}
+	if err := json.Unmarshal(*node, &jsonKV); err != nil {
+		return nil, errors.New("Schema does not specify type")
+	}
+
 	type someSchema struct {
 		Type string `json:"type"`
 	}
@@ -102,11 +107,6 @@ func (dc *DomainContext) parseDefault(node *json.RawMessage) (types.Domain, erro
 
 	schemaType := schemaItem.Type
 	if schemaType == "" {
-		jsonKV := JSONKV{}
-		if err := json.Unmarshal(*node, &jsonKV); err != nil {
-			return nil, err
-		}
-
 		for _, key := range []string{"required", "properties", "additionalProperties", "minProperties", "maxProperties"} {
 			if _, ok := jsonKV[key]; ok {
 				objectDomain, err := dc.ParseObject(node)
