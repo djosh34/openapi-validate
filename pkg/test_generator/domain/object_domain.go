@@ -1,15 +1,12 @@
 package domain
 
 import (
-	"crypto/sha256"
 	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 )
-
-var _ types.Hasher = new(ObjectDomain)
 
 type AdditionalPropertyKind int
 
@@ -25,24 +22,6 @@ type Property struct {
 	Required bool
 }
 
-type propertyHashJSON struct {
-	Type  string   `json:"type"`
-	Value Property `json:"value"`
-}
-
-func (p *Property) GenerateHash() (types.Hash, error) {
-	if p == nil {
-		return types.Hash{}, errors.New("property cannot be nil")
-	}
-
-	jsonBytes, err := json.Marshal(propertyHashJSON{Type: "property", Value: *p})
-	if err != nil {
-		return types.Hash{}, err
-	}
-
-	return sha256.Sum256(jsonBytes), nil
-}
-
 type ObjectDomain struct {
 	Enum []types.Domain
 
@@ -53,24 +32,6 @@ type ObjectDomain struct {
 
 	MinProps int
 	MaxProps *int
-}
-
-type objectDomainHashJSON struct {
-	Type  string       `json:"type"`
-	Value ObjectDomain `json:"value"`
-}
-
-func (o *ObjectDomain) GenerateHash() (types.Hash, error) {
-	if o == nil {
-		return types.Hash{}, errors.New("object domain cannot be nil")
-	}
-
-	jsonBytes, err := json.Marshal(objectDomainHashJSON{Type: "object", Value: *o})
-	if err != nil {
-		return types.Hash{}, err
-	}
-
-	return sha256.Sum256(jsonBytes), nil
 }
 
 type JSONKV map[string]json.RawMessage
