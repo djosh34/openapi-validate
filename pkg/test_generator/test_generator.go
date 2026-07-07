@@ -1,18 +1,16 @@
 package testgenerator
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 func GenerateValid(openAPIYAMLSpec []byte, operationID string, unmarshal func([]byte) error) error {
 	_ = unmarshal
 
-	openAPIJSONSpec, err := YAMLBytesToJSONRawMessage(openAPIYAMLSpec)
+	_, err := parseOpenAPIRequestBodySchemaNode(openAPIYAMLSpec, operationID)
 	if err != nil {
-		return fmt.Errorf("openapi yaml spec parse failed: %w", err)
-	}
-
-	_, err = OpenAPIRequestBodySchemaNode(openAPIJSONSpec, operationID)
-	if err != nil {
-		return fmt.Errorf("openapi yaml spec parse failed: %w", err)
+		return err
 	}
 
 	return nil
@@ -21,15 +19,24 @@ func GenerateValid(openAPIYAMLSpec []byte, operationID string, unmarshal func([]
 func GenerateInvalid(openAPIYAMLSpec []byte, operationID string, unmarshal func([]byte) error) error {
 	_ = unmarshal
 
-	openAPIJSONSpec, err := YAMLBytesToJSONRawMessage(openAPIYAMLSpec)
+	_, err := parseOpenAPIRequestBodySchemaNode(openAPIYAMLSpec, operationID)
 	if err != nil {
-		return fmt.Errorf("openapi yaml spec parse failed: %w", err)
-	}
-
-	_, err = OpenAPIRequestBodySchemaNode(openAPIJSONSpec, operationID)
-	if err != nil {
-		return fmt.Errorf("openapi yaml spec parse failed: %w", err)
+		return err
 	}
 
 	return nil
+}
+
+func parseOpenAPIRequestBodySchemaNode(openAPIYAMLSpec []byte, operationID string) (*json.RawMessage, error) {
+	openAPIJSONSpec, err := YAMLBytesToJSONRawMessage(openAPIYAMLSpec)
+	if err != nil {
+		return nil, fmt.Errorf("openapi yaml spec parse failed: %w", err)
+	}
+
+	schemaNode, err := OpenAPIRequestBodySchemaNode(openAPIJSONSpec, operationID)
+	if err != nil {
+		return nil, fmt.Errorf("openapi yaml spec parse failed: %w", err)
+	}
+
+	return schemaNode, nil
 }
