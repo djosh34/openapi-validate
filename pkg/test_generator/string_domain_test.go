@@ -143,7 +143,7 @@ func TestStringDomainHashUsesSHA256OfJSON(t *testing.T) {
 	jsonBytes, err := json.Marshal(domain)
 	require.NoError(t, err)
 	require.Equal(t, domainJSON, string(jsonBytes))
-	gotHash, err := domain.Hash()
+	gotHash, err := domain.GenerateHash()
 	require.NoError(t, err)
 	require.Equal(t, expectedHash, gotHash)
 }

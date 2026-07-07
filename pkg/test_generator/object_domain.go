@@ -2,7 +2,7 @@ package testgenerator
 
 import "gopkg.in/yaml.v3"
 
-var _ YamlParser = new(PropertyDomain)
+var _ Hasher = new(Property)
 var _ YamlParser = new(ObjectDomain)
 
 type AdditionalPolicyKind int
@@ -13,13 +13,13 @@ const (
 	AdditionalSchema
 )
 
-type PropertyDomain struct {
+type Property struct {
 	Key string
 	*Hash
 	Required bool
 }
 
-func (p *PropertyDomain) Parse(node yaml.Node) error {
+func (p *Property) GenerateHash() (Hash, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -35,6 +35,14 @@ type ObjectDomain struct {
 }
 
 func (o *ObjectDomain) Parse(node yaml.Node) error {
+	// Parse Properties
+
+	// Parse AdditionalProperties
+
+	// Parse MinProps, MaxProps
+
+	//
+
 	//TODO implement me
 	panic("implement me")
 }

@@ -19,7 +19,7 @@ type StringDomain struct {
 
 var _ Hasher = new(StringDomain)
 
-func (domain *StringDomain) Hash() (Hash, error) {
+func (domain *StringDomain) GenerateHash() (Hash, error) {
 	jsonBytes, err := json.Marshal(domain)
 	if err != nil {
 		return Hash{}, err
