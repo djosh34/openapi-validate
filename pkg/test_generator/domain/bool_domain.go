@@ -1,10 +1,12 @@
 package domain
 
 import (
+	"bytes"
 	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type BoolDomain struct {
@@ -35,5 +37,70 @@ func (b *BoolDomain) ToHasher() (types.Hasher, error) {
 }
 
 func (dc *DomainContext) ParseBool(node *json.RawMessage) (BoolDomain, error) {
-	return BoolDomain{}, errors.New("NOT IMPLEMENTED")
+	if node == nil {
+		return BoolDomain{}, errors.New("schema node is nil")
+	}
+
+	decoder := json.NewDecoder(bytes.NewReader(*node))
+	decoder.UseNumber()
+	jsonKV := JSONKV{}
+	if err := decoder.Decode(&jsonKV); err != nil {
+		return BoolDomain{}, err
+	}
+
+	var raw map[string]any
+	decoder = json.NewDecoder(bytes.NewReader(*node))
+	decoder.UseNumber()
+	if err := decoder.Decode(&raw); err != nil {
+		return BoolDomain{}, err
+	}
+
+	schemaType, err := requiredString(raw, "type")
+	if err != nil {
+		return BoolDomain{}, err
+	}
+	if schemaType != "boolean" {
+		return BoolDomain{}, fmt.Errorf("bool domain type must be boolean, got %q", schemaType)
+	}
+
+	domain := BoolDomain{}
+	if value, ok := raw["nullable"]; ok {
+		nullable, ok := value.(bool)
+		if !ok {
+			return BoolDomain{}, errors.New("nullable must be boolean")
+		}
+		domain.Nullable = nullable
+	}
+
+	if value, ok := raw["enum"]; ok {
+		values, ok := value.([]any)
+		if !ok || values == nil {
+			return BoolDomain{}, errors.New("enum must be array")
+		}
+		if len(values) == 0 {
+			return BoolDomain{}, errors.New("enum cannot be empty")
+		}
+		seen := map[bool]struct{}{}
+		for _, item := range values {
+			boolValue, ok := item.(bool)
+			if !ok {
+				return BoolDomain{}, errors.New("enum values must be booleans")
+			}
+			if _, ok := seen[boolValue]; ok {
+				return BoolDomain{}, errors.New("enum values must be unique")
+			}
+			seen[boolValue] = struct{}{}
+			domain.Enum = append(domain.Enum, boolValue)
+		}
+	}
+
+	deleteAllowableKeys(jsonKV)
+	delete(jsonKV, "enum")
+	if len(jsonKV) != 0 {
+		for key := range jsonKV {
+			return BoolDomain{}, fmt.Errorf("unsupported bool schema field %q", key)
+		}
+	}
+
+	return domain, nil
 }
