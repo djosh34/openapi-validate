@@ -8,9 +8,13 @@ const (
 	AdditionalSchema
 )
 
+type Property struct {
+	Domain
+	Required bool
+}
+
 type ObjectDomain struct {
-	Properties map[string]Domain
-	Required   map[string]bool
+	Properties map[string]Property
 
 	AdditionalPropertyKind   AdditionalPolicyKind
 	AdditionalPropertyDomain Domain
