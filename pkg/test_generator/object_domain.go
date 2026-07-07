@@ -7,6 +7,7 @@ import (
 )
 
 var _ Hasher = new(Property)
+var _ Hasher = new(ObjectDomain)
 
 type AdditionalPropertyKind int
 
@@ -28,6 +29,8 @@ func (p *Property) GenerateHash() (Hash, error) {
 }
 
 type ObjectDomain struct {
+	Enum []*Hash
+
 	Properties []*Hash
 
 	AdditionalPropertyKind
@@ -37,14 +40,20 @@ type ObjectDomain struct {
 	MaxProps *int
 }
 
+func (o *ObjectDomain) GenerateHash() (Hash, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 type YamlKV map[string]yaml.Node
 type YamlObject struct {
-	Type                 string    `yaml:"type"`
-	Required             []string  `yaml:"required"`
-	Properties           YamlKV    `yaml:"properties"`
-	AdditionalProperties yaml.Node `yaml:"additionalProperties"`
-	MinProperties        *int      `yaml:"minProperties"`
-	MaxProperties        *int      `yaml:"maxProperties"`
+	Type                 string      `yaml:"type"`
+	Required             []string    `yaml:"required"`
+	Properties           YamlKV      `yaml:"properties"`
+	AdditionalProperties yaml.Node   `yaml:"additionalProperties"`
+	MinProperties        *int        `yaml:"minProperties"`
+	MaxProperties        *int        `yaml:"maxProperties"`
+	Enum                 []yaml.Node `yaml:"enum"`
 }
 
 type PropertyAlreadyExistsError struct {
@@ -70,6 +79,8 @@ func (dc *DomainContext) ParseObject(node yaml.Node) (ObjectDomain, error) {
 	}
 
 	objectDomain := ObjectDomain{}
+
+	// Parse Enums early, and if it exists, return early (we will not check that enum is valid, and only populate enum field of ObjectDomain)
 
 	properties := make(map[string]Property, len(yamlObject.Properties))
 
@@ -100,7 +111,23 @@ func (dc *DomainContext) ParseObject(node yaml.Node) (ObjectDomain, error) {
 	}
 
 	// Parse required
-	// For each required -> if property exists, set required to true, if not, create new property with empty hash and required true
+	if _, requiredOk := yamlKV["required"]; requiredOk {
+		delete(yamlKV, "required")
+
+		for _, requiredKey := range yamlObject.Required {
+			property, propertyOk := properties[requiredKey]
+			if !propertyOk {
+				property = Property{
+					Key:      requiredKey,
+					Required: true,
+				}
+			} else {
+				property.Required = true
+			}
+
+			properties[requiredKey] = property
+		}
+	}
 
 	// Parse AdditionalProperties
 
