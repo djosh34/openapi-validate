@@ -13,7 +13,6 @@ func TestMissingHashablesImplementHasher(t *testing.T) {
 	require.Implements(t, (*types.Hasher)(nil), new(ArrayHashable))
 	require.Implements(t, (*types.Hasher)(nil), new(BoolHashable))
 	require.Implements(t, (*types.Hasher)(nil), new(NumberHashable))
-	require.Implements(t, (*types.Hasher)(nil), new(IntegerHashable))
 	require.Implements(t, (*types.Hasher)(nil), new(AllOfHashable))
 }
 
@@ -41,19 +40,8 @@ func TestNumberHashableGenerateHash(t *testing.T) {
 	minimum := Number("1")
 	maximum := Number("10")
 	multipleOf := Number("0.5")
-	hashable := NumberHashable{Nullable: true, Enum: []Number{Number("1"), Number("2")}, Minimum: &minimum, Maximum: &maximum, ExclusiveMinimum: true, ExclusiveMaximum: true, MultipleOf: &multipleOf, Format: new("float")}
+	hashable := NumberHashable{Type: "number", Nullable: true, Enum: []Number{Number("1"), Number("2")}, Minimum: &minimum, Maximum: &maximum, ExclusiveMinimum: true, ExclusiveMaximum: true, MultipleOf: &multipleOf, Format: new("float")}
 	jsonBytes, err := json.Marshal(numberHashableHashJSON{Type: "number", Value: hashable})
-	require.NoError(t, err)
-
-	gotHash, err := hashable.GenerateHash()
-	require.NoError(t, err)
-	require.Equal(t, types.Hash(sha256.Sum256(jsonBytes)), gotHash)
-}
-
-func TestIntegerHashableGenerateHash(t *testing.T) {
-	minimum := Number("1")
-	hashable := IntegerHashable{Nullable: true, Enum: []Number{Number("1")}, Minimum: &minimum, Format: new("int64")}
-	jsonBytes, err := json.Marshal(integerHashableHashJSON{Type: "integer", Value: hashable})
 	require.NoError(t, err)
 
 	gotHash, err := hashable.GenerateHash()
@@ -77,8 +65,6 @@ func TestMissingHashablesGenerateHashNil(t *testing.T) {
 	_, err = (*BoolHashable)(nil).GenerateHash()
 	require.Error(t, err)
 	_, err = (*NumberHashable)(nil).GenerateHash()
-	require.Error(t, err)
-	_, err = (*IntegerHashable)(nil).GenerateHash()
 	require.Error(t, err)
 	_, err = (*AllOfHashable)(nil).GenerateHash()
 	require.Error(t, err)

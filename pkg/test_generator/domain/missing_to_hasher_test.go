@@ -30,12 +30,12 @@ func TestMissingDomainsToHasher(t *testing.T) {
 			expected: &hashables.BoolHashable{Nullable: true, Enum: []bool{true}},
 		},
 		"number": {
-			domain:   &NumberDomain{Nullable: true, Enum: []Number{Number("1")}, Minimum: &minimum, Maximum: &maximum, ExclusiveMinimum: true, ExclusiveMaximum: true, MultipleOf: &multipleOf, Format: new("double")},
-			expected: &hashables.NumberHashable{Nullable: true, Enum: []hashables.Number{hashables.Number("1")}, Minimum: new(hashables.Number("1")), Maximum: new(hashables.Number("10")), ExclusiveMinimum: true, ExclusiveMaximum: true, MultipleOf: new(hashables.Number("2")), Format: new("double")},
+			domain:   &NumberDomain{Type: "number", Nullable: true, Enum: []Number{Number("1")}, Minimum: &minimum, Maximum: &maximum, ExclusiveMinimum: true, ExclusiveMaximum: true, MultipleOf: &multipleOf, Format: new("double")},
+			expected: &hashables.NumberHashable{Type: "number", Nullable: true, Enum: []hashables.Number{hashables.Number("1")}, Minimum: new(hashables.Number("1")), Maximum: new(hashables.Number("10")), ExclusiveMinimum: true, ExclusiveMaximum: true, MultipleOf: new(hashables.Number("2")), Format: new("double")},
 		},
 		"integer": {
-			domain:   &IntegerDomain{Nullable: true, Enum: []Number{Number("1")}, Minimum: &minimum, Format: new("int32")},
-			expected: &hashables.IntegerHashable{Nullable: true, Enum: []hashables.Number{hashables.Number("1")}, Minimum: new(hashables.Number("1")), Format: new("int32")},
+			domain:   &NumberDomain{Type: "integer", Nullable: true, Enum: []Number{Number("1")}, Minimum: &minimum, Format: new("int32")},
+			expected: &hashables.NumberHashable{Type: "integer", Nullable: true, Enum: []hashables.Number{hashables.Number("1")}, Minimum: new(hashables.Number("1")), Format: new("int32")},
 		},
 		"allOf": {
 			domain: &AllOfDomain{Domains: []types.Domain{&StringDomain{}}, MergedDomain: &ObjectDomain{}},
@@ -65,8 +65,6 @@ func TestMissingDomainsToHasherNil(t *testing.T) {
 	_, err = (*BoolDomain)(nil).ToHasher()
 	require.Error(t, err)
 	_, err = (*NumberDomain)(nil).ToHasher()
-	require.Error(t, err)
-	_, err = (*IntegerDomain)(nil).ToHasher()
 	require.Error(t, err)
 	_, err = (*AllOfDomain)(nil).ToHasher()
 	require.Error(t, err)

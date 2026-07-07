@@ -10,6 +10,7 @@ import (
 type Number []byte
 
 type NumberHashable struct {
+	Type     string   `json:"type"`
 	Nullable bool     `json:"nullable"`
 	Enum     []Number `json:"enum"`
 
@@ -33,29 +34,12 @@ func (n *NumberHashable) GenerateHash() (types.Hash, error) {
 		return types.Hash{}, errors.New("number hashable cannot be nil")
 	}
 
-	jsonBytes, err := json.Marshal(numberHashableHashJSON{Type: "number", Value: *n})
-	if err != nil {
-		return types.Hash{}, err
+	hashType := n.Type
+	if hashType == "" {
+		hashType = "number"
 	}
 
-	return sha256.Sum256(jsonBytes), nil
-}
-
-type IntegerHashable NumberHashable
-
-type integerHashableHashJSON struct {
-	Type  string          `json:"type"`
-	Value IntegerHashable `json:"value"`
-}
-
-var _ types.Hasher = new(IntegerHashable)
-
-func (i *IntegerHashable) GenerateHash() (types.Hash, error) {
-	if i == nil {
-		return types.Hash{}, errors.New("integer hashable cannot be nil")
-	}
-
-	jsonBytes, err := json.Marshal(integerHashableHashJSON{Type: "integer", Value: *i})
+	jsonBytes, err := json.Marshal(numberHashableHashJSON{Type: hashType, Value: *n})
 	if err != nil {
 		return types.Hash{}, err
 	}

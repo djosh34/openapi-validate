@@ -8,6 +8,7 @@ import (
 )
 
 type NumberDomain struct {
+	Type     string   `json:"type"`
 	Nullable bool     `json:"nullable"`
 	Enum     []Number `json:"enum"`
 
@@ -36,6 +37,7 @@ func (n *NumberDomain) ToHasher() (types.Hasher, error) {
 	}
 
 	return &hashables.NumberHashable{
+		Type:             n.Type,
 		Nullable:         n.Nullable,
 		Enum:             toHashableNumbers(n.Enum),
 		Minimum:          toHashableNumberPtr(n.Minimum),

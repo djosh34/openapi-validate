@@ -53,7 +53,7 @@ func (dc *DomainContext) Parse(node *json.RawMessage) (types.Domain, error) {
 }
 
 func (dc *DomainContext) parseDefault(node *json.RawMessage) (types.Domain, error) {
-	parseErrors := make([]error, 0, 7)
+	parseErrors := make([]error, 0, 6)
 
 	allOfDomain, allOfErr := dc.ParseAllOf(node)
 	if allOfErr == nil {
@@ -84,12 +84,6 @@ func (dc *DomainContext) parseDefault(node *json.RawMessage) (types.Domain, erro
 		return &numberDomain, nil
 	}
 	parseErrors = append(parseErrors, numberErr)
-
-	integerDomain, integerErr := dc.ParseInteger(node)
-	if integerErr == nil {
-		return &integerDomain, nil
-	}
-	parseErrors = append(parseErrors, integerErr)
 
 	boolDomain, boolErr := dc.ParseBool(node)
 	if boolErr == nil {
