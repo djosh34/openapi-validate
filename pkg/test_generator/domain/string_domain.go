@@ -2,6 +2,7 @@ package domain
 
 import (
 	"crypto/sha256"
+	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
 )
@@ -23,11 +24,11 @@ type stringDomainHashJson struct {
 	Value StringDomain `json:"value"`
 }
 
-var _ Hasher = new(StringDomain)
+var _ types.Hasher = new(StringDomain)
 
-func (domain *StringDomain) GenerateHash() (Hash, error) {
+func (domain *StringDomain) GenerateHash() (types.Hash, error) {
 	if domain == nil {
-		return Hash{}, errors.New("domain of string cannot be nil")
+		return types.Hash{}, errors.New("domain of string cannot be nil")
 	}
 
 	sdJson := stringDomainHashJson{
@@ -37,7 +38,7 @@ func (domain *StringDomain) GenerateHash() (Hash, error) {
 
 	jsonBytes, err := json.Marshal(&sdJson)
 	if err != nil {
-		return Hash{}, err
+		return types.Hash{}, err
 	}
 
 	return sha256.Sum256(jsonBytes), nil

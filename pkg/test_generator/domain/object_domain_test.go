@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
 	"testing"
@@ -11,10 +12,10 @@ import (
 )
 
 type fakeObjectTestDomain struct {
-	hash Hash
+	hash types.Hash
 }
 
-func (f fakeObjectTestDomain) GenerateHash() (Hash, error) {
+func (f fakeObjectTestDomain) GenerateHash() (types.Hash, error) {
 	return f.hash, nil
 }
 
@@ -26,10 +27,10 @@ func rawObjectFromYAML(t *testing.T, yamlString string) *json.RawMessage {
 	return node
 }
 
-func requireDomainStoreDomains(t *testing.T, dc *DomainContext, expectedDomains ...Domain) {
+func requireDomainStoreDomains(t *testing.T, dc *DomainContext, expectedDomains ...types.Domain) {
 	t.Helper()
 
-	storedDomains := make([]Domain, 0, len(dc.domainStore))
+	storedDomains := make([]types.Domain, 0, len(dc.domainStore))
 	for storedDomain := range dc.domainStore {
 		storedDomains = append(storedDomains, storedDomain)
 	}
@@ -38,9 +39,9 @@ func requireDomainStoreDomains(t *testing.T, dc *DomainContext, expectedDomains 
 }
 
 func TestParseObjectParsesValidObjectSchemas(t *testing.T) {
-	propertyNameHash := Hash{1}
-	propertyAgeHash := Hash{2}
-	additionalPropertyHash := Hash{3}
+	propertyNameHash := types.Hash{1}
+	propertyAgeHash := types.Hash{2}
+	additionalPropertyHash := types.Hash{3}
 	propertyNameDomain := fakeObjectTestDomain{hash: propertyNameHash}
 	propertyAgeDomain := fakeObjectTestDomain{hash: propertyAgeHash}
 	additionalPropertyDomain := fakeObjectTestDomain{hash: additionalPropertyHash}
@@ -49,8 +50,8 @@ func TestParseObjectParsesValidObjectSchemas(t *testing.T) {
 	requiredNameProperty := &Property{Key: "name", Domain: propertyNameDomain, Required: true}
 	tests := map[string]struct {
 		yamlString    string
-		parseDomains  []Domain
-		expectedStore []Domain
+		parseDomains  []types.Domain
+		expectedStore []types.Domain
 		expected      ObjectDomain
 	}{
 		"empty object schema defaults additionalProperties to true": {
@@ -89,10 +90,10 @@ properties:
   age:
     type: integer
 `,
-			parseDomains:  []Domain{propertyNameDomain, propertyAgeDomain},
-			expectedStore: []Domain{propertyNameDomain, propertyAgeDomain, ageProperty, nameProperty},
+			parseDomains:  []types.Domain{propertyNameDomain, propertyAgeDomain},
+			expectedStore: []types.Domain{propertyNameDomain, propertyAgeDomain, ageProperty, nameProperty},
 			expected: ObjectDomain{
-				Properties:             []Domain{ageProperty, nameProperty},
+				Properties:             []types.Domain{ageProperty, nameProperty},
 				AdditionalPropertyKind: AdditionalTrue,
 			},
 		},
@@ -105,10 +106,10 @@ properties:
   name:
     type: string
 `,
-			parseDomains:  []Domain{propertyNameDomain},
-			expectedStore: []Domain{propertyNameDomain, requiredNameProperty},
+			parseDomains:  []types.Domain{propertyNameDomain},
+			expectedStore: []types.Domain{propertyNameDomain, requiredNameProperty},
 			expected: ObjectDomain{
-				Properties:             []Domain{requiredNameProperty},
+				Properties:             []types.Domain{requiredNameProperty},
 				AdditionalPropertyKind: AdditionalTrue,
 			},
 		},
@@ -136,8 +137,8 @@ type: object
 additionalProperties:
   type: string
 `,
-			parseDomains:  []Domain{additionalPropertyDomain},
-			expectedStore: []Domain{additionalPropertyDomain},
+			parseDomains:  []types.Domain{additionalPropertyDomain},
+			expectedStore: []types.Domain{additionalPropertyDomain},
 			expected: ObjectDomain{
 				AdditionalPropertyKind:   AdditionalSchema,
 				AdditionalPropertyDomain: additionalPropertyDomain,
@@ -163,7 +164,7 @@ maxProperties: 3
 			parseCall := 0
 			dc := DomainContext{
 				domainStore: domainStore{},
-				parse: func(node *json.RawMessage) (Domain, error) {
+				parse: func(node *json.RawMessage) (types.Domain, error) {
 					require.Less(t, parseCall, len(tt.parseDomains))
 					domain := tt.parseDomains[parseCall]
 					parseCall++
@@ -194,7 +195,7 @@ properties:
 	node := rawObjectFromYAML(t, objectSchemaYAML)
 
 	dc := DomainContext{
-		parse: func(node *json.RawMessage) (Domain, error) {
+		parse: func(node *json.RawMessage) (types.Domain, error) {
 			require.Fail(t, "ParseObject should return before parsing properties")
 			return nil, nil
 		},
@@ -388,7 +389,7 @@ properties:
   name:
     type: string
 `)
-		dc := DomainContext{parse: func(node *json.RawMessage) (Domain, error) {
+		dc := DomainContext{parse: func(node *json.RawMessage) (types.Domain, error) {
 			return nil, errors.New("parse failed")
 		}}
 		_, err := dc.ParseObject(node)
@@ -420,7 +421,7 @@ type: object
 additionalProperties:
   type: string
 `)
-		dc := DomainContext{parse: func(node *json.RawMessage) (Domain, error) {
+		dc := DomainContext{parse: func(node *json.RawMessage) (types.Domain, error) {
 			return nil, errors.New("parse failed")
 		}}
 		_, err := dc.ParseObject(node)
@@ -436,8 +437,8 @@ properties:
   name:
     type: string
 `)
-		hash := Hash{1}
-		dc := DomainContext{parse: func(node *json.RawMessage) (Domain, error) { return fakeObjectTestDomain{hash: hash}, nil }}
+		hash := types.Hash{1}
+		dc := DomainContext{parse: func(node *json.RawMessage) (types.Domain, error) { return fakeObjectTestDomain{hash: hash}, nil }}
 		objectDomain, err := dc.ParseObject(node)
 		require.NoError(t, err)
 		require.Len(t, objectDomain.Properties, 1)
@@ -450,8 +451,8 @@ type: object
 additionalProperties:
   type: string
 `)
-		hash := Hash{1}
-		dc := DomainContext{parse: func(node *json.RawMessage) (Domain, error) { return fakeObjectTestDomain{hash: hash}, nil }}
+		hash := types.Hash{1}
+		dc := DomainContext{parse: func(node *json.RawMessage) (types.Domain, error) { return fakeObjectTestDomain{hash: hash}, nil }}
 		objectDomain, err := dc.ParseObject(node)
 		require.NoError(t, err)
 		require.Equal(t, AdditionalSchema, objectDomain.AdditionalPropertyKind)

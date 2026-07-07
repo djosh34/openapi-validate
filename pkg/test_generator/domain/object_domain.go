@@ -2,13 +2,14 @@ package domain
 
 import (
 	"crypto/sha256"
+	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 )
 
-var _ Hasher = new(ObjectDomain)
+var _ types.Hasher = new(ObjectDomain)
 
 type AdditionalPropertyKind int
 
@@ -20,7 +21,7 @@ const (
 
 type Property struct {
 	Key string
-	Domain
+	types.Domain
 	Required bool
 }
 
@@ -29,26 +30,26 @@ type propertyHashJSON struct {
 	Value Property `json:"value"`
 }
 
-func (p *Property) GenerateHash() (Hash, error) {
+func (p *Property) GenerateHash() (types.Hash, error) {
 	if p == nil {
-		return Hash{}, errors.New("property cannot be nil")
+		return types.Hash{}, errors.New("property cannot be nil")
 	}
 
 	jsonBytes, err := json.Marshal(propertyHashJSON{Type: "property", Value: *p})
 	if err != nil {
-		return Hash{}, err
+		return types.Hash{}, err
 	}
 
 	return sha256.Sum256(jsonBytes), nil
 }
 
 type ObjectDomain struct {
-	Enum []Domain
+	Enum []types.Domain
 
-	Properties []Domain
+	Properties []types.Domain
 
 	AdditionalPropertyKind
-	AdditionalPropertyDomain Domain
+	AdditionalPropertyDomain types.Domain
 
 	MinProps int
 	MaxProps *int
@@ -59,14 +60,14 @@ type objectDomainHashJSON struct {
 	Value ObjectDomain `json:"value"`
 }
 
-func (o *ObjectDomain) GenerateHash() (Hash, error) {
+func (o *ObjectDomain) GenerateHash() (types.Hash, error) {
 	if o == nil {
-		return Hash{}, errors.New("object domain cannot be nil")
+		return types.Hash{}, errors.New("object domain cannot be nil")
 	}
 
 	jsonBytes, err := json.Marshal(objectDomainHashJSON{Type: "object", Value: *o})
 	if err != nil {
-		return Hash{}, err
+		return types.Hash{}, err
 	}
 
 	return sha256.Sum256(jsonBytes), nil
