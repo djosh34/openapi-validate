@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
@@ -22,6 +23,27 @@ type Property struct {
 	Required bool
 }
 
+func (p *Property) ToHasher() (types.Hasher, error) {
+	if p == nil {
+		return nil, errors.New("property cannot be nil")
+	}
+
+	var propertyHasher types.Hasher
+	if p.Domain != nil {
+		hasher, err := p.Domain.ToHasher()
+		if err != nil {
+			return nil, err
+		}
+		propertyHasher = hasher
+	}
+
+	return &hashables.PropertyHashable{
+		Key:      p.Key,
+		Hasher:   propertyHasher,
+		Required: p.Required,
+	}, nil
+}
+
 type ObjectDomain struct {
 	Enum []types.Domain
 
@@ -32,6 +54,48 @@ type ObjectDomain struct {
 
 	MinProps int
 	MaxProps *int
+}
+
+func (o *ObjectDomain) ToHasher() (types.Hasher, error) {
+	if o == nil {
+		return nil, errors.New("object domain cannot be nil")
+	}
+
+	enumHashers := make([]types.Hasher, 0, len(o.Enum))
+	for _, enumDomain := range o.Enum {
+		hasher, err := enumDomain.ToHasher()
+		if err != nil {
+			return nil, err
+		}
+		enumHashers = append(enumHashers, hasher)
+	}
+
+	propertyHashers := make([]types.Hasher, 0, len(o.Properties))
+	for _, propertyDomain := range o.Properties {
+		hasher, err := propertyDomain.ToHasher()
+		if err != nil {
+			return nil, err
+		}
+		propertyHashers = append(propertyHashers, hasher)
+	}
+
+	var additionalPropertyHasher types.Hasher
+	if o.AdditionalPropertyDomain != nil {
+		hasher, err := o.AdditionalPropertyDomain.ToHasher()
+		if err != nil {
+			return nil, err
+		}
+		additionalPropertyHasher = hasher
+	}
+
+	return &hashables.ObjectHashable{
+		Enum:                     enumHashers,
+		Properties:               propertyHashers,
+		AdditionalPropertyKind:   hashables.AdditionalPropertyKind(o.AdditionalPropertyKind),
+		AdditionalPropertyDomain: additionalPropertyHasher,
+		MinProps:                 o.MinProps,
+		MaxProps:                 o.MaxProps,
+	}, nil
 }
 
 type JSONKV map[string]json.RawMessage

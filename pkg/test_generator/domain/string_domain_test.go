@@ -10,7 +10,7 @@ import (
 )
 
 func TestStringDomainImplementsInterfaces(t *testing.T) {
-	require.Implements(t, (*types.Hasher)(nil), new(StringDomain))
+	require.Implements(t, (*types.Domain)(nil), new(StringDomain))
 }
 
 func TestStringDomainMarshalJSONZeroValueIncludesAllFields(t *testing.T) {
@@ -143,7 +143,9 @@ func TestStringDomainHashUsesSHA256OfJSON(t *testing.T) {
 	jsonBytes, err := json.Marshal(domain)
 	require.NoError(t, err)
 	require.Equal(t, domainJSON, string(jsonBytes))
-	gotHash, err := domain.GenerateHash()
+	hasher, err := domain.ToHasher()
+	require.NoError(t, err)
+	gotHash, err := hasher.GenerateHash()
 	require.NoError(t, err)
 	require.Equal(t, expectedHash, gotHash)
 }

@@ -5,7 +5,7 @@ package types
 //	}
 
 type ToHasher interface {
-	ToHasher(Hasher, error)
+	ToHasher() (Hasher, error)
 }
 
 type Domain interface {

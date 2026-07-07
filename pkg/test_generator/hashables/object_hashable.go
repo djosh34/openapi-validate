@@ -2,7 +2,6 @@ package hashables
 
 import (
 	"crypto/sha256"
-	"decode_and_validate_generator/pkg/test_generator/domain"
 	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
@@ -34,12 +33,20 @@ func (p *PropertyHashable) GenerateHash() (types.Hash, error) {
 	return sha256.Sum256(jsonBytes), nil
 }
 
+type AdditionalPropertyKind int
+
+const (
+	AdditionalTrue AdditionalPropertyKind = iota
+	AdditionalFalse
+	AdditionalSchema
+)
+
 type ObjectHashable struct {
 	Enum []types.Hasher
 
 	Properties []types.Hasher
 
-	domain.AdditionalPropertyKind
+	AdditionalPropertyKind
 	AdditionalPropertyDomain types.Hasher
 
 	MinProps int

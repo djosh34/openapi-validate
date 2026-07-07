@@ -19,6 +19,10 @@ func (f fakeObjectTestDomain) GenerateHash() (types.Hash, error) {
 	return f.hash, nil
 }
 
+func (f fakeObjectTestDomain) ToHasher() (types.Hasher, error) {
+	return f, nil
+}
+
 func rawObjectFromYAML(t *testing.T, yamlString string) *json.RawMessage {
 	t.Helper()
 
@@ -363,13 +367,15 @@ properties:
 }
 
 func TestObjectDomainHashAndPropertyErrors(t *testing.T) {
-	_, err := (*Property)(nil).GenerateHash()
+	_, err := (*Property)(nil).ToHasher()
 	require.Error(t, err)
 
-	_, err = (*ObjectDomain)(nil).GenerateHash()
+	_, err = (*ObjectDomain)(nil).ToHasher()
 	require.Error(t, err)
 
-	_, err = (&ObjectDomain{}).GenerateHash()
+	hasher, err := (&ObjectDomain{}).ToHasher()
+	require.NoError(t, err)
+	_, err = hasher.GenerateHash()
 	require.NoError(t, err)
 
 	require.EqualError(t, (&PropertyAlreadyExistsError{Key: "name"}), `property "name" already exists in object`)

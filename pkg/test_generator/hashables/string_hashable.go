@@ -2,14 +2,21 @@ package hashables
 
 import (
 	"crypto/sha256"
-	"decode_and_validate_generator/pkg/test_generator/domain"
 	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
 )
 
 type StringHashable struct {
-	domain.StringDomain
+	Nullable bool `json:"nullable"`
+
+	Enum []string `json:"enum"`
+
+	Pattern *string `json:"pattern"`
+	Format  *string `json:"format"`
+
+	MinLength int  `json:"minLength"`
+	MaxLength *int `json:"maxLength"`
 }
 
 type stringHashableHashJSON struct {

@@ -2,14 +2,13 @@ package hashables
 
 import (
 	"crypto/sha256"
-	"decode_and_validate_generator/pkg/test_generator/domain"
 	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"errors"
 )
 
 type EnumHashable struct {
-	domain.EnumDomain
+	*json.RawMessage
 }
 
 type enumHashableHashJSON struct {
