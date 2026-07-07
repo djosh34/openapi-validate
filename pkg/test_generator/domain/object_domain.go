@@ -115,7 +115,6 @@ func (o *ObjectDomain) ToHasher() (types.Hasher, error) {
 	}, nil
 }
 
-type JSONKV map[string]json.RawMessage
 type JSONObject struct {
 	Type                 string            `json:"type"`
 	Nullable             bool              `json:"nullable"`
@@ -306,10 +305,7 @@ func (dc *DomainContext) ParseObject(node *json.RawMessage) (ObjectDomain, error
 		objectDomain.MaxProps = jsonObject.MaxProperties
 	}
 
-	delete(jsonKV, "type")
-	delete(jsonKV, "nullable")
-	delete(jsonKV, "title")
-	delete(jsonKV, "description")
+	deleteAllowableKeys(jsonKV)
 
 	// Reject if any other keys are left in node?
 	if len(jsonKV) != 0 {
