@@ -1,29 +1,10 @@
 package domain
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-type parseNumberer interface {
-	ParseNumber(node *json.RawMessage) (NumberDomain, error)
-}
-
-func parseNumberForTest(t *testing.T, yamlString string) (NumberDomain, error) {
-	t.Helper()
-
-	node := rawObjectFromYAML(t, yamlString)
-	dc := DomainContext{domainStore: domainStore{}}
-	parser, ok := any(&dc).(parseNumberer)
-	require.True(t, ok, "DomainContext.ParseNumber must exist")
-	if !ok {
-		return NumberDomain{}, nil
-	}
-
-	return parser.ParseNumber(node)
-}
 
 func TestParseNumberParsesValidNumberSchemas(t *testing.T) {
 	tests := map[string]struct {
@@ -65,7 +46,7 @@ enum:
   - 1
   - 2.5
 `,
-			expected: NumberDomain{Enum: []float64{1, 2.5}},
+			expected: NumberDomain{Enum: []Number{Number("1"), Number("2.5")}},
 		},
 		"minimum maximum and exclusive bounds": {
 			yamlString: `
@@ -75,14 +56,14 @@ exclusiveMinimum: true
 maximum: 9.5
 exclusiveMaximum: true
 `,
-			expected: NumberDomain{Minimum: new(1.5), Maximum: new(9.5), ExclusiveMinimum: true, ExclusiveMaximum: true},
+			expected: NumberDomain{Minimum: new(Number("1.5")), Maximum: new(Number("9.5")), ExclusiveMinimum: true, ExclusiveMaximum: true},
 		},
 		"multipleOf": {
 			yamlString: `
 type: number
 multipleOf: 2.5
 `,
-			expected: NumberDomain{MultipleOf: new(2.5)},
+			expected: NumberDomain{MultipleOf: new(Number("2.5"))},
 		},
 		"format float": {
 			yamlString: `
@@ -111,13 +92,15 @@ exclusiveMaximum: false
 multipleOf: 2.5
 format: double
 `,
-			expected: NumberDomain{Nullable: true, Enum: []float64{2.5}, Minimum: new(0.5), Maximum: new(10.5), ExclusiveMinimum: true, MultipleOf: new(2.5), Format: new("double")},
+			expected: NumberDomain{Nullable: true, Enum: []Number{Number("2.5")}, Minimum: new(Number("0.5")), Maximum: new(Number("10.5")), ExclusiveMinimum: true, MultipleOf: new(Number("2.5")), Format: new("double")},
 		},
 	}
 
 	for testName, tt := range tests {
 		t.Run(testName, func(t *testing.T) {
-			numberDomain, err := parseNumberForTest(t, tt.yamlString)
+			node := rawObjectFromYAML(t, tt.yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			numberDomain, err := dc.ParseNumber(node)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, numberDomain)
 		})
@@ -303,7 +286,9 @@ x-extra: 1
 
 	for testName, yamlString := range tests {
 		t.Run(testName, func(t *testing.T) {
-			numberDomain, err := parseNumberForTest(t, yamlString)
+			node := rawObjectFromYAML(t, yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			numberDomain, err := dc.ParseNumber(node)
 			require.Error(t, err)
 			require.Empty(t, numberDomain)
 		})

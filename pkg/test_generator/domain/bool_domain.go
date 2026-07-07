@@ -2,6 +2,7 @@ package domain
 
 import (
 	"decode_and_validate_generator/pkg/test_generator/types"
+	"encoding/json"
 	"errors"
 )
 
@@ -15,5 +16,9 @@ func (b *BoolDomain) ToHasher() (types.Hasher, error) {
 		return nil, errors.New("domain of bool cannot be nil")
 	}
 
+	panic("TO DO")
+}
+
+func (dc *DomainContext) ParseBool(node *json.RawMessage) (BoolDomain, error) {
 	panic("TO DO")
 }

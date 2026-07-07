@@ -1,29 +1,10 @@
 package domain
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-type parseIntegerer interface {
-	ParseInteger(node *json.RawMessage) (IntegerDomain, error)
-}
-
-func parseIntegerForTest(t *testing.T, yamlString string) (IntegerDomain, error) {
-	t.Helper()
-
-	node := rawObjectFromYAML(t, yamlString)
-	dc := DomainContext{domainStore: domainStore{}}
-	parser, ok := any(&dc).(parseIntegerer)
-	require.True(t, ok, "DomainContext.ParseInteger must exist")
-	if !ok {
-		return IntegerDomain{}, nil
-	}
-
-	return parser.ParseInteger(node)
-}
 
 func TestParseIntegerParsesValidIntegerSchemas(t *testing.T) {
 	tests := map[string]struct {
@@ -65,7 +46,7 @@ enum:
   - 1
   - 2
 `,
-			expected: IntegerDomain{Enum: []int64{1, 2}},
+			expected: IntegerDomain{Enum: []Number{Number("1"), Number("2")}},
 		},
 		"minimum maximum and exclusive bounds": {
 			yamlString: `
@@ -75,14 +56,14 @@ exclusiveMinimum: true
 maximum: 9
 exclusiveMaximum: true
 `,
-			expected: IntegerDomain{Minimum: new(int64(1)), Maximum: new(int64(9)), ExclusiveMinimum: true, ExclusiveMaximum: true},
+			expected: IntegerDomain{Minimum: new(Number("1")), Maximum: new(Number("9")), ExclusiveMinimum: true, ExclusiveMaximum: true},
 		},
 		"multipleOf": {
 			yamlString: `
 type: integer
 multipleOf: 2
 `,
-			expected: IntegerDomain{MultipleOf: new(int64(2))},
+			expected: IntegerDomain{MultipleOf: new(Number("2"))},
 		},
 		"format int32": {
 			yamlString: `
@@ -105,7 +86,7 @@ format: int32
 minimum: -2147483648
 maximum: 2147483647
 `,
-			expected: IntegerDomain{Minimum: new(int64(-2147483648)), Maximum: new(int64(2147483647)), Format: new("int32")},
+			expected: IntegerDomain{Minimum: new(Number("-2147483648")), Maximum: new(Number("2147483647")), Format: new("int32")},
 		},
 		"all supported fields together": {
 			yamlString: `
@@ -120,13 +101,15 @@ exclusiveMaximum: false
 multipleOf: 2
 format: int64
 `,
-			expected: IntegerDomain{Nullable: true, Enum: []int64{4}, Minimum: new(int64(0)), Maximum: new(int64(10)), ExclusiveMinimum: true, MultipleOf: new(int64(2)), Format: new("int64")},
+			expected: IntegerDomain{Nullable: true, Enum: []Number{Number("4")}, Minimum: new(Number("0")), Maximum: new(Number("10")), ExclusiveMinimum: true, MultipleOf: new(Number("2")), Format: new("int64")},
 		},
 	}
 
 	for testName, tt := range tests {
 		t.Run(testName, func(t *testing.T) {
-			integerDomain, err := parseIntegerForTest(t, tt.yamlString)
+			node := rawObjectFromYAML(t, tt.yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			integerDomain, err := dc.ParseInteger(node)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, integerDomain)
 		})
@@ -328,7 +311,9 @@ x-extra: 1
 
 	for testName, yamlString := range tests {
 		t.Run(testName, func(t *testing.T) {
-			integerDomain, err := parseIntegerForTest(t, yamlString)
+			node := rawObjectFromYAML(t, yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			integerDomain, err := dc.ParseInteger(node)
 			require.Error(t, err)
 			require.Empty(t, integerDomain)
 		})

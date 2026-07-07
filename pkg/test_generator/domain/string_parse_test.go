@@ -1,29 +1,10 @@
 package domain
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-type parseStringer interface {
-	ParseString(node *json.RawMessage) (StringDomain, error)
-}
-
-func parseStringForTest(t *testing.T, yamlString string) (StringDomain, error) {
-	t.Helper()
-
-	node := rawObjectFromYAML(t, yamlString)
-	dc := DomainContext{domainStore: domainStore{}}
-	parser, ok := any(&dc).(parseStringer)
-	require.True(t, ok, "DomainContext.ParseString must exist")
-	if !ok {
-		return StringDomain{}, nil
-	}
-
-	return parser.ParseString(node)
-}
 
 func TestParseStringParsesValidStringSchemas(t *testing.T) {
 	tests := map[string]struct {
@@ -176,7 +157,9 @@ maxLength: 10
 
 	for testName, tt := range tests {
 		t.Run(testName, func(t *testing.T) {
-			stringDomain, err := parseStringForTest(t, tt.yamlString)
+			node := rawObjectFromYAML(t, tt.yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			stringDomain, err := dc.ParseString(node)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, stringDomain)
 		})
@@ -402,7 +385,9 @@ x-extra: abc
 
 	for testName, yamlString := range tests {
 		t.Run(testName, func(t *testing.T) {
-			stringDomain, err := parseStringForTest(t, yamlString)
+			node := rawObjectFromYAML(t, yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			stringDomain, err := dc.ParseString(node)
 			require.Error(t, err)
 			require.Empty(t, stringDomain)
 		})
@@ -466,7 +451,9 @@ x-invalid-examples:
 
 	for testName, yamlString := range tests {
 		t.Run(testName, func(t *testing.T) {
-			_, err := parseStringForTest(t, yamlString)
+			node := rawObjectFromYAML(t, yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			_, err := dc.ParseString(node)
 			require.Error(t, err)
 		})
 	}

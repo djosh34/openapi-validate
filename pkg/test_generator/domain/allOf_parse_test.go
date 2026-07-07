@@ -9,23 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type parseAllOfer interface {
-	ParseAllOf(node *json.RawMessage) (AllOfDomain, error)
-}
-
-func parseAllOfForTest(t *testing.T, dc *DomainContext, yamlString string) (AllOfDomain, error) {
-	t.Helper()
-
-	node := rawObjectFromYAML(t, yamlString)
-	parser, ok := any(dc).(parseAllOfer)
-	require.True(t, ok, "DomainContext.ParseAllOf must exist")
-	if !ok {
-		return AllOfDomain{}, nil
-	}
-
-	return parser.ParseAllOf(node)
-}
-
 func TestParseAllOfParsesValidObjectCompositionWithoutMerging(t *testing.T) {
 	firstDomain := &ObjectDomain{AdditionalPropertyKind: AdditionalFalse}
 	secondDomain := &ObjectDomain{Nullable: true, AdditionalPropertyKind: AdditionalTrue}
@@ -108,7 +91,8 @@ allOf:
 				return domain, nil
 			}}
 
-			allOfDomain, err := parseAllOfForTest(t, &dc, tt.yamlString)
+			node := rawObjectFromYAML(t, tt.yamlString)
+			allOfDomain, err := dc.ParseAllOf(node)
 			require.NoError(t, err)
 			require.Equal(t, len(tt.parseDomains), parseCall)
 			require.Equal(t, tt.expected, allOfDomain)
@@ -256,7 +240,8 @@ x-extra: true
 				return parseDomain, nil
 			}}
 
-			allOfDomain, err := parseAllOfForTest(t, &dc, tt.yamlString)
+			node := rawObjectFromYAML(t, tt.yamlString)
+			allOfDomain, err := dc.ParseAllOf(node)
 			require.Error(t, err)
 			require.Empty(t, allOfDomain)
 		})
@@ -268,10 +253,11 @@ func TestParseAllOfReturnsChildParseErrors(t *testing.T) {
 		return nil, errors.New("allOf child parse failed")
 	}}
 
-	allOfDomain, err := parseAllOfForTest(t, &dc, `
+	node := rawObjectFromYAML(t, `
 allOf:
   - type: object
 `)
+	allOfDomain, err := dc.ParseAllOf(node)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "allOf child parse failed")
 	require.Empty(t, allOfDomain)

@@ -9,23 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type parseArrayer interface {
-	ParseArray(node *json.RawMessage) (ArrayDomain, error)
-}
-
-func parseArrayForTest(t *testing.T, dc *DomainContext, yamlString string) (ArrayDomain, error) {
-	t.Helper()
-
-	node := rawObjectFromYAML(t, yamlString)
-	parser, ok := any(dc).(parseArrayer)
-	require.True(t, ok, "DomainContext.ParseArray must exist")
-	if !ok {
-		return ArrayDomain{}, nil
-	}
-
-	return parser.ParseArray(node)
-}
-
 func TestParseArrayParsesValidArraySchemas(t *testing.T) {
 	stringItemsDomain := &StringDomain{}
 	numberItemsDomain := &NumberDomain{}
@@ -113,7 +96,8 @@ items:
 				return tt.parseDomain, nil
 			}}
 
-			arrayDomain, err := parseArrayForTest(t, &dc, tt.yamlString)
+			node := rawObjectFromYAML(t, tt.yamlString)
+			arrayDomain, err := dc.ParseArray(node)
 			require.NoError(t, err)
 			require.Equal(t, 1, parseCall)
 			require.Equal(t, tt.expected, arrayDomain)
@@ -338,7 +322,8 @@ x-extra: true
 				return &StringDomain{}, nil
 			}}
 
-			arrayDomain, err := parseArrayForTest(t, &dc, yamlString)
+			node := rawObjectFromYAML(t, yamlString)
+			arrayDomain, err := dc.ParseArray(node)
 			require.Error(t, err)
 			require.Empty(t, arrayDomain)
 		})
@@ -350,11 +335,12 @@ func TestParseArrayReturnsItemParseErrors(t *testing.T) {
 		return nil, errors.New("item parse failed")
 	}}
 
-	arrayDomain, err := parseArrayForTest(t, &dc, `
+	node := rawObjectFromYAML(t, `
 type: array
 items:
   type: string
 `)
+	arrayDomain, err := dc.ParseArray(node)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "item parse failed")
 	require.Empty(t, arrayDomain)

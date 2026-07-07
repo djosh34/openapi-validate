@@ -2,6 +2,7 @@ package domain
 
 import (
 	"decode_and_validate_generator/pkg/test_generator/types"
+	"encoding/json"
 	"errors"
 )
 
@@ -19,5 +20,9 @@ func (a *ArrayDomain) ToHasher() (types.Hasher, error) {
 		return nil, errors.New("domain of array cannot be nil")
 	}
 
+	panic("TO DO")
+}
+
+func (dc *DomainContext) ParseArray(node *json.RawMessage) (ArrayDomain, error) {
 	panic("TO DO")
 }

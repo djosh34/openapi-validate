@@ -1,29 +1,10 @@
 package domain
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-type parseBooler interface {
-	ParseBool(node *json.RawMessage) (BoolDomain, error)
-}
-
-func parseBoolForTest(t *testing.T, yamlString string) (BoolDomain, error) {
-	t.Helper()
-
-	node := rawObjectFromYAML(t, yamlString)
-	dc := DomainContext{domainStore: domainStore{}}
-	parser, ok := any(&dc).(parseBooler)
-	require.True(t, ok, "DomainContext.ParseBool must exist")
-	if !ok {
-		return BoolDomain{}, nil
-	}
-
-	return parser.ParseBool(node)
-}
 
 func TestParseBoolParsesValidBooleanSchemas(t *testing.T) {
 	tests := map[string]struct {
@@ -71,7 +52,9 @@ enum:
 
 	for testName, tt := range tests {
 		t.Run(testName, func(t *testing.T) {
-			boolDomain, err := parseBoolForTest(t, tt.yamlString)
+			node := rawObjectFromYAML(t, tt.yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			boolDomain, err := dc.ParseBool(node)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, boolDomain)
 		})
@@ -208,7 +191,9 @@ x-extra: true
 
 	for testName, yamlString := range tests {
 		t.Run(testName, func(t *testing.T) {
-			boolDomain, err := parseBoolForTest(t, yamlString)
+			node := rawObjectFromYAML(t, yamlString)
+			dc := DomainContext{domainStore: domainStore{}}
+			boolDomain, err := dc.ParseBool(node)
 			require.Error(t, err)
 			require.Empty(t, boolDomain)
 		})

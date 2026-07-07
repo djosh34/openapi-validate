@@ -3,6 +3,7 @@ package domain
 import (
 	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
+	"encoding/json"
 	"errors"
 )
 
@@ -36,4 +37,8 @@ func (domain *StringDomain) ToHasher() (types.Hasher, error) {
 		MinLength:        domain.MinLength,
 		MaxLength:        domain.MaxLength,
 	}, nil
+}
+
+func (dc *DomainContext) ParseString(node *json.RawMessage) (StringDomain, error) {
+	panic("TO DO")
 }
