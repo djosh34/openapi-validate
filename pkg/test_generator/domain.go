@@ -30,6 +30,9 @@ func (dc *DomainContext) AddDomain(domain Domain) error {
 		return hashErr
 	}
 
+	if dc.domainStore == nil {
+		dc.domainStore = make(map[Hash]Domain)
+	}
 	dc.domainStore[hash] = domain
 	return nil
 }
@@ -54,6 +57,9 @@ func (dc *DomainContext) Parse(node *json.RawMessage) (Domain, Hash, error) {
 		return nil, Hash{}, hashErr
 	}
 
+	if dc.domainStore == nil {
+		dc.domainStore = make(map[Hash]Domain)
+	}
 	dc.domainStore[hash] = domain
 
 	return domain, hash, nil

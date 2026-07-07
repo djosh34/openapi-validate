@@ -8,10 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type fakeObjectTestDomain struct{}
+type fakeObjectTestDomain struct {
+	hash Hash
+}
 
 func (f fakeObjectTestDomain) GenerateHash() (Hash, error) {
-	return Hash{}, nil
+	return f.hash, nil
 }
 
 func rawObjectFromYAML(t *testing.T, yamlString string) *json.RawMessage {
@@ -158,11 +160,11 @@ maxProperties: 3
 			parseCall := 0
 			dc := DomainContext{
 				domainStore: map[Hash]Domain{},
-				parse: func(node *json.RawMessage) (*Hash, error) {
+				parse: func(node *json.RawMessage) (Domain, error) {
 					require.Less(t, parseCall, len(tt.parseHashes))
 					hash := tt.parseHashes[parseCall]
 					parseCall++
-					return &hash, nil
+					return fakeObjectTestDomain{hash: hash}, nil
 				},
 			}
 
@@ -189,7 +191,7 @@ properties:
 	node := rawObjectFromYAML(t, objectSchemaYAML)
 
 	dc := DomainContext{
-		parse: func(node *json.RawMessage) (*Hash, error) {
+		parse: func(node *json.RawMessage) (Domain, error) {
 			require.Fail(t, "ParseObject should return before parsing properties")
 			return nil, nil
 		},
@@ -384,7 +386,7 @@ properties:
   name:
     type: string
 `)
-		dc := DomainContext{parse: func(node *json.RawMessage) (*Hash, error) {
+		dc := DomainContext{parse: func(node *json.RawMessage) (Domain, error) {
 			return nil, errors.New("parse failed")
 		}}
 		_, err := dc.ParseObject(node)
@@ -416,7 +418,7 @@ type: object
 additionalProperties:
   type: string
 `)
-		dc := DomainContext{parse: func(node *json.RawMessage) (*Hash, error) {
+		dc := DomainContext{parse: func(node *json.RawMessage) (Domain, error) {
 			return nil, errors.New("parse failed")
 		}}
 		_, err := dc.ParseObject(node)
@@ -433,7 +435,7 @@ properties:
     type: string
 `)
 		hash := Hash{1}
-		dc := DomainContext{parse: func(node *json.RawMessage) (*Hash, error) { return &hash, nil }}
+		dc := DomainContext{parse: func(node *json.RawMessage) (Domain, error) { return fakeObjectTestDomain{hash: hash}, nil }}
 		objectDomain, err := dc.ParseObject(node)
 		require.NoError(t, err)
 		require.Len(t, objectDomain.Properties, 1)
@@ -447,7 +449,7 @@ additionalProperties:
   type: string
 `)
 		hash := Hash{1}
-		dc := DomainContext{parse: func(node *json.RawMessage) (*Hash, error) { return &hash, nil }}
+		dc := DomainContext{parse: func(node *json.RawMessage) (Domain, error) { return fakeObjectTestDomain{hash: hash}, nil }}
 		objectDomain, err := dc.ParseObject(node)
 		require.NoError(t, err)
 		require.Equal(t, AdditionalSchema, objectDomain.AdditionalPropertyKind)

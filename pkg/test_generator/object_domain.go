@@ -93,7 +93,7 @@ func (p *PropertyAlreadyExistsError) Error() string {
 	return fmt.Sprintf("property %q already exists in object", p.Key)
 }
 
-func (dc DomainContext) ParseObject(node *json.RawMessage) (ObjectDomain, error) {
+func (dc *DomainContext) ParseObject(node *json.RawMessage) (ObjectDomain, error) {
 	jsonKV := make(JSONKV)
 
 	decodeKVErr := json.Unmarshal(*node, &jsonKV)
