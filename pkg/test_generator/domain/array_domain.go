@@ -21,14 +21,49 @@ type ArrayDomain struct {
 }
 
 func (a *ArrayDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
-	if allOfDomain, ok := domain.(*AllOfDomain); ok {
-		return allOfDomain.AllOfMerge(a)
+	if a == nil {
+		return nil, errors.New("array domain cannot be nil")
 	}
-	if _, ok := domain.(*ArrayDomain); !ok {
+	if allOfDomain, ok := domain.(*AllOfDomain); ok {
+		mergedAllOf := &AllOfDomain{}
+		if _, err := mergedAllOf.AllOfMerge(a); err != nil {
+			return nil, err
+		}
+		return mergedAllOf.AllOfMerge(allOfDomain)
+	}
+	otherArray, ok := domain.(*ArrayDomain)
+	if !ok || otherArray == nil {
 		return nil, errors.New("domain is not ArrayDomain")
 	}
 
-	return nil, errors.New("NOT IMPLEMENTED")
+	merged := *a
+	merged.Nullable = a.Nullable && otherArray.Nullable
+	enums, err := mergeEnums(a.Enum, otherArray.Enum)
+	if err != nil {
+		return nil, err
+	}
+	merged.Enum = enums
+
+	if a.Items == nil {
+		merged.Items = otherArray.Items
+	} else if otherArray.Items == nil {
+		merged.Items = a.Items
+	} else {
+		items, err := a.Items.AllOfMerge(otherArray.Items)
+		if err != nil {
+			return nil, err
+		}
+		merged.Items = items
+	}
+
+	if otherArray.MinItems > merged.MinItems {
+		merged.MinItems = otherArray.MinItems
+	}
+	if merged.MaxItems == nil || (otherArray.MaxItems != nil && *otherArray.MaxItems < *merged.MaxItems) {
+		merged.MaxItems = otherArray.MaxItems
+	}
+
+	return &merged, nil
 }
 
 func (a *ArrayDomain) ToHasher() (types.Hasher, error) {

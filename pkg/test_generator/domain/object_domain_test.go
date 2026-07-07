@@ -313,6 +313,7 @@ properties:
 
 func TestObjectDomainAllOfMerge(t *testing.T) {
 	first := &ObjectDomain{
+		Nullable:               true,
 		Properties:             []Property{{Key: "id", Required: true}},
 		AdditionalPropertyKind: AdditionalTrue,
 		MinProps:               1,
@@ -321,7 +322,7 @@ func TestObjectDomainAllOfMerge(t *testing.T) {
 	second := &ObjectDomain{
 		Nullable:               true,
 		Properties:             []Property{{Key: "name"}},
-		AdditionalPropertyKind: AdditionalFalse,
+		AdditionalPropertyKind: AdditionalTrue,
 		MinProps:               2,
 		MaxProps:               new(3),
 	}
@@ -331,7 +332,7 @@ func TestObjectDomainAllOfMerge(t *testing.T) {
 	require.Equal(t, &ObjectDomain{
 		Nullable:               true,
 		Properties:             []Property{{Key: "id", Required: true}, {Key: "name"}},
-		AdditionalPropertyKind: AdditionalFalse,
+		AdditionalPropertyKind: AdditionalTrue,
 		MinProps:               2,
 		MaxProps:               new(3),
 	}, mergedDomain)
@@ -344,8 +345,8 @@ func TestObjectDomainAllOfMergeErrors(t *testing.T) {
 	_, err = (&ObjectDomain{}).AllOfMerge(&StringDomain{})
 	require.ErrorContains(t, err, "domain is not ObjectDomain")
 
-	_, err = (&ObjectDomain{Properties: []Property{{Key: "id"}}}).AllOfMerge(&ObjectDomain{Properties: []Property{{Key: "id"}}})
-	require.ErrorAs(t, err, new(*PropertyAlreadyExistsError))
+	_, err = (&ObjectDomain{Properties: []Property{{Key: "id", Domain: &StringDomain{}}}}).AllOfMerge(&ObjectDomain{Properties: []Property{{Key: "id", Domain: &BoolDomain{}}}})
+	require.Error(t, err)
 }
 
 func TestParseObjectParsesEnumAndReturnsEarly(t *testing.T) {

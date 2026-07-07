@@ -71,30 +71,80 @@ func (o *ObjectDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 		return nil, errors.New("object domain cannot be nil")
 	}
 	if allOfDomain, ok := domain.(*AllOfDomain); ok {
-		return allOfDomain.AllOfMerge(o)
+		mergedAllOf := &AllOfDomain{}
+		if _, err := mergedAllOf.AllOfMerge(o); err != nil {
+			return nil, err
+		}
+		return mergedAllOf.AllOfMerge(allOfDomain)
 	}
 	otherObject, ok := domain.(*ObjectDomain)
-	if !ok {
+	if !ok || otherObject == nil {
 		return nil, errors.New("domain is not ObjectDomain")
+	}
+	if o.AdditionalPropertyKind == AdditionalSchema && o.AdditionalPropertyDomain == nil {
+		return nil, errors.New("additional property schema domain cannot be nil")
+	}
+	if otherObject.AdditionalPropertyKind == AdditionalSchema && otherObject.AdditionalPropertyDomain == nil {
+		return nil, errors.New("additional property schema domain cannot be nil")
 	}
 
 	merged := *o
-	merged.Nullable = o.Nullable || otherObject.Nullable
-	if o.Enum != nil || otherObject.Enum != nil {
-		merged.Enum = append(append([]types.Enum{}, o.Enum...), otherObject.Enum...)
+	merged.Nullable = o.Nullable && otherObject.Nullable
+	enums, err := mergeEnums(o.Enum, otherObject.Enum)
+	if err != nil {
+		return nil, err
 	}
+	merged.Enum = enums
 	merged.MinProps = max(o.MinProps, otherObject.MinProps)
 	merged.MaxProps = tighterMaxProps(o.MaxProps, otherObject.MaxProps)
 
-	propertiesByKey := make(map[string]Property, len(o.Properties)+len(otherObject.Properties))
+	leftProperties := make(map[string]Property, len(o.Properties))
 	for _, property := range o.Properties {
-		propertiesByKey[property.Key] = property
+		leftProperties[property.Key] = property
 	}
+	rightProperties := make(map[string]Property, len(otherObject.Properties))
 	for _, property := range otherObject.Properties {
-		if _, exists := propertiesByKey[property.Key]; exists {
-			return nil, &PropertyAlreadyExistsError{Key: property.Key}
+		rightProperties[property.Key] = property
+	}
+
+	propertiesByKey := make(map[string]Property, len(o.Properties)+len(otherObject.Properties))
+	for key, leftProperty := range leftProperties {
+		if rightProperty, ok := rightProperties[key]; ok {
+			property := Property{Key: key, Required: leftProperty.Required || rightProperty.Required}
+			if leftProperty.Domain != nil && rightProperty.Domain != nil {
+				domain, err := leftProperty.Domain.AllOfMerge(rightProperty.Domain)
+				if err != nil {
+					return nil, err
+				}
+				property.Domain = domain
+			} else if leftProperty.Domain != nil {
+				property.Domain = leftProperty.Domain
+			} else {
+				property.Domain = rightProperty.Domain
+			}
+			propertiesByKey[key] = property
+			continue
 		}
-		propertiesByKey[property.Key] = property
+
+		property, keep, err := mergePropertyWithAdditional(leftProperty, otherObject)
+		if err != nil {
+			return nil, err
+		}
+		if keep {
+			propertiesByKey[key] = property
+		}
+	}
+	for key, rightProperty := range rightProperties {
+		if _, exists := leftProperties[key]; exists {
+			continue
+		}
+		property, keep, err := mergePropertyWithAdditional(rightProperty, o)
+		if err != nil {
+			return nil, err
+		}
+		if keep {
+			propertiesByKey[key] = property
+		}
 	}
 
 	propertyKeys := make([]string, 0, len(propertiesByKey))
@@ -102,9 +152,12 @@ func (o *ObjectDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 		propertyKeys = append(propertyKeys, propertyKey)
 	}
 	sort.Strings(propertyKeys)
-	merged.Properties = make([]Property, 0, len(propertyKeys))
-	for _, propertyKey := range propertyKeys {
-		merged.Properties = append(merged.Properties, propertiesByKey[propertyKey])
+	merged.Properties = nil
+	if len(propertyKeys) != 0 {
+		merged.Properties = make([]Property, 0, len(propertyKeys))
+		for _, propertyKey := range propertyKeys {
+			merged.Properties = append(merged.Properties, propertiesByKey[propertyKey])
+		}
 	}
 
 	additionalKind, additionalDomain, err := mergeAdditionalProperties(o, otherObject)
@@ -127,15 +180,44 @@ func tighterMaxProps(first *int, second *int) *int {
 	return second
 }
 
+func mergePropertyWithAdditional(property Property, otherObject *ObjectDomain) (Property, bool, error) {
+	switch otherObject.AdditionalPropertyKind {
+	case AdditionalTrue:
+		return property, true, nil
+	case AdditionalFalse:
+		if property.Required {
+			return Property{}, false, errors.New("required property is forbidden by additionalProperties false")
+		}
+		return Property{}, false, nil
+	case AdditionalSchema:
+		if otherObject.AdditionalPropertyDomain == nil {
+			return Property{}, false, errors.New("additional property schema domain cannot be nil")
+		}
+		if property.Domain == nil {
+			property.Domain = otherObject.AdditionalPropertyDomain
+			return property, true, nil
+		}
+		domain, err := property.Domain.AllOfMerge(otherObject.AdditionalPropertyDomain)
+		if err != nil {
+			return Property{}, false, err
+		}
+		property.Domain = domain
+		return property, true, nil
+	default:
+		return Property{}, false, errors.New("unknown additionalProperties kind")
+	}
+}
+
 func mergeAdditionalProperties(first *ObjectDomain, second *ObjectDomain) (AdditionalPropertyKind, types.Domain, error) {
 	if first.AdditionalPropertyKind == AdditionalFalse || second.AdditionalPropertyKind == AdditionalFalse {
 		return AdditionalFalse, nil, nil
 	}
 	if first.AdditionalPropertyKind == AdditionalSchema && second.AdditionalPropertyKind == AdditionalSchema {
-		if first.AdditionalPropertyDomain == second.AdditionalPropertyDomain {
-			return AdditionalSchema, first.AdditionalPropertyDomain, nil
+		domain, err := first.AdditionalPropertyDomain.AllOfMerge(second.AdditionalPropertyDomain)
+		if err != nil {
+			return AdditionalSchema, nil, err
 		}
-		return AdditionalSchema, nil, errors.New("cannot merge different additionalProperties schemas")
+		return AdditionalSchema, domain, nil
 	}
 	if first.AdditionalPropertyKind == AdditionalSchema {
 		return AdditionalSchema, first.AdditionalPropertyDomain, nil

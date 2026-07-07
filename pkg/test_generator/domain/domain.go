@@ -42,7 +42,17 @@ func (dc *DomainContext) Parse(node *json.RawMessage) (types.Domain, error) {
 		dc.parse = dc.parseDefault
 	}
 
-	domain, domainErr := dc.parse(node)
+	parse := dc.parse
+	if node != nil {
+		jsonKV := JSONKV{}
+		if err := json.Unmarshal(*node, &jsonKV); err == nil && jsonKV != nil {
+			if _, ok := jsonKV["allOf"]; ok {
+				parse = dc.parseDefault
+			}
+		}
+	}
+
+	domain, domainErr := parse(node)
 	if domainErr != nil {
 		return nil, domainErr
 	}
@@ -72,6 +82,21 @@ func (dc *DomainContext) parseDefault(node *json.RawMessage) (types.Domain, erro
 	}
 
 	schemaType := schemaItem.Type
+	if schemaType == "" {
+		jsonKV := JSONKV{}
+		if err := json.Unmarshal(*node, &jsonKV); err != nil {
+			return nil, err
+		}
+		for _, key := range []string{"required", "properties", "additionalProperties", "minProperties", "maxProperties"} {
+			if _, ok := jsonKV[key]; ok {
+				objectDomain, err := dc.ParseObject(node)
+				if err != nil {
+					return nil, err
+				}
+				return &objectDomain, nil
+			}
+		}
+	}
 
 	switch schemaType {
 	case "object":

@@ -15,14 +15,30 @@ type BoolDomain struct {
 }
 
 func (b *BoolDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
-	if allOfDomain, ok := domain.(*AllOfDomain); ok {
-		return allOfDomain.AllOfMerge(b)
+	if b == nil {
+		return nil, errors.New("bool domain cannot be nil")
 	}
-	if _, ok := domain.(*BoolDomain); !ok {
+	if allOfDomain, ok := domain.(*AllOfDomain); ok {
+		mergedAllOf := &AllOfDomain{}
+		if _, err := mergedAllOf.AllOfMerge(b); err != nil {
+			return nil, err
+		}
+		return mergedAllOf.AllOfMerge(allOfDomain)
+	}
+	otherBool, ok := domain.(*BoolDomain)
+	if !ok || otherBool == nil {
 		return nil, errors.New("domain is not BoolDomain")
 	}
 
-	return nil, errors.New("NOT IMPLEMENTED")
+	merged := *b
+	merged.Nullable = b.Nullable && otherBool.Nullable
+	enums, err := mergeEnums(b.Enum, otherBool.Enum)
+	if err != nil {
+		return nil, err
+	}
+	merged.Enum = enums
+
+	return &merged, nil
 }
 
 func (b *BoolDomain) ToHasher() (types.Hasher, error) {

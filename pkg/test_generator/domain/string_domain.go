@@ -26,14 +26,71 @@ type StringDomain struct {
 }
 
 func (domain *StringDomain) AllOfMerge(otherDomain types.Domain) (types.Domain, error) {
-	if allOfDomain, ok := otherDomain.(*AllOfDomain); ok {
-		return allOfDomain.AllOfMerge(domain)
+	if domain == nil {
+		return nil, errors.New("string domain cannot be nil")
 	}
-	if _, ok := otherDomain.(*StringDomain); !ok {
+	if allOfDomain, ok := otherDomain.(*AllOfDomain); ok {
+		mergedAllOf := &AllOfDomain{}
+		if _, err := mergedAllOf.AllOfMerge(domain); err != nil {
+			return nil, err
+		}
+		return mergedAllOf.AllOfMerge(allOfDomain)
+	}
+	otherString, ok := otherDomain.(*StringDomain)
+	if !ok || otherString == nil {
 		return nil, errors.New("domain is not StringDomain")
 	}
 
-	return nil, errors.New("NOT IMPLEMENTED")
+	merged := *domain
+	merged.Nullable = domain.Nullable && otherString.Nullable
+
+	enums, err := mergeEnums(domain.Enum, otherString.Enum)
+	if err != nil {
+		return nil, err
+	}
+	merged.Enum = enums
+
+	merged.Pattern = append(append(types.Pattern(nil), domain.Pattern...), otherString.Pattern...)
+	merged.Format = append(append(types.Format(nil), domain.Format...), otherString.Format...)
+
+	merged.XValidExamples = mergeStringIntersections(domain.XValidExamples, otherString.XValidExamples)
+	merged.XInvalidExamples = mergeStringUnion(domain.XInvalidExamples, otherString.XInvalidExamples)
+
+	if merged.Enum != nil && merged.XValidExamples != nil {
+		newEnums := make([]types.Enum, 0, len(merged.Enum))
+		newExamples := make([]string, 0, len(merged.XValidExamples))
+		for _, enumValue := range merged.Enum {
+			var rawValue any
+			if err := json.Unmarshal(enumValue, &rawValue); err != nil {
+				return nil, err
+			}
+			stringValue, ok := rawValue.(string)
+			if !ok {
+				continue
+			}
+			for _, example := range merged.XValidExamples {
+				if stringValue == example {
+					newEnums = append(newEnums, enumValue)
+					newExamples = append(newExamples, example)
+					break
+				}
+			}
+		}
+		if len(newEnums) == 0 {
+			return nil, errors.New("enum and valid examples intersection is empty")
+		}
+		merged.Enum = newEnums
+		merged.XValidExamples = newExamples
+	}
+
+	if otherString.MinLength > merged.MinLength {
+		merged.MinLength = otherString.MinLength
+	}
+	if merged.MaxLength == nil || (otherString.MaxLength != nil && *otherString.MaxLength < *merged.MaxLength) {
+		merged.MaxLength = otherString.MaxLength
+	}
+
+	return &merged, nil
 }
 
 func (domain *StringDomain) ToHasher() (types.Hasher, error) {
@@ -161,6 +218,49 @@ func (dc *DomainContext) ParseString(node *json.RawMessage) (StringDomain, error
 	}
 
 	return domain, nil
+}
+
+func mergeStringIntersections(left []string, right []string) []string {
+	if left == nil && right == nil {
+		return nil
+	}
+	if left == nil {
+		return append([]string(nil), right...)
+	}
+	if right == nil {
+		return append([]string(nil), left...)
+	}
+
+	merged := make([]string, 0, len(left))
+	for _, leftValue := range left {
+		for _, rightValue := range right {
+			if leftValue == rightValue {
+				merged = append(merged, leftValue)
+				break
+			}
+		}
+	}
+	return merged
+}
+
+func mergeStringUnion(left []string, right []string) []string {
+	if left == nil && right == nil {
+		return nil
+	}
+	merged := append([]string(nil), left...)
+	for _, rightValue := range right {
+		found := false
+		for _, leftValue := range merged {
+			if leftValue == rightValue {
+				found = true
+				break
+			}
+		}
+		if !found {
+			merged = append(merged, rightValue)
+		}
+	}
+	return merged
 }
 
 func parseStringExamples(value any, field string) ([]string, error) {
