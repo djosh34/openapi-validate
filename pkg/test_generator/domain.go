@@ -4,10 +4,22 @@ import "gopkg.in/yaml.v3"
 
 type Hash [32]byte
 
-type Domain interface {
+type Hasher interface {
 	Hash() Hash
+}
+
+type AllOfMerger interface {
 	MergeAllOf(domain Domain) Domain
+}
+
+type YamlParser interface {
 	Parse(node yaml.Node) error
+}
+
+type Domain interface {
+	Hasher
+	AllOfMerger
+	YamlParser
 }
 
 func Parse(node yaml.Node) error {
