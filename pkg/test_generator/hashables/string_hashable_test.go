@@ -1,9 +1,7 @@
 package hashables
 
 import (
-	"crypto/sha256"
 	"decode_and_validate_generator/pkg/test_generator/types"
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,13 +21,10 @@ func TestStringHashableGenerateHash(t *testing.T) {
 		MaxLength: new(5),
 	}
 
-	jsonBytes, err := json.Marshal(stringHashableHashJSON{Type: "string", Value: hashable})
-	require.NoError(t, err)
-	expectedHash := types.Hash(sha256.Sum256(jsonBytes))
+	expectedHash := types.Hash{0x19, 0xd0, 0x2d, 0x93, 0x89, 0xa0, 0xe3, 0x29, 0x81, 0x6b, 0x4a, 0x6b, 0x71, 0x74, 0x79, 0xf5, 0xf7, 0x49, 0xdc, 0x34, 0x84, 0xbe, 0x6b, 0xd, 0x6e, 0x65, 0x97, 0xb3, 0x31, 0xf8, 0xa0, 0x9c}
 
 	gotHash, err := hashable.GenerateHash()
 	require.NoError(t, err)
-	require.NotEmpty(t, jsonBytes)
 	require.Equal(t, expectedHash, gotHash)
 }
 

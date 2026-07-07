@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 	"encoding/json"
 	"fmt"
@@ -127,25 +128,15 @@ func TestStringDomainMarshalJSONAllCombinations(t *testing.T) {
 	}
 }
 
-func TestStringDomainHashUsesSHA256OfJSON(t *testing.T) {
-	domain := StringDomain{
-		Nullable:  true,
-		Enum:      []string{"alpha", "beta"},
-		Pattern:   new("^[a-z]+$"),
-		Format:    new("email"),
-		MinLength: 2,
-		MaxLength: new(5),
-	}
+func TestStringDomainToHasher(t *testing.T) {
+	domain := StringDomain{Nullable: true, Enum: []string{"alpha"}, Pattern: new("x"), Format: new("email"), MinLength: 1, MaxLength: new(5)}
 
-	const domainJSON = `{"nullable":true,"enum":["alpha","beta"],"pattern":"^[a-z]+$","format":"email","minLength":2,"maxLength":5}`
-	expectedHash := types.Hash{0x19, 0xd0, 0x2d, 0x93, 0x89, 0xa0, 0xe3, 0x29, 0x81, 0x6b, 0x4a, 0x6b, 0x71, 0x74, 0x79, 0xf5, 0xf7, 0x49, 0xdc, 0x34, 0x84, 0xbe, 0x6b, 0xd, 0x6e, 0x65, 0x97, 0xb3, 0x31, 0xf8, 0xa0, 0x9c}
-
-	jsonBytes, err := json.Marshal(domain)
-	require.NoError(t, err)
-	require.Equal(t, domainJSON, string(jsonBytes))
 	hasher, err := domain.ToHasher()
 	require.NoError(t, err)
-	gotHash, err := hasher.GenerateHash()
-	require.NoError(t, err)
-	require.Equal(t, expectedHash, gotHash)
+	require.Equal(t, &hashables.StringHashable{Nullable: true, Enum: []string{"alpha"}, Pattern: new("x"), Format: new("email"), MinLength: 1, MaxLength: new(5)}, hasher)
+}
+
+func TestStringDomainToHasherNil(t *testing.T) {
+	_, err := (*StringDomain)(nil).ToHasher()
+	require.Error(t, err)
 }
