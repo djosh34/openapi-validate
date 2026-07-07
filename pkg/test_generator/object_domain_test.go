@@ -2,6 +2,7 @@ package testgenerator
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -34,6 +35,12 @@ func TestParseObjectParsesValidObjectSchemas(t *testing.T) {
 	propertyNameHash := Hash{1}
 	propertyAgeHash := Hash{2}
 	additionalPropertyHash := Hash{3}
+	agePropertyDomainHash, err := (&Property{Key: "age", Hash: &propertyAgeHash}).GenerateHash()
+	require.NoError(t, err)
+	namePropertyDomainHash, err := (&Property{Key: "name", Hash: &propertyNameHash}).GenerateHash()
+	require.NoError(t, err)
+	requiredNamePropertyDomainHash, err := (&Property{Key: "name", Hash: &propertyNameHash, Required: true}).GenerateHash()
+	require.NoError(t, err)
 
 	tests := map[string]struct {
 		yamlString       string
@@ -78,9 +85,9 @@ properties:
     type: integer
 `,
 			parseHashes:      []Hash{propertyNameHash, propertyAgeHash},
-			expectedStoreKey: []Hash{propertyNameHash, propertyAgeHash},
+			expectedStoreKey: []Hash{propertyNameHash, propertyAgeHash, agePropertyDomainHash, namePropertyDomainHash},
 			expected: ObjectDomain{
-				Properties:             []*Hash{&propertyAgeHash, &propertyNameHash},
+				Properties:             []*Hash{&agePropertyDomainHash, &namePropertyDomainHash},
 				AdditionalPropertyKind: AdditionalTrue,
 			},
 		},
@@ -94,9 +101,18 @@ properties:
     type: string
 `,
 			parseHashes:      []Hash{propertyNameHash},
-			expectedStoreKey: []Hash{propertyNameHash},
+			expectedStoreKey: []Hash{propertyNameHash, requiredNamePropertyDomainHash},
 			expected: ObjectDomain{
-				Properties:             []*Hash{&propertyNameHash},
+				Properties:             []*Hash{&requiredNamePropertyDomainHash},
+				AdditionalPropertyKind: AdditionalTrue,
+			},
+		},
+		"additionalProperties true": {
+			yamlString: `
+type: object
+additionalProperties: true
+`,
+			expected: ObjectDomain{
 				AdditionalPropertyKind: AdditionalTrue,
 			},
 		},
@@ -339,4 +355,113 @@ properties:
 			require.Empty(t, dc.domainStore)
 		})
 	}
+}
+
+func TestObjectDomainHashAndPropertyErrors(t *testing.T) {
+	_, err := (*Property)(nil).GenerateHash()
+	require.Error(t, err)
+
+	_, err = (*ObjectDomain)(nil).GenerateHash()
+	require.Error(t, err)
+
+	_, err = (&ObjectDomain{}).GenerateHash()
+	require.NoError(t, err)
+
+	require.EqualError(t, (&PropertyAlreadyExistsError{Key: "name"}), `property "name" already exists in object`)
+}
+
+func TestParseObjectErrorBranches(t *testing.T) {
+	t.Run("invalid json", func(t *testing.T) {
+		node := json.RawMessage(`{`)
+		_, err := (&DomainContext{}).ParseObject(&node)
+		require.Error(t, err)
+	})
+
+	t.Run("property parse error", func(t *testing.T) {
+		node := rawObjectFromYAML(t, `
+type: object
+properties:
+  name:
+    type: string
+`)
+		dc := DomainContext{parse: func(node *json.RawMessage) (*Hash, error) {
+			return nil, errors.New("parse failed")
+		}}
+		_, err := dc.ParseObject(node)
+		require.Error(t, err)
+	})
+
+	t.Run("invalid property schema", func(t *testing.T) {
+		node := rawObjectFromYAML(t, `
+type: object
+properties:
+  name: bad
+`)
+		_, err := (&DomainContext{}).ParseObject(node)
+		require.Error(t, err)
+	})
+
+	t.Run("additionalProperties null", func(t *testing.T) {
+		node := rawObjectFromYAML(t, `
+type: object
+additionalProperties: null
+`)
+		_, err := (&DomainContext{}).ParseObject(node)
+		require.Error(t, err)
+	})
+
+	t.Run("additionalProperties parse error", func(t *testing.T) {
+		node := rawObjectFromYAML(t, `
+type: object
+additionalProperties:
+  type: string
+`)
+		dc := DomainContext{parse: func(node *json.RawMessage) (*Hash, error) {
+			return nil, errors.New("parse failed")
+		}}
+		_, err := dc.ParseObject(node)
+		require.Error(t, err)
+	})
+}
+
+func TestParseObjectInitializesNilDomainStoreForPropertiesAndAdditionalProperties(t *testing.T) {
+	t.Run("properties", func(t *testing.T) {
+		node := rawObjectFromYAML(t, `
+type: object
+properties:
+  name:
+    type: string
+`)
+		hash := Hash{1}
+		dc := DomainContext{parse: func(node *json.RawMessage) (*Hash, error) { return &hash, nil }}
+		objectDomain, err := dc.ParseObject(node)
+		require.NoError(t, err)
+		require.Len(t, objectDomain.Properties, 1)
+		require.NotNil(t, dc.domainStore)
+	})
+
+	t.Run("additionalProperties", func(t *testing.T) {
+		node := rawObjectFromYAML(t, `
+type: object
+additionalProperties:
+  type: string
+`)
+		hash := Hash{1}
+		dc := DomainContext{parse: func(node *json.RawMessage) (*Hash, error) { return &hash, nil }}
+		objectDomain, err := dc.ParseObject(node)
+		require.NoError(t, err)
+		require.Equal(t, AdditionalSchema, objectDomain.AdditionalPropertyKind)
+		require.NotNil(t, dc.domainStore)
+	})
+}
+
+func TestParseObjectRequiredWithoutPropertySchema(t *testing.T) {
+	node := rawObjectFromYAML(t, `
+type: object
+required:
+  - name
+`)
+	objectDomain, err := (&DomainContext{}).ParseObject(node)
+	require.NoError(t, err)
+	require.Len(t, objectDomain.Properties, 1)
 }

@@ -21,18 +21,45 @@ type DomainContext struct {
 	// Each Domain that is created, must be added here
 	domainStore map[Hash]Domain
 	// Exists only for testing, to 'mock'/'inject' wanted parse outputs
-	parse func(node *json.RawMessage) (*Hash, error)
+	parse func(node *json.RawMessage) (Domain, error)
 }
 
-func (dc *DomainContext) Parse(node *json.RawMessage) (*Hash, error) {
-	if dc.parse != nil {
-		return dc.parse(node)
+func (dc *DomainContext) AddDomain(domain Domain) error {
+	hash, hashErr := domain.GenerateHash()
+	if hashErr != nil {
+		return hashErr
 	}
 
-	return dc.ParseDefault(node)
+	dc.domainStore[hash] = domain
+	return nil
 }
 
-func (dc *DomainContext) ParseDefault(node *json.RawMessage) (*Hash, error) {
+func (dc *DomainContext) ParseToHash(node *json.RawMessage) (Hash, error) {
+	_, hash, domainErr := dc.Parse(node)
+	return hash, domainErr
+}
+
+func (dc *DomainContext) Parse(node *json.RawMessage) (Domain, Hash, error) {
+	if dc.parse == nil {
+		dc.parse = dc.parseDefault
+	}
+
+	domain, domainErr := dc.parse(node)
+	if domainErr != nil {
+		return nil, Hash{}, domainErr
+	}
+
+	hash, hashErr := domain.GenerateHash()
+	if hashErr != nil {
+		return nil, Hash{}, hashErr
+	}
+
+	dc.domainStore[hash] = domain
+
+	return domain, hash, nil
+}
+
+func (dc *DomainContext) parseDefault(node *json.RawMessage) (Domain, error) {
 	_ = node
 
 	return nil, nil

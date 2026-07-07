@@ -1,7 +1,6 @@
 package testgenerator
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -138,7 +137,7 @@ func TestStringDomainHashUsesSHA256OfJSON(t *testing.T) {
 	}
 
 	const domainJSON = `{"nullable":true,"enum":["alpha","beta"],"pattern":"^[a-z]+$","format":"email","minLength":2,"maxLength":5}`
-	expectedHash := Hash(sha256.Sum256([]byte(domainJSON)))
+	expectedHash := Hash{0x19, 0xd0, 0x2d, 0x93, 0x89, 0xa0, 0xe3, 0x29, 0x81, 0x6b, 0x4a, 0x6b, 0x71, 0x74, 0x79, 0xf5, 0xf7, 0x49, 0xdc, 0x34, 0x84, 0xbe, 0x6b, 0xd, 0x6e, 0x65, 0x97, 0xb3, 0x31, 0xf8, 0xa0, 0x9c}
 
 	jsonBytes, err := json.Marshal(domain)
 	require.NoError(t, err)
