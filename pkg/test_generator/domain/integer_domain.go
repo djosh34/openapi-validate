@@ -23,9 +23,9 @@ func (i *IntegerDomain) ToHasher() (types.Hasher, error) {
 		return nil, errors.New("domain of integer cannot be nil")
 	}
 
-	panic("TO DO")
+	return nil, errors.New("NOT IMPLEMENTED")
 }
 
 func (dc *DomainContext) ParseInteger(node *json.RawMessage) (IntegerDomain, error) {
-	panic("TO DO")
+	return IntegerDomain{}, errors.New("NOT IMPLEMENTED")
 }

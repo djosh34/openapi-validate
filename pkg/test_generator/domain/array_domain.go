@@ -20,9 +20,9 @@ func (a *ArrayDomain) ToHasher() (types.Hasher, error) {
 		return nil, errors.New("domain of array cannot be nil")
 	}
 
-	panic("TO DO")
+	return nil, errors.New("NOT IMPLEMENTED")
 }
 
 func (dc *DomainContext) ParseArray(node *json.RawMessage) (ArrayDomain, error) {
-	panic("TO DO")
+	return ArrayDomain{}, errors.New("NOT IMPLEMENTED")
 }

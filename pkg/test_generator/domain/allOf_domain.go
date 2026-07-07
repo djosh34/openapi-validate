@@ -7,7 +7,8 @@ import (
 )
 
 type AllOfDomain struct {
-	Domains []types.Domain
+	Domains      []types.Domain
+	MergedDomain types.Domain
 }
 
 func (a *AllOfDomain) ToHasher() (types.Hasher, error) {
@@ -15,10 +16,10 @@ func (a *AllOfDomain) ToHasher() (types.Hasher, error) {
 		return nil, errors.New("domain of allOf cannot be nil")
 	}
 
-	panic("TO DO")
+	return nil, errors.New("NOT IMPLEMENTED")
 }
 
 func (dc *DomainContext) ParseAllOf(node *json.RawMessage) (AllOfDomain, error) {
 
-	panic("TO DO")
+	return AllOfDomain{}, errors.New("NOT IMPLEMENTED")
 }

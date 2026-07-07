@@ -40,5 +40,5 @@ func (domain *StringDomain) ToHasher() (types.Hasher, error) {
 }
 
 func (dc *DomainContext) ParseString(node *json.RawMessage) (StringDomain, error) {
-	panic("TO DO")
+	return StringDomain{}, errors.New("NOT IMPLEMENTED")
 }

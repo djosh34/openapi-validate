@@ -16,9 +16,9 @@ func (b *BoolDomain) ToHasher() (types.Hasher, error) {
 		return nil, errors.New("domain of bool cannot be nil")
 	}
 
-	panic("TO DO")
+	return nil, errors.New("NOT IMPLEMENTED")
 }
 
 func (dc *DomainContext) ParseBool(node *json.RawMessage) (BoolDomain, error) {
-	panic("TO DO")
+	return BoolDomain{}, errors.New("NOT IMPLEMENTED")
 }
