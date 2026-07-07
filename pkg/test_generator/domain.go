@@ -12,14 +12,14 @@ type Hasher interface {
 //	MergeAllOf(domain Domain) Domain
 //}
 
-type YamlParser interface {
-	Parse(node yaml.Node) error
-}
+//type YamlParser interface {
+//	Parse(node yaml.Node) error
+//}
 
 type Domain interface {
 	Hasher
 	//AllOfMerger
-	YamlParser
+	//YamlParser
 }
 
 type DomainContext struct {
