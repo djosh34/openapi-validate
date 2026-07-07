@@ -12,21 +12,27 @@ type Hasher interface {
 //	MergeAllOf(domain Domain) Domain
 //}
 
-//type YamlParser interface {
-//	Parse(node yaml.Node) error
-//}
-
 type Domain interface {
 	Hasher
 	//AllOfMerger
-	//YamlParser
 }
 
 type DomainContext struct {
+	// Each Domain that is created, must be added here
 	domainStore map[Hash]Domain
+	// Exists only for testing, to 'mock'/'inject' wanted parse outputs
+	parse func(node yaml.Node) (*Hash, error)
 }
 
 func (dc *DomainContext) Parse(node yaml.Node) (*Hash, error) {
+	if dc.parse != nil {
+		return dc.parse(node)
+	}
+
+	return dc.ParseDefault(node)
+}
+
+func (dc *DomainContext) ParseDefault(node yaml.Node) (*Hash, error) {
 
 	return nil, nil
 }
