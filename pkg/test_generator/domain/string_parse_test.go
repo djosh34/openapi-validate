@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"decode_and_validate_generator/pkg/test_generator/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -67,7 +68,7 @@ x-invalid-examples:
   - ABC
   - '123'
 `,
-			expected: StringDomain{Pattern: new("^[a-z]+$"), XValidExamples: []string{"alpha", "beta"}, XInvalidExamples: []string{"ABC", "123"}},
+			expected: StringDomain{Pattern: types.Pattern{"^[a-z]+$"}, XValidExamples: []string{"alpha", "beta"}, XInvalidExamples: []string{"ABC", "123"}},
 		},
 		"invalid regex pattern is accepted when examples are provided": {
 			yamlString: `
@@ -78,7 +79,7 @@ x-valid-examples:
 x-invalid-examples:
   - ']'
 `,
-			expected: StringDomain{Pattern: new("["), XValidExamples: []string{"["}, XInvalidExamples: []string{"]"}},
+			expected: StringDomain{Pattern: types.Pattern{"["}, XValidExamples: []string{"["}, XInvalidExamples: []string{"]"}},
 		},
 		"pattern examples are trusted verbatim without validation": {
 			yamlString: `
@@ -89,7 +90,7 @@ x-valid-examples:
 x-invalid-examples:
   - a
 `,
-			expected: StringDomain{Pattern: new("^a$"), XValidExamples: []string{"does-not-match-pattern"}, XInvalidExamples: []string{"a"}},
+			expected: StringDomain{Pattern: types.Pattern{"^a$"}, XValidExamples: []string{"does-not-match-pattern"}, XInvalidExamples: []string{"a"}},
 		},
 		"format with required examples": {
 			yamlString: `
@@ -100,7 +101,7 @@ x-valid-examples:
 x-invalid-examples:
   - not-an-email
 `,
-			expected: StringDomain{Format: new("email"), XValidExamples: []string{"a@example.com"}, XInvalidExamples: []string{"not-an-email"}},
+			expected: StringDomain{Format: types.Format{"email"}, XValidExamples: []string{"a@example.com"}, XInvalidExamples: []string{"not-an-email"}},
 		},
 		"unknown format is accepted when examples are provided": {
 			yamlString: `
@@ -111,7 +112,7 @@ x-valid-examples:
 x-invalid-examples:
   - made-up-invalid
 `,
-			expected: StringDomain{Format: new("made-up-format"), XValidExamples: []string{"made-up-valid"}, XInvalidExamples: []string{"made-up-invalid"}},
+			expected: StringDomain{Format: types.Format{"made-up-format"}, XValidExamples: []string{"made-up-valid"}, XInvalidExamples: []string{"made-up-invalid"}},
 		},
 		"format examples are trusted verbatim without validation": {
 			yamlString: `
@@ -122,7 +123,7 @@ x-valid-examples:
 x-invalid-examples:
   - a@example.com
 `,
-			expected: StringDomain{Format: new("email"), XValidExamples: []string{"not-an-email-but-trusted"}, XInvalidExamples: []string{"a@example.com"}},
+			expected: StringDomain{Format: types.Format{"email"}, XValidExamples: []string{"not-an-email-but-trusted"}, XInvalidExamples: []string{"a@example.com"}},
 		},
 		"pattern and format share required examples": {
 			yamlString: `
@@ -134,7 +135,7 @@ x-valid-examples:
 x-invalid-examples:
   - nope
 `,
-			expected: StringDomain{Pattern: new("^ID-[0-9]+$"), Format: new("internal-id"), XValidExamples: []string{"ID-123"}, XInvalidExamples: []string{"nope"}},
+			expected: StringDomain{Pattern: types.Pattern{"^ID-[0-9]+$"}, Format: types.Format{"internal-id"}, XValidExamples: []string{"ID-123"}, XInvalidExamples: []string{"nope"}},
 		},
 		"all supported fields together": {
 			yamlString: `
@@ -151,7 +152,7 @@ x-invalid-examples:
 minLength: 2
 maxLength: 10
 `,
-			expected: StringDomain{Nullable: true, Enum: []string{"ID-123"}, Pattern: new("^ID-[0-9]+$"), Format: new("internal-id"), XValidExamples: []string{"ID-123"}, XInvalidExamples: []string{"nope"}, MinLength: 2, MaxLength: new(10)},
+			expected: StringDomain{Nullable: true, Enum: []string{"ID-123"}, Pattern: types.Pattern{"^ID-[0-9]+$"}, Format: types.Format{"internal-id"}, XValidExamples: []string{"ID-123"}, XInvalidExamples: []string{"nope"}, MinLength: 2, MaxLength: new(10)},
 		},
 	}
 

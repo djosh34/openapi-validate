@@ -12,8 +12,8 @@ type StringHashable struct {
 
 	Enum []string `json:"enum"`
 
-	Pattern *string `json:"pattern"`
-	Format  *string `json:"format"`
+	types.Pattern `json:"pattern"`
+	types.Format  `json:"format"`
 
 	XValidExamples   []string `json:"x-valid-examples"`
 	XInvalidExamples []string `json:"x-invalid-examples"`

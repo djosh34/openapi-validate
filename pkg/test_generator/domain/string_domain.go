@@ -15,8 +15,8 @@ type StringDomain struct {
 
 	Enum []string `json:"enum"`
 
-	Pattern *string `json:"pattern"`
-	Format  *string `json:"format"`
+	types.Pattern `json:"pattern"`
+	types.Format  `json:"format"`
 
 	XValidExamples   []string `json:"x-valid-examples"`
 	XInvalidExamples []string `json:"x-invalid-examples"`
@@ -134,14 +134,14 @@ func (dc *DomainContext) ParseString(node *json.RawMessage) (StringDomain, error
 		if !ok {
 			return StringDomain{}, errors.New("pattern must be string")
 		}
-		domain.Pattern = &pattern
+		domain.Pattern = types.Pattern{pattern}
 	}
 	if value, ok := raw["format"]; ok {
 		format, ok := value.(string)
 		if !ok {
 			return StringDomain{}, errors.New("format must be string")
 		}
-		domain.Format = &format
+		domain.Format = types.Format{format}
 	}
 
 	if value, ok := raw["x-valid-examples"]; ok {
@@ -158,7 +158,7 @@ func (dc *DomainContext) ParseString(node *json.RawMessage) (StringDomain, error
 		}
 		domain.XInvalidExamples = examples
 	}
-	usesExamples := domain.Pattern != nil || domain.Format != nil
+	usesExamples := len(domain.Pattern) != 0 || len(domain.Format) != 0
 	if usesExamples && (len(domain.XValidExamples) == 0 || len(domain.XInvalidExamples) == 0) {
 		return StringDomain{}, errors.New("pattern and format require x-valid-examples and x-invalid-examples")
 	}

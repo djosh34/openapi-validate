@@ -41,19 +41,19 @@ func TestStringDomainMarshalJSONAllCombinations(t *testing.T) {
 	}
 	patternCases := []struct {
 		name  string
-		value *string
+		value types.Pattern
 		want  string
 	}{
 		{name: "pattern nil", value: nil, want: "null"},
-		{name: "pattern set", value: new("^[a-z]+$"), want: `"^[a-z]+$"`},
+		{name: "pattern set", value: types.Pattern{"^[a-z]+$"}, want: `["^[a-z]+$"]`},
 	}
 	formatCases := []struct {
 		name  string
-		value *string
+		value types.Format
 		want  string
 	}{
 		{name: "format nil", value: nil, want: "null"},
-		{name: "format set", value: new("email"), want: `"email"`},
+		{name: "format set", value: types.Format{"email"}, want: `["email"]`},
 	}
 	xValidExamplesCases := []struct {
 		name  string
@@ -159,11 +159,11 @@ func TestStringDomainMarshalJSONAllCombinations(t *testing.T) {
 }
 
 func TestStringDomainToHasher(t *testing.T) {
-	domain := StringDomain{Nullable: true, Enum: []string{"alpha"}, Pattern: new("x"), Format: new("email"), XValidExamples: []string{"alpha"}, XInvalidExamples: []string{"123"}, MinLength: 1, MaxLength: new(5)}
+	domain := StringDomain{Nullable: true, Enum: []string{"alpha"}, Pattern: types.Pattern{"x"}, Format: types.Format{"email"}, XValidExamples: []string{"alpha"}, XInvalidExamples: []string{"123"}, MinLength: 1, MaxLength: new(5)}
 
 	hasher, err := domain.ToHasher()
 	require.NoError(t, err)
-	require.Equal(t, &hashables.StringHashable{Nullable: true, Enum: []string{"alpha"}, Pattern: new("x"), Format: new("email"), XValidExamples: []string{"alpha"}, XInvalidExamples: []string{"123"}, MinLength: 1, MaxLength: new(5)}, hasher)
+	require.Equal(t, &hashables.StringHashable{Nullable: true, Enum: []string{"alpha"}, Pattern: types.Pattern{"x"}, Format: types.Format{"email"}, XValidExamples: []string{"alpha"}, XInvalidExamples: []string{"123"}, MinLength: 1, MaxLength: new(5)}, hasher)
 }
 
 func TestStringDomainToHasherNil(t *testing.T) {
