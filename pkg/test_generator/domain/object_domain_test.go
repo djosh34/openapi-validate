@@ -39,16 +39,22 @@ func TestParseObjectParsesValidObjectSchemas(t *testing.T) {
 	propertyNameHash := Hash{1}
 	propertyAgeHash := Hash{2}
 	additionalPropertyHash := Hash{3}
-	agePropertyDomainHash, err := (&Property{Key: "age", Hash: &propertyAgeHash}).GenerateHash()
+	propertyNameDomain := fakeObjectTestDomain{hash: propertyNameHash}
+	propertyAgeDomain := fakeObjectTestDomain{hash: propertyAgeHash}
+	additionalPropertyDomain := fakeObjectTestDomain{hash: additionalPropertyHash}
+	ageProperty := &Property{Key: "age", Domain: propertyAgeDomain}
+	nameProperty := &Property{Key: "name", Domain: propertyNameDomain}
+	requiredNameProperty := &Property{Key: "name", Domain: propertyNameDomain, Required: true}
+	agePropertyDomainHash, err := ageProperty.GenerateHash()
 	require.NoError(t, err)
-	namePropertyDomainHash, err := (&Property{Key: "name", Hash: &propertyNameHash}).GenerateHash()
+	namePropertyDomainHash, err := nameProperty.GenerateHash()
 	require.NoError(t, err)
-	requiredNamePropertyDomainHash, err := (&Property{Key: "name", Hash: &propertyNameHash, Required: true}).GenerateHash()
+	requiredNamePropertyDomainHash, err := requiredNameProperty.GenerateHash()
 	require.NoError(t, err)
 
 	tests := map[string]struct {
 		yamlString       string
-		parseHashes      []Hash
+		parseDomains     []Domain
 		expectedStoreKey []Hash
 		expected         ObjectDomain
 	}{
@@ -88,10 +94,10 @@ properties:
   age:
     type: integer
 `,
-			parseHashes:      []Hash{propertyNameHash, propertyAgeHash},
+			parseDomains:     []Domain{propertyNameDomain, propertyAgeDomain},
 			expectedStoreKey: []Hash{propertyNameHash, propertyAgeHash, agePropertyDomainHash, namePropertyDomainHash},
 			expected: ObjectDomain{
-				Properties:             []*Hash{&agePropertyDomainHash, &namePropertyDomainHash},
+				Properties:             []Domain{ageProperty, nameProperty},
 				AdditionalPropertyKind: AdditionalTrue,
 			},
 		},
@@ -104,10 +110,10 @@ properties:
   name:
     type: string
 `,
-			parseHashes:      []Hash{propertyNameHash},
+			parseDomains:     []Domain{propertyNameDomain},
 			expectedStoreKey: []Hash{propertyNameHash, requiredNamePropertyDomainHash},
 			expected: ObjectDomain{
-				Properties:             []*Hash{&requiredNamePropertyDomainHash},
+				Properties:             []Domain{requiredNameProperty},
 				AdditionalPropertyKind: AdditionalTrue,
 			},
 		},
@@ -135,11 +141,11 @@ type: object
 additionalProperties:
   type: string
 `,
-			parseHashes:      []Hash{additionalPropertyHash},
+			parseDomains:     []Domain{additionalPropertyDomain},
 			expectedStoreKey: []Hash{additionalPropertyHash},
 			expected: ObjectDomain{
 				AdditionalPropertyKind:   AdditionalSchema,
-				AdditionalPropertyDomain: &additionalPropertyHash,
+				AdditionalPropertyDomain: additionalPropertyDomain,
 			},
 		},
 		"minProperties and maxProperties": {
@@ -163,16 +169,16 @@ maxProperties: 3
 			dc := DomainContext{
 				domainStore: map[Hash]Domain{},
 				parse: func(node *json.RawMessage) (Domain, error) {
-					require.Less(t, parseCall, len(tt.parseHashes))
-					hash := tt.parseHashes[parseCall]
+					require.Less(t, parseCall, len(tt.parseDomains))
+					domain := tt.parseDomains[parseCall]
 					parseCall++
-					return fakeObjectTestDomain{hash: hash}, nil
+					return domain, nil
 				},
 			}
 
 			objectDomain, err := dc.ParseObject(node)
 			require.NoError(t, err)
-			require.Equal(t, len(tt.parseHashes), parseCall)
+			require.Equal(t, len(tt.parseDomains), parseCall)
 			requireDomainStoreKeys(t, &dc, tt.expectedStoreKey...)
 			require.Equal(t, tt.expected, objectDomain)
 		})
@@ -204,8 +210,10 @@ properties:
 	require.Len(t, objectDomain.Enum, 2)
 	require.Len(t, dc.domainStore, 2)
 
-	for _, enumHash := range objectDomain.Enum {
-		domain, ok := dc.domainStore[*enumHash]
+	for _, enumDomain := range objectDomain.Enum {
+		hash, hashErr := enumDomain.GenerateHash()
+		require.NoError(t, hashErr)
+		domain, ok := dc.domainStore[hash]
 		require.True(t, ok)
 		require.IsType(t, new(EnumDomain), domain)
 	}

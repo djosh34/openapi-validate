@@ -8,7 +8,6 @@ import (
 	"sort"
 )
 
-var _ Hasher = new(Property)
 var _ Hasher = new(ObjectDomain)
 
 type AdditionalPropertyKind int
@@ -21,7 +20,7 @@ const (
 
 type Property struct {
 	Key string
-	*Hash
+	Domain
 	Required bool
 }
 
@@ -44,12 +43,12 @@ func (p *Property) GenerateHash() (Hash, error) {
 }
 
 type ObjectDomain struct {
-	Enum []*Hash
+	Enum []Domain
 
-	Properties []*Hash
+	Properties []Domain
 
 	AdditionalPropertyKind
-	AdditionalPropertyDomain *Hash
+	AdditionalPropertyDomain Domain
 
 	MinProps int
 	MaxProps *int
@@ -117,17 +116,12 @@ func (dc *DomainContext) ParseObject(node *json.RawMessage) (ObjectDomain, error
 				return ObjectDomain{}, enumErr
 			}
 
-			enumHash, enumHashErr := enumDomain.GenerateHash()
-			if enumHashErr != nil {
-				return ObjectDomain{}, enumHashErr
-			}
-
 			domainErr := dc.AddDomain(&enumDomain)
 			if domainErr != nil {
 				return ObjectDomain{}, domainErr
 			}
 
-			objectDomain.Enum = append(objectDomain.Enum, &enumHash)
+			objectDomain.Enum = append(objectDomain.Enum, &enumDomain)
 		}
 
 		return objectDomain, nil
@@ -158,14 +152,14 @@ func (dc *DomainContext) ParseObject(node *json.RawMessage) (ObjectDomain, error
 				}
 			}
 
-			propertyHash, propertyErr := dc.ParseToHash(&propertyValue)
+			propertyDomain, propertyErr := dc.Parse(&propertyValue)
 			if propertyErr != nil {
 				return ObjectDomain{}, propertyErr
 			}
 
 			property := Property{
-				Key:  propertyKey,
-				Hash: &propertyHash,
+				Key:    propertyKey,
+				Domain: propertyDomain,
 			}
 
 			properties[propertyKey] = property
@@ -204,17 +198,12 @@ func (dc *DomainContext) ParseObject(node *json.RawMessage) (ObjectDomain, error
 
 	for _, propertyKey := range propertyKeys {
 		property := properties[propertyKey]
-		propertyHash, propertyHashErr := property.GenerateHash()
-		if propertyHashErr != nil {
-			return ObjectDomain{}, propertyHashErr
-		}
-
 		domainErr := dc.AddDomain(&property)
 		if domainErr != nil {
 			return ObjectDomain{}, domainErr
 		}
 
-		objectDomain.Properties = append(objectDomain.Properties, &propertyHash)
+		objectDomain.Properties = append(objectDomain.Properties, &property)
 	}
 
 	// Parse AdditionalProperties
@@ -234,13 +223,13 @@ func (dc *DomainContext) ParseObject(node *json.RawMessage) (ObjectDomain, error
 				objectDomain.AdditionalPropertyKind = AdditionalFalse
 			}
 		} else {
-			additionalPropertyHash, additionalPropertyErr := dc.ParseToHash(additionalProperties)
+			additionalPropertyDomain, additionalPropertyErr := dc.Parse(additionalProperties)
 			if additionalPropertyErr != nil {
 				return ObjectDomain{}, additionalPropertyErr
 			}
 
 			objectDomain.AdditionalPropertyKind = AdditionalSchema
-			objectDomain.AdditionalPropertyDomain = &additionalPropertyHash
+			objectDomain.AdditionalPropertyDomain = additionalPropertyDomain
 		}
 	}
 

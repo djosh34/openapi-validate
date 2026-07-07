@@ -37,32 +37,22 @@ func (dc *DomainContext) AddDomain(domain Domain) error {
 	return nil
 }
 
-func (dc *DomainContext) ParseToHash(node *json.RawMessage) (Hash, error) {
-	_, hash, domainErr := dc.Parse(node)
-	return hash, domainErr
-}
-
-func (dc *DomainContext) Parse(node *json.RawMessage) (Domain, Hash, error) {
+func (dc *DomainContext) Parse(node *json.RawMessage) (Domain, error) {
 	if dc.parse == nil {
 		dc.parse = dc.parseDefault
 	}
 
 	domain, domainErr := dc.parse(node)
 	if domainErr != nil {
-		return nil, Hash{}, domainErr
+		return nil, domainErr
 	}
 
-	hash, hashErr := domain.GenerateHash()
-	if hashErr != nil {
-		return nil, Hash{}, hashErr
+	domainErr = dc.AddDomain(domain)
+	if domainErr != nil {
+		return nil, domainErr
 	}
 
-	if dc.domainStore == nil {
-		dc.domainStore = make(map[Hash]Domain)
-	}
-	dc.domainStore[hash] = domain
-
-	return domain, hash, nil
+	return domain, nil
 }
 
 func (dc *DomainContext) parseDefault(node *json.RawMessage) (Domain, error) {
