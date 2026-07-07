@@ -22,6 +22,14 @@ type StringDomain struct {
 	MaxLength *int `json:"maxLength"`
 }
 
+func (domain *StringDomain) AllOfMerge(otherDomain types.Domain) (types.Domain, error) {
+	if _, ok := otherDomain.(*StringDomain); !ok {
+		return nil, errors.New("domain is not StringDomain")
+	}
+
+	return nil, errors.New("NOT IMPLEMENTED")
+}
+
 func (domain *StringDomain) ToHasher() (types.Hasher, error) {
 	if domain == nil {
 		return nil, errors.New("domain of string cannot be nil")

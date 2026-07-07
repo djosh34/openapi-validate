@@ -18,6 +18,10 @@ func (f failingToHasherDomain) ToHasher() (types.Hasher, error) {
 	return nil, errors.New("to hasher failed")
 }
 
+func (f failingToHasherDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+	return nil, errors.New("NOT IMPLEMENTED")
+}
+
 type fakeObjectTestDomain struct {
 	hash types.Hash
 }
@@ -28,6 +32,10 @@ func (f fakeObjectTestDomain) GenerateHash() (types.Hash, error) {
 
 func (f fakeObjectTestDomain) ToHasher() (types.Hasher, error) {
 	return f, nil
+}
+
+func (f fakeObjectTestDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+	return nil, errors.New("NOT IMPLEMENTED")
 }
 
 func rawObjectFromYAML(t *testing.T, yamlString string) *json.RawMessage {

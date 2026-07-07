@@ -1,8 +1,8 @@
 package types
 
-//	type AllOfMerger interface {
-//		MergeAllOf(domain Domain) Domain
-//	}
+type AllOfMerger interface {
+	AllOfMerge(domain Domain) (Domain, error)
+}
 
 type ToHasher interface {
 	ToHasher() (Hasher, error)
@@ -11,7 +11,7 @@ type ToHasher interface {
 type Domain interface {
 	ToHasher
 	//Hasher
-	//AllOfMerger
+	AllOfMerger
 }
 
 type Hash [32]byte

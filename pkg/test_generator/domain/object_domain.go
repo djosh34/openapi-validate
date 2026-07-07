@@ -58,6 +58,14 @@ type ObjectDomain struct {
 	MaxProps *int
 }
 
+func (o *ObjectDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+	if _, ok := domain.(*ObjectDomain); !ok {
+		return nil, errors.New("domain is not ObjectDomain")
+	}
+
+	return nil, errors.New("NOT IMPLEMENTED")
+}
+
 func (o *ObjectDomain) ToHasher() (types.Hasher, error) {
 	if o == nil {
 		return nil, errors.New("object domain cannot be nil")

@@ -19,6 +19,14 @@ type NumberDomain struct {
 	Format           *string `json:"format"`
 }
 
+func (n *NumberDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+	if _, ok := domain.(*NumberDomain); !ok {
+		return nil, errors.New("domain is not NumberDomain")
+	}
+
+	return nil, errors.New("NOT IMPLEMENTED")
+}
+
 func (n *NumberDomain) ToHasher() (types.Hasher, error) {
 	if n == nil {
 		return nil, errors.New("domain of number cannot be nil")

@@ -12,6 +12,14 @@ type BoolDomain struct {
 	Enum     []bool `json:"enum"`
 }
 
+func (b *BoolDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+	if _, ok := domain.(*BoolDomain); !ok {
+		return nil, errors.New("domain is not BoolDomain")
+	}
+
+	return nil, errors.New("NOT IMPLEMENTED")
+}
+
 func (b *BoolDomain) ToHasher() (types.Hasher, error) {
 	if b == nil {
 		return nil, errors.New("domain of bool cannot be nil")

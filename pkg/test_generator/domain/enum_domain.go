@@ -12,6 +12,14 @@ type EnumDomain struct {
 	*json.RawMessage
 }
 
+func (e *EnumDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+	if _, ok := domain.(*EnumDomain); !ok {
+		return nil, errors.New("domain is not EnumDomain")
+	}
+
+	return nil, errors.New("NOT IMPLEMENTED")
+}
+
 func (e *EnumDomain) ToHasher() (types.Hasher, error) {
 	if e == nil {
 		return nil, errors.New("domain of enum cannot be nil")

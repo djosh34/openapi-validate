@@ -7,9 +7,19 @@ import (
 	"errors"
 )
 
+var _ types.AllOfMerger = new(AllOfDomain)
+
 type AllOfDomain struct {
 	Domains      []types.Domain
 	MergedDomain types.Domain
+}
+
+func (a *AllOfDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+	if _, ok := domain.(*AllOfDomain); !ok {
+		return nil, errors.New("domain is not AllOfDomain")
+	}
+
+	return nil, errors.New("NOT IMPLEMENTED")
 }
 
 func (a *AllOfDomain) ToHasher() (types.Hasher, error) {

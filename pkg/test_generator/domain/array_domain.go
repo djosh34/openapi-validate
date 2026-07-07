@@ -16,6 +16,14 @@ type ArrayDomain struct {
 	MaxItems *int `json:"maxItems"`
 }
 
+func (a *ArrayDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+	if _, ok := domain.(*ArrayDomain); !ok {
+		return nil, errors.New("domain is not ArrayDomain")
+	}
+
+	return nil, errors.New("NOT IMPLEMENTED")
+}
+
 func (a *ArrayDomain) ToHasher() (types.Hasher, error) {
 	if a == nil {
 		return nil, errors.New("domain of array cannot be nil")
