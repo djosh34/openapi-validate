@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 
 	"github.com/stretchr/testify/require"
@@ -160,15 +159,15 @@ func TestStringDomainMarshalJSONAllCombinations(t *testing.T) {
 	}
 }
 
-func TestStringDomainToHasher(t *testing.T) {
+func TestStringDomainGenerateHash(t *testing.T) {
 	domain := StringDomain{Nullable: true, Enum: []types.Enum{types.Enum("\"alpha\"")}, Pattern: types.Pattern{"x"}, Format: types.Format{"email"}, XValidExamples: []string{"alpha"}, XInvalidExamples: []string{"123"}, MinLength: 1, MaxLength: new(5)}
 
-	hasher, err := domain.ToHasher()
+	got, err := domain.GenerateHash()
 	require.NoError(t, err)
-	require.Equal(t, &hashables.StringHashable{Nullable: true, Enum: []types.Enum{types.Enum("\"alpha\"")}, Pattern: types.Pattern{"x"}, Format: types.Format{"email"}, XValidExamples: []string{"alpha"}, XInvalidExamples: []string{"123"}, MinLength: 1, MaxLength: new(5)}, hasher)
+	require.Equal(t, requireGeneratedHash(t, "string", domain), got)
 }
 
-func TestStringDomainToHasherNil(t *testing.T) {
-	_, err := (*StringDomain)(nil).ToHasher()
+func TestStringDomainGenerateHashNil(t *testing.T) {
+	_, err := (*StringDomain)(nil).GenerateHash()
 	require.Error(t, err)
 }

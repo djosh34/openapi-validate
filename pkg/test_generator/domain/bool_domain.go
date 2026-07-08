@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 )
 
@@ -43,15 +42,12 @@ func (b *BoolDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 	return &merged, nil
 }
 
-func (b *BoolDomain) ToHasher() (types.Hasher, error) {
+func (b *BoolDomain) GenerateHash() (types.Hash, error) {
 	if b == nil {
-		return nil, errors.New("domain of bool cannot be nil")
+		return types.Hash{}, errors.New("domain of bool cannot be nil")
 	}
 
-	return &hashables.BoolHashable{
-		Nullable: b.Nullable,
-		Enum:     b.Enum,
-	}, nil
+	return generateHash("bool", *b)
 }
 
 type boolSchema struct {

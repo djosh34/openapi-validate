@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sort"
 
-	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 )
 
@@ -24,36 +23,33 @@ type Property struct {
 	Required bool
 }
 
-func (p *Property) ToHashable() (hashables.PropertyHashable, error) {
-	if p == nil {
-		return hashables.PropertyHashable{}, errors.New("property cannot be nil")
-	}
-
-	var propertyHasher types.Hasher
-
-	if p.Domain != nil {
-		hasher, err := p.Domain.ToHasher()
-		if err != nil {
-			return hashables.PropertyHashable{}, err
-		}
-
-		propertyHasher = hasher
-	}
-
-	return hashables.PropertyHashable{
-		Key:      p.Key,
-		Hasher:   propertyHasher,
-		Required: p.Required,
-	}, nil
+type propertyHashValue struct {
+	Key      string
+	Hasher   *types.Hash
+	Required bool
 }
 
-func (p *Property) ToHasher() (types.Hasher, error) {
-	propertyHashable, err := p.ToHashable()
-	if err != nil {
-		return nil, err
+func (p *Property) GenerateHash() (types.Hash, error) {
+	if p == nil {
+		return types.Hash{}, errors.New("property cannot be nil")
 	}
 
-	return &propertyHashable, nil
+	var domainHash *types.Hash
+
+	if p.Domain != nil {
+		hash, err := p.Domain.GenerateHash()
+		if err != nil {
+			return types.Hash{}, err
+		}
+
+		domainHash = &hash
+	}
+
+	return generateHash("property", propertyHashValue{
+		Key:      p.Key,
+		Hasher:   domainHash,
+		Required: p.Required,
+	})
 }
 
 type ObjectDomain struct {
@@ -261,45 +257,59 @@ func mergeAdditionalProperties(first *ObjectDomain, second *ObjectDomain) (Addit
 	return AdditionalTrue, nil, nil
 }
 
-func (o *ObjectDomain) ToHasher() (types.Hasher, error) {
+type objectHashValue struct {
+	Nullable bool
+
+	Enum []types.Enum
+
+	Properties []*types.Hash
+
+	AdditionalPropertyKind
+	AdditionalPropertyDomain *types.Hash
+
+	MinProps int
+	MaxProps *int
+}
+
+func (o *ObjectDomain) GenerateHash() (types.Hash, error) {
 	if o == nil {
-		return nil, errors.New("object domain cannot be nil")
+		return types.Hash{}, errors.New("object domain cannot be nil")
 	}
 
-	propertyHashers := make([]hashables.PropertyHashable, 0, len(o.Properties))
+	propertyHashes := make([]*types.Hash, 0, len(o.Properties))
 	for _, property := range o.Properties {
-		propertyHashable, err := property.ToHashable()
+		hash, err := property.GenerateHash()
 		if err != nil {
-			return nil, err
+			return types.Hash{}, err
 		}
 
-		propertyHashers = append(propertyHashers, propertyHashable)
+		propertyHashes = append(propertyHashes, &hash)
 	}
 
 	if o.AdditionalPropertyKind == AdditionalSchema && o.AdditionalPropertyDomain == nil {
-		return nil, errors.New("additional property schema domain cannot be nil")
+		return types.Hash{}, errors.New("additional property schema domain cannot be nil")
 	}
 
-	var additionalPropertyHasher types.Hasher
+	var additionalPropertyHash *types.Hash
 
 	if o.AdditionalPropertyDomain != nil {
-		hasher, err := o.AdditionalPropertyDomain.ToHasher()
+		hash, err := o.AdditionalPropertyDomain.GenerateHash()
 		if err != nil {
-			return nil, err
+			return types.Hash{}, err
 		}
 
-		additionalPropertyHasher = hasher
+		additionalPropertyHash = &hash
 	}
 
-	return &hashables.ObjectHashable{
+	return generateHash("object", objectHashValue{
 		Nullable:                 o.Nullable,
 		Enum:                     o.Enum,
-		Properties:               propertyHashers,
-		AdditionalPropertyKind:   hashables.AdditionalPropertyKind(o.AdditionalPropertyKind),
-		AdditionalPropertyDomain: additionalPropertyHasher,
+		Properties:               propertyHashes,
+		AdditionalPropertyKind:   o.AdditionalPropertyKind,
+		AdditionalPropertyDomain: additionalPropertyHash,
 		MinProps:                 o.MinProps,
 		MaxProps:                 o.MaxProps,
-	}, nil
+	})
 }
 
 type JSONObject struct {

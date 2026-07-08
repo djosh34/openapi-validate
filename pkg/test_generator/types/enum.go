@@ -12,14 +12,7 @@ type enumHashJSON struct {
 	Value Enum   `json:"value"`
 }
 
-var (
-	_ Hasher   = Enum{}
-	_ ToHasher = Enum{}
-)
-
-func (e Enum) ToHasher() (Hasher, error) {
-	return e, nil
-}
+var _ Hasher = Enum{}
 
 func (e Enum) GenerateHash() (Hash, error) {
 	jsonBytes, err := json.Marshal(enumHashJSON{Type: "enum", Value: e})

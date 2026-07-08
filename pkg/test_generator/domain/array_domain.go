@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 )
 
@@ -71,29 +70,40 @@ func (a *ArrayDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 	return &merged, nil
 }
 
-func (a *ArrayDomain) ToHasher() (types.Hasher, error) {
+type arrayHashValue struct {
+	Nullable bool `json:"nullable"`
+
+	Enum []types.Enum `json:"enum"`
+
+	Items *types.Hash `json:"items"`
+
+	MinItems int  `json:"minItems"`
+	MaxItems *int `json:"maxItems"`
+}
+
+func (a *ArrayDomain) GenerateHash() (types.Hash, error) {
 	if a == nil {
-		return nil, errors.New("domain of array cannot be nil")
+		return types.Hash{}, errors.New("domain of array cannot be nil")
 	}
 
-	var itemsHasher types.Hasher
+	var itemsHash *types.Hash
 
 	if a.Items != nil {
-		hasher, err := a.Items.ToHasher()
+		hash, err := a.Items.GenerateHash()
 		if err != nil {
-			return nil, err
+			return types.Hash{}, err
 		}
 
-		itemsHasher = hasher
+		itemsHash = &hash
 	}
 
-	return &hashables.ArrayHashable{
+	return generateHash("array", arrayHashValue{
 		Nullable: a.Nullable,
 		Enum:     a.Enum,
-		Items:    itemsHasher,
+		Items:    itemsHash,
 		MinItems: a.MinItems,
 		MaxItems: a.MaxItems,
-	}, nil
+	})
 }
 
 type arraySchema struct {

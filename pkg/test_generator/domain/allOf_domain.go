@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 )
 
@@ -77,42 +76,47 @@ func (a *AllOfDomain) mergeOne(domain types.Domain) error {
 	return nil
 }
 
-func (a *AllOfDomain) ToHasher() (types.Hasher, error) {
+type allOfHashValue struct {
+	Domains      []*types.Hash
+	MergedDomain *types.Hash
+}
+
+func (a *AllOfDomain) GenerateHash() (types.Hash, error) {
 	if a == nil {
-		return nil, errors.New("domain of allOf cannot be nil")
+		return types.Hash{}, errors.New("domain of allOf cannot be nil")
 	}
 
-	domainHashers := make([]types.Hasher, 0, len(a.Domains))
+	domainHashes := make([]*types.Hash, 0, len(a.Domains))
 	for _, allOfDomain := range a.Domains {
-		var domainHasher types.Hasher
+		var domainHash *types.Hash
 
 		if allOfDomain != nil {
-			hasher, err := allOfDomain.ToHasher()
+			hash, err := allOfDomain.GenerateHash()
 			if err != nil {
-				return nil, err
+				return types.Hash{}, err
 			}
 
-			domainHasher = hasher
+			domainHash = &hash
 		}
 
-		domainHashers = append(domainHashers, domainHasher)
+		domainHashes = append(domainHashes, domainHash)
 	}
 
-	var mergedHasher types.Hasher
+	var mergedHash *types.Hash
 
 	if a.MergedDomain != nil {
-		hasher, err := a.MergedDomain.ToHasher()
+		hash, err := a.MergedDomain.GenerateHash()
 		if err != nil {
-			return nil, err
+			return types.Hash{}, err
 		}
 
-		mergedHasher = hasher
+		mergedHash = &hash
 	}
 
-	return &hashables.AllOfHashable{
-		Domains:      domainHashers,
-		MergedDomain: mergedHasher,
-	}, nil
+	return generateHash("allOf", allOfHashValue{
+		Domains:      domainHashes,
+		MergedDomain: mergedHash,
+	})
 }
 
 func (dc *DomainContext) ParseAllOf(node *json.RawMessage) (allOfDomain AllOfDomain, err error) {

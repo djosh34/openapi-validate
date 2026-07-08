@@ -47,13 +47,13 @@ func TestAllOfDomainRemainingBranches(t *testing.T) {
 		require.Nil(t, got)
 	})
 
-	t.Run("domain to hasher error", func(t *testing.T) {
-		_, err := (&AllOfDomain{Domains: []types.Domain{failingToHasherDomain{}}}).ToHasher()
+	t.Run("domain generate hash error", func(t *testing.T) {
+		_, err := (&AllOfDomain{Domains: []types.Domain{failingGenerateHashDomain{}}}).GenerateHash()
 		require.Error(t, err)
 	})
 
-	t.Run("merged domain to hasher error", func(t *testing.T) {
-		_, err := (&AllOfDomain{MergedDomain: failingToHasherDomain{}}).ToHasher()
+	t.Run("merged domain generate hash error", func(t *testing.T) {
+		_, err := (&AllOfDomain{MergedDomain: failingGenerateHashDomain{}}).GenerateHash()
 		require.Error(t, err)
 	})
 }
@@ -333,7 +333,7 @@ func TestNumberRemainingBranches(t *testing.T) {
 }
 
 func TestArrayRemainingBranches(t *testing.T) {
-	_, err := (&ArrayDomain{Items: failingToHasherDomain{}}).ToHasher()
+	_, err := (&ArrayDomain{Items: failingGenerateHashDomain{}}).GenerateHash()
 	require.Error(t, err)
 }
 
@@ -346,7 +346,7 @@ func TestObjectRemainingBranches(t *testing.T) {
 	require.Error(t, err)
 	require.False(t, keep)
 
-	_, err = (&ObjectDomain{Properties: []Property{{Domain: failingToHasherDomain{}}}}).ToHasher()
+	_, err = (&ObjectDomain{Properties: []Property{{Domain: failingGenerateHashDomain{}}}}).GenerateHash()
 	require.Error(t, err)
 
 	raw := json.RawMessage(`{"type":"string"}`)

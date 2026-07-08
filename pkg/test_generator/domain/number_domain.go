@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"strings"
 
-	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 )
 
@@ -178,22 +177,17 @@ func (n *NumberDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 	return &merged, nil
 }
 
-func (n *NumberDomain) ToHasher() (types.Hasher, error) {
+func (n *NumberDomain) GenerateHash() (types.Hash, error) {
 	if n == nil {
-		return nil, errors.New("domain of number cannot be nil")
+		return types.Hash{}, errors.New("domain of number cannot be nil")
 	}
 
-	return &hashables.NumberHashable{
-		Type:             n.Type,
-		Nullable:         n.Nullable,
-		Enum:             n.Enum,
-		Minimum:          toHashableNumberPtr(n.Minimum),
-		Maximum:          toHashableNumberPtr(n.Maximum),
-		ExclusiveMinimum: n.ExclusiveMinimum,
-		ExclusiveMaximum: n.ExclusiveMaximum,
-		MultipleOf:       toHashableNumberPtr(n.MultipleOf),
-		Format:           n.Format,
-	}, nil
+	hashType := n.Type
+	if hashType == "" {
+		hashType = "number"
+	}
+
+	return generateHash(hashType, *n)
 }
 
 type numberSchema struct {

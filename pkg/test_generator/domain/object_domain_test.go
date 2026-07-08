@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 
 	testgenerator "decode_and_validate_generator/pkg/test_generator"
@@ -13,13 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type failingToHasherDomain struct{}
+type failingGenerateHashDomain struct{}
 
-func (f failingToHasherDomain) ToHasher() (types.Hasher, error) {
-	return nil, errors.New("to hasher failed")
+func (f failingGenerateHashDomain) GenerateHash() (types.Hash, error) {
+	return types.Hash{}, errors.New("generate hash failed")
 }
 
-func (f failingToHasherDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
+func (f failingGenerateHashDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
 	return nil, errors.New("NOT IMPLEMENTED")
 }
 
@@ -29,10 +28,6 @@ type fakeObjectTestDomain struct {
 
 func (f fakeObjectTestDomain) GenerateHash() (types.Hash, error) {
 	return f.hash, nil
-}
-
-func (f fakeObjectTestDomain) ToHasher() (types.Hasher, error) {
-	return f, nil
 }
 
 func (f fakeObjectTestDomain) AllOfMerge(domain types.Domain) (types.Domain, error) {
@@ -707,31 +702,33 @@ additionalProperties:
 	}
 }
 
-func TestPropertyToHasher(t *testing.T) {
+func TestPropertyGenerateHash(t *testing.T) {
 	property := Property{Key: "name", Domain: &StringDomain{}, Required: true}
-
-	hasher, err := property.ToHasher()
+	stringHash, err := (&StringDomain{}).GenerateHash()
 	require.NoError(t, err)
-	require.Equal(t, &hashables.PropertyHashable{Key: "name", Hasher: &hashables.StringHashable{}, Required: true}, hasher)
 
-	hasher, err = (&Property{Key: "nickname", Required: true}).ToHasher()
+	got, err := property.GenerateHash()
 	require.NoError(t, err)
-	require.Equal(t, &hashables.PropertyHashable{Key: "nickname", Required: true}, hasher)
+	require.Equal(t, requireGeneratedHash(t, "property", propertyHashValue{Key: "name", Hasher: &stringHash, Required: true}), got)
+
+	got, err = (&Property{Key: "nickname", Required: true}).GenerateHash()
+	require.NoError(t, err)
+	require.Equal(t, requireGeneratedHash(t, "property", propertyHashValue{Key: "nickname", Required: true}), got)
 }
 
-func TestPropertyToHasherErrors(t *testing.T) {
-	_, err := (*Property)(nil).ToHasher()
+func TestPropertyGenerateHashErrors(t *testing.T) {
+	_, err := (*Property)(nil).GenerateHash()
 	require.Error(t, err)
 
-	_, err = (&Property{Domain: failingToHasherDomain{}}).ToHasher()
+	_, err = (&Property{Domain: failingGenerateHashDomain{}}).GenerateHash()
 	require.Error(t, err)
 }
 
-func TestObjectDomainToHasher(t *testing.T) {
+func TestObjectDomainGenerateHash(t *testing.T) {
 	maxProps := new(3)
 	object := ObjectDomain{
 		Nullable:                 true,
-		Enum:                     []types.Enum{{}},
+		Enum:                     []types.Enum{types.Enum(`{}`)},
 		Properties:               []Property{{Key: "name", Domain: &StringDomain{}, Required: true}},
 		AdditionalPropertyKind:   AdditionalSchema,
 		AdditionalPropertyDomain: &StringDomain{},
@@ -739,40 +736,43 @@ func TestObjectDomainToHasher(t *testing.T) {
 		MaxProps:                 maxProps,
 	}
 
-	hasher, err := object.ToHasher()
+	propertyHash, err := (&Property{Key: "name", Domain: &StringDomain{}, Required: true}).GenerateHash()
 	require.NoError(t, err)
-	require.Equal(t, &hashables.ObjectHashable{
+	additionalPropertyHash, err := (&StringDomain{}).GenerateHash()
+	require.NoError(t, err)
+
+	got, err := object.GenerateHash()
+	require.NoError(t, err)
+	require.Equal(t, requireGeneratedHash(t, "object", objectHashValue{
 		Nullable:                 true,
-		Enum:                     []types.Enum{{}},
-		Properties:               []hashables.PropertyHashable{{Key: "name", Hasher: &hashables.StringHashable{}, Required: true}},
-		AdditionalPropertyKind:   hashables.AdditionalSchema,
-		AdditionalPropertyDomain: &hashables.StringHashable{},
+		Enum:                     []types.Enum{types.Enum(`{}`)},
+		Properties:               []*types.Hash{&propertyHash},
+		AdditionalPropertyKind:   AdditionalSchema,
+		AdditionalPropertyDomain: &additionalPropertyHash,
 		MinProps:                 1,
 		MaxProps:                 maxProps,
-	}, hasher)
+	}), got)
 }
 
-func TestObjectDomainToHasherErrors(t *testing.T) {
-	_, err := (*ObjectDomain)(nil).ToHasher()
+func TestObjectDomainGenerateHashErrors(t *testing.T) {
+	_, err := (*ObjectDomain)(nil).GenerateHash()
 	require.Error(t, err)
 
-	_, err = (&ObjectDomain{Enum: nil}).ToHasher()
+	_, err = (&ObjectDomain{Enum: nil}).GenerateHash()
 	require.NoError(t, err)
 
-	_, err = (&ObjectDomain{Properties: nil}).ToHasher()
+	_, err = (&ObjectDomain{Properties: nil}).GenerateHash()
 	require.NoError(t, err)
 
-	_, err = (&ObjectDomain{AdditionalPropertyKind: AdditionalSchema}).ToHasher()
+	_, err = (&ObjectDomain{AdditionalPropertyKind: AdditionalSchema}).GenerateHash()
 	require.Error(t, err)
 
-	_, err = (&ObjectDomain{AdditionalPropertyDomain: failingToHasherDomain{}}).ToHasher()
+	_, err = (&ObjectDomain{AdditionalPropertyDomain: failingGenerateHashDomain{}}).GenerateHash()
 	require.Error(t, err)
 }
 
 func TestObjectDomainHashAndPropertyErrors(t *testing.T) {
-	hasher, err := (&ObjectDomain{}).ToHasher()
-	require.NoError(t, err)
-	_, err = hasher.GenerateHash()
+	_, err := (&ObjectDomain{}).GenerateHash()
 	require.NoError(t, err)
 
 	require.EqualError(t, (&PropertyAlreadyExistsError{Key: "name"}), `property "name" already exists in object`)

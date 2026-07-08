@@ -360,7 +360,7 @@ func TestObjectDomainAdditionalInvalidAllOfMergePlanCases(t *testing.T) {
 		"enum raw null mismatch":                {left: &ObjectDomain{Enum: []types.Enum{types.Enum(`{"a":1}`)}}, right: &ObjectDomain{Enum: []types.Enum{types.Enum(`null`)}}},
 		"required forbidden reverse":            {left: &ObjectDomain{AdditionalPropertyKind: AdditionalFalse}, right: &ObjectDomain{Properties: []Property{{Key: "a", Required: true}}}},
 		"right prop additional schema mismatch": {left: &ObjectDomain{AdditionalPropertyKind: AdditionalSchema, AdditionalPropertyDomain: &BoolDomain{}}, right: &ObjectDomain{Properties: []Property{{Key: "a", Domain: &StringDomain{}}}}},
-		"additional schema merge fails":         {left: &ObjectDomain{AdditionalPropertyKind: AdditionalSchema, AdditionalPropertyDomain: failingToHasherDomain{}}, right: &ObjectDomain{AdditionalPropertyKind: AdditionalSchema, AdditionalPropertyDomain: &StringDomain{}}},
+		"additional schema merge fails":         {left: &ObjectDomain{AdditionalPropertyKind: AdditionalSchema, AdditionalPropertyDomain: failingGenerateHashDomain{}}, right: &ObjectDomain{AdditionalPropertyKind: AdditionalSchema, AdditionalPropertyDomain: &StringDomain{}}},
 	}
 
 	for name, tt := range tests {

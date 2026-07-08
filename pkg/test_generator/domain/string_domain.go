@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"decode_and_validate_generator/pkg/test_generator/hashables"
 	"decode_and_validate_generator/pkg/test_generator/types"
 )
 
@@ -107,21 +106,12 @@ func mustUnmarshalJSONString(value types.Enum) string {
 	return stringValue
 }
 
-func (domain *StringDomain) ToHasher() (types.Hasher, error) {
+func (domain *StringDomain) GenerateHash() (types.Hash, error) {
 	if domain == nil {
-		return nil, errors.New("domain of string cannot be nil")
+		return types.Hash{}, errors.New("domain of string cannot be nil")
 	}
 
-	return &hashables.StringHashable{
-		Nullable:         domain.Nullable,
-		Enum:             domain.Enum,
-		Pattern:          domain.Pattern,
-		Format:           domain.Format,
-		XValidExamples:   domain.XValidExamples,
-		XInvalidExamples: domain.XInvalidExamples,
-		MinLength:        domain.MinLength,
-		MaxLength:        domain.MaxLength,
-	}, nil
+	return generateHash("string", *domain)
 }
 
 type stringSchema struct {

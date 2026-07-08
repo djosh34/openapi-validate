@@ -4,13 +4,8 @@ type AllOfMerger interface {
 	AllOfMerge(domain Domain) (Domain, error)
 }
 
-type ToHasher interface {
-	ToHasher() (Hasher, error)
-}
-
 type Domain interface {
-	ToHasher
-	// Hasher
+	Hasher
 	AllOfMerger
 }
 
