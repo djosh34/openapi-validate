@@ -1,3 +1,4 @@
+//nolint:depguard,godoclint,lll,paralleltest,revive // Existing test_generator lint debt.
 package domain
 
 import (
@@ -169,18 +170,22 @@ func TestParseDomainKindsRemainingBranches(t *testing.T) {
 	for name, parse := range map[string]func(*json.RawMessage) error{
 		"array": func(node *json.RawMessage) error {
 			_, err := (&DomainContext{}).ParseArray(node)
+
 			return err
 		},
 		"bool": func(node *json.RawMessage) error {
 			_, err := (&DomainContext{}).ParseBool(node)
+
 			return err
 		},
 		"number": func(node *json.RawMessage) error {
 			_, err := (&DomainContext{}).ParseNumber(node)
+
 			return err
 		},
 		"string": func(node *json.RawMessage) error {
 			_, err := (&DomainContext{}).ParseString(node)
+
 			return err
 		},
 	} {

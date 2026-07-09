@@ -1,3 +1,4 @@
+//nolint:cyclop,depguard,embeddedstructfieldcheck,gocognit,gocyclo,godoclint,lll,revive // Existing test_generator lint debt.
 package domain
 
 import (

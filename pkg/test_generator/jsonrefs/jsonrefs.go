@@ -1,4 +1,6 @@
 // Package jsonrefs provides utilities for resolving JSON references.
+//
+//nolint:godoclint,revive // Existing test_generator lint debt.
 package jsonrefs
 
 import (

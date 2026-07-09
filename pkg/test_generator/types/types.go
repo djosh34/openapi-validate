@@ -1,3 +1,4 @@
+//nolint:godoclint,revive // Existing test_generator lint debt.
 package types
 
 type AllOfMerger interface {

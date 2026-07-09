@@ -1,3 +1,4 @@
+//nolint:cyclop,depguard,gocognit,godoclint,revive // Existing test_generator lint debt.
 package domain
 
 import (

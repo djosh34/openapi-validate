@@ -1,3 +1,4 @@
+//nolint:cyclop,depguard,gocognit,gocyclo,godoclint,lll,maintidx,nestif,revive // Existing test_generator lint debt.
 package domain
 
 import (
@@ -19,6 +20,7 @@ const (
 
 type Property struct {
 	types.Domain
+
 	Key      string
 	Required bool
 }

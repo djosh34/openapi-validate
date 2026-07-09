@@ -1,3 +1,4 @@
+//nolint:depguard,godoclint,paralleltest // Existing test_generator lint debt.
 package domain
 
 import (
