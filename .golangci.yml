@@ -33,6 +33,7 @@ linters:
           allow:
             - $gostd
             - github.com/stretchr/testify/require
+            - github.com/goccy/go-yaml
             - pgregory.net/rapid
     errcheck:
       check-blank: true
