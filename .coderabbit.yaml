@@ -1,0 +1,14 @@
+reviews:
+  path_filters:
+    - "go.sum"
+    - "!vendor/**"
+    - "!**/vendor/**"
+    - "!dist/**"
+    - "!**/dist/**"
+    - "!build/**"
+    - "!**/build/**"
+    - "!coverage/**"
+    - "!**/coverage/**"
+    - "!**/*.pb.go"
+    - "!**/*_generated.go"
+    - "!**/*.gen.go"
