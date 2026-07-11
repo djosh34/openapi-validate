@@ -3,6 +3,7 @@ package suite
 import (
 	"fmt"
 	"math/big"
+	"sort"
 
 	//nolint:depguard // Internal suite architecture intentionally depends on internal/jsonvalue.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
@@ -581,9 +582,16 @@ func (registry *DomainRegistry) intersectObjectProperties(
 	rightProperties := propertyConstraintsByName(right.Properties)
 	names := objectPropertyNames(leftProperties, rightProperties)
 
+	orderedNames := make([]string, 0, len(names))
+	for name := range names {
+		orderedNames = append(orderedNames, name)
+	}
+
+	sort.Strings(orderedNames)
+
 	var result []NamedProperty
 
-	for name := range names {
+	for _, name := range orderedNames {
 		leftValues := valuesForObjectName(name, leftProperties, left.Additional)
 		rightValues := valuesForObjectName(name, rightProperties, right.Additional)
 

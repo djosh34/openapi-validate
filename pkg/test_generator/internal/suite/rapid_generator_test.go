@@ -118,6 +118,45 @@ func TestNumberGeneratorIncludesExactFractionalValues(t *testing.T) {
 	require.True(t, fractional)
 }
 
+// TestAdditionalPropertyNamesNeverCollide verifies ordinal names skip every declared property once.
+func TestAdditionalPropertyNamesNeverCollide(t *testing.T) {
+	t.Parallel()
+
+	properties := []NamedProperty{{Name: "additional0"}, {Name: "additional2"}}
+	require.Equal(t, "additional1", additionalPropertyName(properties, 0))
+	require.Equal(t, "additional3", additionalPropertyName(properties, 1))
+	require.Equal(t, "additional4", additionalPropertyName(properties, 2))
+}
+
+// TestStringLanguageKeysAreUnambiguous verifies trusted example caches cannot cross language sets.
+func TestStringLanguageKeysAreUnambiguous(t *testing.T) {
+	t.Parallel()
+
+	one := stringLanguageKey(StringConstraints{Patterns: []string{"a\x00b"}})
+	two := stringLanguageKey(StringConstraints{Patterns: []string{"a", "b"}})
+	require.NotEqual(t, one, two)
+}
+
+// TestCompileSuiteRejectsEmptyRoot verifies the public checker cannot silently execute zero cases.
+func TestCompileSuiteRejectsEmptyRoot(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `type: string
+minLength: 2
+maxLength: 1`, "", "create"))
+	_, err := compiler.CompileSuite()
+	require.ErrorContains(t, err, "accepts no JSON value")
+}
+
+// TestCompileSuiteRejectsMissingExamplesForAnyReachableStringKind verifies mixed schemas do not omit a partition.
+func TestCompileSuiteRejectsMissingExamplesForAnyReachableStringKind(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `pattern: '^ok$'`, "", "create"))
+	_, err := compiler.CompileSuite()
+	require.ErrorContains(t, err, "no trusted valid example")
+}
+
 // TestCompileSuiteRequiresTrustedPatternAndFormatExamples verifies constrained strings need trusted examples.
 func TestCompileSuiteRequiresTrustedPatternAndFormatExamples(t *testing.T) {
 	t.Parallel()

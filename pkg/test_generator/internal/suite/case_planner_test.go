@@ -1,9 +1,12 @@
 package suite
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	//nolint:depguard // Internal suite tests intentionally inspect exact JSON values.
+	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 	"github.com/stretchr/testify/require"
 )
 
@@ -156,7 +159,9 @@ additionalProperties: false`, "", "create"))
 		found = true
 		domain := mustDomain(t, compiled.Domains, plannedCase.Values)
 		properties := propertiesByName(domain.Object.Properties)
+		root := mustDomain(t, compiled.Domains, compiled.Root)
 		require.True(t, properties["id"].Required)
+		require.Equal(t, propertiesByName(root.Object.Properties)["id"].Values, properties["id"].Values)
 		require.True(t, properties["additional"].Required)
 	}
 
@@ -237,6 +242,132 @@ items:
 
 	require.True(t, valid)
 	require.True(t, invalid)
+}
+
+// TestCasePlannerPreservesOriginalEnumForSiblingIsolation verifies enum filtering does not erase failures.
+func TestCasePlannerPreservesOriginalEnumForSiblingIsolation(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `type: integer
+minimum: 2
+enum: [1, 2]`, "", "create"))
+	compiled, err := compiler.CompileSuite()
+	require.NoError(t, err)
+
+	minimum := constraintPlanAt(t, compiled.Constraints, ConstraintSource{
+		Pointer: compiler.Source.RequestSchema.Pointer, Keyword: "minimum",
+	})
+	require.Equal(t, ObligationPlanned, minimum.Outcome)
+
+	foundOne := false
+
+	for _, plannedCase := range compiled.Cases {
+		if plannedCase.Expect != ExpectRejected || plannedCase.Source != minimum.Source {
+			continue
+		}
+
+		domain := mustDomain(t, compiled.Domains, plannedCase.Values)
+		for _, value := range domain.Enum.Values {
+			foundOne = foundOne || value.Kind == jsonvalue.KindNumber && value.Number.Lexeme == "1"
+		}
+	}
+
+	require.True(t, foundOne)
+}
+
+// TestCasePlannerBuildsObjectEnumOutsider verifies object-only enums receive an invalid partition.
+func TestCasePlannerBuildsObjectEnumOutsider(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `type: object
+enum: [{a: 1}]`, "", "create"))
+	compiled, err := compiler.CompileSuite()
+	require.NoError(t, err)
+
+	for _, plannedCase := range compiled.Cases {
+		if plannedCase.Expect != ExpectRejected || plannedCase.Source.Keyword != "enum" {
+			continue
+		}
+
+		domain := mustDomain(t, compiled.Domains, plannedCase.Values)
+		if domain.Enum != nil && len(domain.Enum.Values) == 1 && domain.Enum.Values[0].Kind == jsonvalue.KindObject {
+			return
+		}
+	}
+
+	require.Fail(t, "object enum outsider not found")
+}
+
+// TestCasePlannerKeepsItemRulesInParentFailures verifies parent count failures are isolated.
+func TestCasePlannerKeepsItemRulesInParentFailures(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `type: array
+maxItems: 1
+items: {type: string}`, "", "create"))
+	compiled, err := compiler.CompileSuite()
+	require.NoError(t, err)
+	root := mustDomain(t, compiled.Domains, compiled.Root)
+
+	for _, plannedCase := range compiled.Cases {
+		if plannedCase.Expect == ExpectRejected && plannedCase.Source.Keyword == "maxItems" {
+			partition := mustDomain(t, compiled.Domains, plannedCase.Values)
+			require.Equal(t, root.Array.Items, partition.Array.Items)
+
+			return
+		}
+	}
+
+	require.Fail(t, "maxItems failure not found")
+}
+
+// TestCasePlannerBuildsNarrowMultipleOfFailure verifies boundary-local witnesses.
+func TestCasePlannerBuildsNarrowMultipleOfFailure(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `type: number
+minimum: 100
+maximum: 101
+multipleOf: 0.5`, "", "create"))
+	compiled, err := compiler.CompileSuite()
+	require.NoError(t, err)
+	plan := constraintPlanAt(t, compiled.Constraints, ConstraintSource{
+		Pointer: compiler.Source.RequestSchema.Pointer, Keyword: "multipleOf",
+	})
+	require.Equal(t, ObligationPlanned, plan.Outcome)
+}
+
+// TestCasePlannerDoesNotOverflowMaximumFailureBounds verifies impossible larger collections stay unconstructible.
+func TestCasePlannerDoesNotOverflowMaximumFailureBounds(t *testing.T) {
+	t.Parallel()
+
+	maxInt := int(^uint(0) >> 1)
+	for _, schema := range []string{
+		fmt.Sprintf("type: string\nmaxLength: %d", maxInt),
+		fmt.Sprintf("type: array\nitems: {}\nmaxItems: %d", maxInt),
+		fmt.Sprintf("type: object\nmaxProperties: %d", maxInt),
+	} {
+		t.Run(schema, func(t *testing.T) {
+			t.Parallel()
+
+			compiler := NewCompiler(parseSchemaSource(t, schema, "", "create"))
+			root, err := compiler.Compile()
+			require.NoError(t, err)
+
+			planner := &CasePlanner{
+				Domains: compiler.Domains, LocalDomains: compiler.LocalDomainByPointer,
+				AtomicDomains: compiler.AtomicDomainBySource,
+			}
+			_, err = planner.Plan(root, compiler.SchemaUses)
+			require.NoError(t, err)
+
+			for _, constraint := range planner.Constraints {
+				if strings.HasPrefix(constraint.Source.Keyword, "max") {
+					require.Equal(t, ObligationUnconstructible, constraint.Outcome)
+				}
+			}
+		})
+	}
 }
 
 // caseNames joins the names of cases.

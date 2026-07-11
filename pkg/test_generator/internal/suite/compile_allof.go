@@ -112,11 +112,17 @@ func (compiler *Compiler) compileAllOfChild(
 		childExamples.Valid,
 	)
 
-	if len(schemaWideValid) > 0 {
-		mergedExamples.Valid = cloneJSONValues(schemaWideValid)
-	} else if needsStringExamples {
-		mergedExamples.Valid = compatibleExamples
-	}
+	mergedExamples.Valid = mergedValidExamples(
+		mergedExamples.Valid,
+		schemaWideValid,
+		enumNeedsStringExamples,
+		needsStringExamples,
+		compatibleExamples,
+		leftDomain,
+		rightDomain,
+		examples.Valid,
+		childExamples.Valid,
+	)
 
 	result, mergedDomain, err := compiler.intersectAllOfDomains(schema.Pointer, result, childID)
 	if err != nil {
@@ -144,6 +150,33 @@ func (compiler *Compiler) compileAllOfChild(
 	}
 
 	return result, childConstraints, mergedExamples, nil
+}
+
+// mergedValidExamples selects the trusted evidence applicable to a new conjunction.
+func mergedValidExamples(
+	merged []jsonvalue.Value,
+	schemaWide []jsonvalue.Value,
+	enumNeedsLanguage bool,
+	languagesChanged bool,
+	compatible []jsonvalue.Value,
+	left Domain,
+	right Domain,
+	leftExamples []jsonvalue.Value,
+	rightExamples []jsonvalue.Value,
+) []jsonvalue.Value {
+	if len(schemaWide) > 0 {
+		return cloneJSONValues(schemaWide)
+	}
+
+	if enumNeedsLanguage {
+		return enumLanguageExamples(left, right, leftExamples, rightExamples)
+	}
+
+	if languagesChanged {
+		return compatible
+	}
+
+	return merged
 }
 
 // intersectAllOfDomains intersects two Domains and returns the merged Domain.
@@ -233,6 +266,30 @@ func enumCrossesStringLanguage(left Domain, right Domain) bool {
 	rightLanguage := len(right.String.Patterns) > 0 || len(right.String.Formats) > 0
 
 	return left.Enum != nil && rightLanguage || right.Enum != nil && leftLanguage
+}
+
+// enumLanguageExamples returns examples supplied by the branch asserting the string language.
+func enumLanguageExamples(
+	left Domain,
+	right Domain,
+	leftExamples []jsonvalue.Value,
+	rightExamples []jsonvalue.Value,
+) []jsonvalue.Value {
+	var result []jsonvalue.Value
+
+	if left.Enum != nil && (len(right.String.Patterns) > 0 || len(right.String.Formats) > 0) {
+		result = cloneJSONValues(rightExamples)
+	}
+
+	if right.Enum != nil && (len(left.String.Patterns) > 0 || len(left.String.Formats) > 0) {
+		for _, example := range leftExamples {
+			if !jsonValuesContain(result, example) {
+				result = append(result, cloneJSONValue(example))
+			}
+		}
+	}
+
+	return result
 }
 
 // enumValuesBackedByExamples retains non-strings and trusted example-backed strings.

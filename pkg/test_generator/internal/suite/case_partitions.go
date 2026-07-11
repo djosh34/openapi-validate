@@ -680,7 +680,9 @@ func (planner *CasePlanner) childPartitions(
 		return nil, err
 	}
 
-	childPlanner := &CasePlanner{Domains: planner.Domains, LocalDomains: planner.LocalDomains}
+	childPlanner := &CasePlanner{
+		Domains: planner.Domains, LocalDomains: planner.LocalDomains, AtomicDomains: planner.AtomicDomains,
+	}
 
 	constraints, err := childPlanner.constraintPlans(use, uses)
 	if err != nil {

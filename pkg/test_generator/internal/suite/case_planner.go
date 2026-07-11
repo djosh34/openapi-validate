@@ -17,14 +17,17 @@ func (compiler *Compiler) CompileSuite() (*CompiledSuite, error) {
 		return nil, err
 	}
 
-	planner := &CasePlanner{Domains: compiler.Domains, LocalDomains: compiler.LocalDomainByPointer}
+	planner := &CasePlanner{
+		Domains: compiler.Domains, LocalDomains: compiler.LocalDomainByPointer,
+		AtomicDomains: compiler.AtomicDomainBySource,
+	}
 
 	cases, err := planner.Plan(root, compiler.SchemaUses)
 	if err != nil {
 		return nil, err
 	}
 
-	linked, err := compiler.linkCases(cases)
+	linked, err := compiler.linkCases(root, cases)
 	if err != nil {
 		return nil, err
 	}
@@ -45,13 +48,14 @@ func (compiler *Compiler) CompileSuite() (*CompiledSuite, error) {
 }
 
 // linkCases assigns a Rapid generator to each constructible CasePlan.
-func (compiler *Compiler) linkCases(cases []CasePlan) ([]CasePlan, error) {
+func (compiler *Compiler) linkCases(root DomainID, cases []CasePlan) ([]CasePlan, error) {
 	generators := NewRapidGeneratorBuilder(compiler.Domains, compiler.SchemaUses)
 	linked := make([]CasePlan, 0, len(cases))
 
 	for index := range cases {
 		generator, generatorErr := generators.Generator(cases[index].Values)
-		if errors.Is(generatorErr, errNoTrustedStringExample) {
+		if errors.Is(generatorErr, errNoTrustedStringExample) &&
+			(cases[index].Expect == ExpectRejected || cases[index].Values != root) {
 			continue
 		}
 
@@ -92,7 +96,19 @@ func (planner *CasePlanner) markUnconstructibleConstraints(cases []CasePlan) {
 // requireAcceptedCase rejects a productive root that has no linked accepted case.
 func (compiler *Compiler) requireAcceptedCase(root DomainID, cases []CasePlan) error {
 	rootDomain, ok := compiler.Domains.Domain(root)
-	if !ok || rootDomain.Status != DomainProductive {
+	if !ok {
+		return compiler.failure(
+			"generate", "malformed", compiler.Source.RequestSchema.Pointer, "", errors.New("root Domain does not exist"),
+		)
+	}
+
+	if rootDomain.Status == DomainEmpty {
+		return compiler.failure(
+			"generate", "empty", compiler.Source.RequestSchema.Pointer, "", errors.New("request schema accepts no JSON value"),
+		)
+	}
+
+	if rootDomain.Status != DomainProductive {
 		return nil
 	}
 
@@ -264,7 +280,7 @@ func schemaUseByPointer(uses []SchemaUse, pointer string) SchemaUse {
 // atomicConstraint constructs an applicability-correct atomic rule.
 // Passing Domains leave unrelated JSON kinds unrestricted; failing Domains contain only the failing kind.
 func (planner *CasePlanner) atomicConstraint(source ConstraintSource, use SchemaUse) (ConstraintPlan, bool, error) {
-	domain, ok := planner.Domains.Domain(use.Domain)
+	domain, ok := planner.atomicConstraintDomain(source, use.Domain)
 	if !ok {
 		return ConstraintPlan{}, false, nil
 	}
@@ -287,6 +303,15 @@ func (planner *CasePlanner) atomicConstraint(source ConstraintSource, use Schema
 	default:
 		return ConstraintPlan{}, false, nil
 	}
+}
+
+// atomicConstraintDomain returns the source-local Domain before whole-schema enum filtering.
+func (planner *CasePlanner) atomicConstraintDomain(source ConstraintSource, fallback DomainID) (Domain, bool) {
+	if atomic, ok := planner.AtomicDomains[source]; ok {
+		return planner.Domains.Domain(atomic)
+	}
+
+	return planner.Domains.Domain(fallback)
 }
 
 // atomicPrimitiveConstraint dispatches type, nullable, and enum rules.
@@ -515,10 +540,12 @@ func (planner *CasePlanner) atomicStringConstraint(
 			State:     KindRestricted,
 			MaxLength: new(*domain.String.MaxLength),
 		})
-		fails = []DomainID{planner.stringDomain(StringConstraints{
-			State:     KindRestricted,
-			MinLength: *domain.String.MaxLength + 1,
-		})}
+		if next, ok := incrementInt(*domain.String.MaxLength); ok {
+			fails = []DomainID{planner.stringDomain(StringConstraints{
+				State:     KindRestricted,
+				MinLength: next,
+			})}
+		}
 	default:
 		return ConstraintPlan{}, false, nil
 	}
@@ -568,13 +595,13 @@ func (planner *CasePlanner) atomicArrayConstraint(
 	case "minItems":
 		pass = arrayRuleDomain(ArrayConstraints{
 			State:    KindRestricted,
-			Items:    AnyJSONDomainID,
+			Items:    domain.Array.Items,
 			MinItems: domain.Array.MinItems,
 		})
 		if domain.Array.MinItems > 0 {
 			fails = []DomainID{planner.arrayDomain(ArrayConstraints{
 				State:    KindRestricted,
-				Items:    AnyJSONDomainID,
+				Items:    domain.Array.Items,
 				MaxItems: new(domain.Array.MinItems - 1),
 			})}
 		}
@@ -585,14 +612,16 @@ func (planner *CasePlanner) atomicArrayConstraint(
 
 		pass = arrayRuleDomain(ArrayConstraints{
 			State:    KindRestricted,
-			Items:    AnyJSONDomainID,
+			Items:    domain.Array.Items,
 			MaxItems: new(*domain.Array.MaxItems),
 		})
-		fails = []DomainID{planner.arrayDomain(ArrayConstraints{
-			State:    KindRestricted,
-			Items:    AnyJSONDomainID,
-			MinItems: *domain.Array.MaxItems + 1,
-		})}
+		if next, ok := incrementInt(*domain.Array.MaxItems); ok {
+			fails = []DomainID{planner.arrayDomain(ArrayConstraints{
+				State:    KindRestricted,
+				Items:    domain.Array.Items,
+				MinItems: next,
+			})}
+		}
 	default:
 		return ConstraintPlan{}, false, nil
 	}
@@ -611,33 +640,29 @@ func (planner *CasePlanner) atomicObjectConstraint(
 
 	switch source.Keyword {
 	case "minProperties":
-		pass = objectRuleDomain(ObjectConstraints{
-			State:      KindRestricted,
-			Additional: AdditionalProperties{Values: AnyJSONDomainID},
-			MinProps:   domain.Object.MinProps,
-		})
+		passing := objectValueRule(domain.Object)
+		passing.MinProps = domain.Object.MinProps
+		pass = objectRuleDomain(passing)
+
 		if domain.Object.MinProps > 0 {
-			fails = []DomainID{planner.objectDomain(ObjectConstraints{
-				State:      KindRestricted,
-				Additional: AdditionalProperties{Values: AnyJSONDomainID},
-				MaxProps:   new(domain.Object.MinProps - 1),
-			})}
+			failure := objectValueRule(domain.Object)
+			failure.MaxProps = new(domain.Object.MinProps - 1)
+			fails = []DomainID{planner.objectDomain(failure)}
 		}
 	case "maxProperties":
 		if domain.Object.MaxProps == nil {
 			return ConstraintPlan{}, false, nil
 		}
 
-		pass = objectRuleDomain(ObjectConstraints{
-			State:      KindRestricted,
-			Additional: AdditionalProperties{Values: AnyJSONDomainID},
-			MaxProps:   new(*domain.Object.MaxProps),
-		})
-		fails = []DomainID{planner.objectDomain(ObjectConstraints{
-			State:      KindRestricted,
-			Additional: AdditionalProperties{Values: AnyJSONDomainID},
-			MinProps:   *domain.Object.MaxProps + 1,
-		})}
+		passing := objectValueRule(domain.Object)
+		passing.MaxProps = new(*domain.Object.MaxProps)
+		pass = objectRuleDomain(passing)
+
+		if next, ok := incrementInt(*domain.Object.MaxProps); ok {
+			failure := objectValueRule(domain.Object)
+			failure.MinProps = next
+			fails = []DomainID{planner.objectDomain(failure)}
+		}
 	case "required":
 		return planner.atomicRequiredConstraint(source, domain)
 	case "additionalProperties":
@@ -793,9 +818,7 @@ func additionalPropertyRule(source ObjectConstraints) ObjectConstraints {
 			properties = append(properties, property)
 		} else {
 			properties = append(properties, NamedProperty{
-				Name:   property.Name,
-				State:  PropertyAllowed,
-				Values: AnyJSONDomainID,
+				Name: property.Name, State: PropertyAllowed, Values: property.Values,
 			})
 		}
 	}
@@ -809,16 +832,19 @@ func additionalPropertyRule(source ObjectConstraints) ObjectConstraints {
 
 // requiredRule retains only required properties with unconstrained allowed values.
 func requiredRule(source ObjectConstraints) ObjectConstraints {
-	properties := make([]NamedProperty, 0, len(source.Properties))
-	for _, property := range source.Properties {
-		if property.Required {
-			properties = append(properties, NamedProperty{
-				Name:     property.Name,
-				Required: true,
-				State:    PropertyAllowed,
-				Values:   AnyJSONDomainID,
-			})
-		}
+	result := objectValueRule(source)
+	for index := range result.Properties {
+		result.Properties[index].Required = source.Properties[index].Required
+	}
+
+	return result
+}
+
+// objectValueRule retains child value rules while leaving presence and count unconstrained.
+func objectValueRule(source ObjectConstraints) ObjectConstraints {
+	properties := cloneDomain(Domain{Object: source}).Object.Properties
+	for index := range properties {
+		properties[index].Required = false
 	}
 
 	return ObjectConstraints{
@@ -826,6 +852,15 @@ func requiredRule(source ObjectConstraints) ObjectConstraints {
 		Properties: properties,
 		Additional: AdditionalProperties{Values: AnyJSONDomainID},
 	}
+}
+
+// incrementInt returns value+1 without wrapping.
+func incrementInt(value int) (int, bool) {
+	if value == int(^uint(0)>>1) {
+		return 0, false
+	}
+
+	return value + 1, true
 }
 
 // addIsolatedFailures uses cached prefix/suffix intersections so every candidate passes sibling rules.
@@ -907,8 +942,13 @@ func (planner *CasePlanner) addConstraintFailures(result *caseSet, constraint *C
 	}
 
 	if len(failures) > 0 {
-		constraint.Outcome = ObligationDominated
-		constraint.Reason = "failing partition is empty while all sibling constraints pass"
+		if constraint.Source.Keyword == "pattern" || constraint.Source.Keyword == "format" {
+			constraint.Outcome = ObligationUnconstructible
+			constraint.Reason = "trusted failing examples do not isolate this constraint"
+		} else {
+			constraint.Outcome = ObligationDominated
+			constraint.Reason = "failing partition is empty while all sibling constraints pass"
+		}
 
 		return nil
 	}

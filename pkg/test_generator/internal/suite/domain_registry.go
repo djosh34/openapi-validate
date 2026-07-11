@@ -255,6 +255,19 @@ func normalizeEnum(enum *EnumSet) {
 
 		return bytes.Compare(leftJSON, rightJSON) < 0
 	})
+
+	if len(enum.Values) < minimumDistinctStrings {
+		return
+	}
+
+	values := enum.Values[:1]
+	for _, value := range enum.Values[1:] {
+		if !value.Equal(values[len(values)-1]) {
+			values = append(values, value)
+		}
+	}
+
+	enum.Values = values
 }
 
 // compactStrings removes adjacent duplicate strings from a sorted slice.

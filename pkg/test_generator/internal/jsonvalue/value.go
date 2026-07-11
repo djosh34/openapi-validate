@@ -88,17 +88,53 @@ func String(value string) Value {
 
 // Array returns a JSON array and copies values.
 func Array(values []Value) Value {
-	return Value{Kind: KindArray, Array: append([]Value(nil), values...)}
+	copied := make([]Value, len(values))
+	for index, value := range values {
+		copied[index] = cloneValue(value)
+	}
+
+	return Value{Kind: KindArray, Array: copied}
 }
 
 // Object returns a JSON object after rejecting duplicate member names.
 func Object(members []Member) (Value, error) {
-	copied := append([]Member(nil), members...)
-	if err := validateMembers(copied); err != nil {
+	if err := validateMembers(members); err != nil {
 		return Value{}, err
 	}
 
+	copied := make([]Member, len(members))
+	for index, member := range members {
+		copied[index] = Member{Name: member.Name, Value: cloneValue(member.Value)}
+	}
+
 	return Value{Kind: KindObject, Object: copied}, nil
+}
+
+// cloneValue returns a deep copy of value.
+func cloneValue(value Value) Value {
+	if value.Number.Rational != nil {
+		value.Number.Rational = new(big.Rat).Set(value.Number.Rational)
+	}
+
+	if value.Array != nil {
+		array := make([]Value, len(value.Array))
+		for index, child := range value.Array {
+			array[index] = cloneValue(child)
+		}
+
+		value.Array = array
+	}
+
+	if value.Object != nil {
+		object := make([]Member, len(value.Object))
+		for index, member := range value.Object {
+			object[index] = Member{Name: member.Name, Value: cloneValue(member.Value)}
+		}
+
+		value.Object = object
+	}
+
+	return value
 }
 
 // ParseNumber parses and canonicalizes one exact JSON number lexeme.

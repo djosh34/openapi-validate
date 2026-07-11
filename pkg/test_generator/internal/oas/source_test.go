@@ -213,6 +213,51 @@ paths:
 	}
 }
 
+// TestParseSelectsApplicationJSONMediaRangesBySpecificity verifies request content matching.
+func TestParseSelectsApplicationJSONMediaRangesBySpecificity(t *testing.T) {
+	t.Parallel()
+
+	for name, content := range map[string]string{
+		"application wildcard": "application/*: {schema: {type: string}}",
+		"global wildcard":      "'*/*': {schema: {type: boolean}}",
+		"exact wins":           "'*/*': {schema: {type: boolean}}\n          application/json: {schema: {type: string}}",
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			source, err := Parse([]byte(`openapi: 3.0.3
+paths:
+  /things:
+    post:
+      operationId: create
+      requestBody:
+        content:
+          `+content), "create")
+			require.NoError(t, err)
+
+			if name == "exact wins" {
+				require.JSONEq(t, `{"type":"string"}`, string(source.RequestSchema.Raw))
+			}
+		})
+	}
+}
+
+// TestParseRejectsNullRequestBodyRequired verifies null is not decoded as false.
+func TestParseRejectsNullRequestBodyRequired(t *testing.T) {
+	t.Parallel()
+
+	_, err := Parse([]byte(`openapi: 3.0.3
+paths:
+  /things:
+    post:
+      operationId: create
+      requestBody:
+        required: null
+        content:
+          application/json: {schema: {type: string}}`), "create")
+	require.ErrorContains(t, err, "required must be a boolean")
+}
+
 // TestResolveReportsExternalAndCyclicReferences verifies clear reference failures.
 func TestResolveReportsExternalAndCyclicReferences(t *testing.T) {
 	t.Parallel()

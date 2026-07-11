@@ -119,6 +119,26 @@ func TestParseRejectsAmbiguousOrInvalidJSON(t *testing.T) {
 	}
 }
 
+// TestConstructorsDeepCopyNestedValues verifies callers cannot mutate constructed values through aliases.
+func TestConstructorsDeepCopyNestedValues(t *testing.T) {
+	t.Parallel()
+
+	nested := []Value{String("before")}
+	array := Array([]Value{Array(nested)})
+	object, err := Object([]Member{{Name: "nested", Value: Array(nested)}})
+	require.NoError(t, err)
+
+	nested[0] = String("after")
+
+	arrayJSON, err := array.MarshalJSON()
+	require.NoError(t, err)
+	require.JSONEq(t, `[["before"]]`, string(arrayJSON))
+
+	objectJSON, err := object.MarshalJSON()
+	require.NoError(t, err)
+	require.JSONEq(t, `{"nested":["before"]}`, string(objectJSON))
+}
+
 // TestConstructedValuesEncodeDeterministically verifies constructors copy and sort their input.
 func TestConstructedValuesEncodeDeterministically(t *testing.T) {
 	t.Parallel()

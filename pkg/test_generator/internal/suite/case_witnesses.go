@@ -88,23 +88,87 @@ func (planner *CasePlanner) numberContextFailures(
 		return nil, err
 	}
 
+	if multipleFailure {
+		additional, candidateErr := multipleFailureCandidates(constraints, multipleOf)
+		if candidateErr != nil {
+			return nil, candidateErr
+		}
+
+		candidates = append(candidates, additional...)
+	}
+
+	selected, err := selectNumberFailures(candidates, integerFailure, multipleFailure, multipleOf)
+	if err != nil {
+		return nil, err
+	}
+
+	return planner.finiteNumberFailures(selected), nil
+}
+
+// selectNumberFailures retains candidates that violate the selected numeric rule.
+func selectNumberFailures(
+	candidates []jsonvalue.Number,
+	integerFailure bool,
+	multipleFailure bool,
+	multipleOf *jsonvalue.Number,
+) ([]jsonvalue.Number, error) {
 	selected := make([]jsonvalue.Number, 0, len(candidates))
 	for _, candidate := range candidates {
 		if integerFailure && candidate.Rational != nil && !candidate.Rational.IsInt() {
 			selected = append(selected, candidate)
-		} else if multipleFailure {
-			fits, fitErr := fitsMultipleOf(candidate, multipleOf)
-			if fitErr != nil {
-				return nil, fitErr
-			}
 
-			if !fits {
-				selected = append(selected, candidate)
-			}
+			continue
+		}
+
+		if !multipleFailure {
+			continue
+		}
+
+		fits, err := fitsMultipleOf(candidate, multipleOf)
+		if err != nil {
+			return nil, err
+		}
+
+		if !fits {
+			selected = append(selected, candidate)
 		}
 	}
 
-	return planner.finiteNumberFailures(selected), nil
+	return selected, nil
+}
+
+// multipleFailureCandidates returns half-step values adjacent to available bounds.
+func multipleFailureCandidates(
+	constraints NumberConstraints,
+	multipleOf *jsonvalue.Number,
+) ([]jsonvalue.Number, error) {
+	if multipleOf == nil || multipleOf.Rational == nil {
+		return nil, nil
+	}
+
+	halfStep := new(big.Rat).Quo(multipleOf.Rational, big.NewRat(halfDenominator, 1))
+
+	var rationals []*big.Rat
+
+	if constraints.Minimum != nil && constraints.Minimum.Value.Rational != nil {
+		rationals = append(rationals, new(big.Rat).Add(constraints.Minimum.Value.Rational, halfStep))
+	}
+
+	if constraints.Maximum != nil && constraints.Maximum.Value.Rational != nil {
+		rationals = append(rationals, new(big.Rat).Sub(constraints.Maximum.Value.Rational, halfStep))
+	}
+
+	result := make([]jsonvalue.Number, 0, len(rationals))
+	for _, rational := range rationals {
+		candidate, err := exactJSONNumberFromRat(rational)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, *candidate)
+	}
+
+	return result, nil
 }
 
 // halfDenominator is the denominator for half-step witness values.
@@ -174,6 +238,7 @@ func outsiderCandidates(enum *EnumSet) []jsonvalue.Value {
 		jsonvalue.String(""),
 		jsonvalue.String("outsider"),
 		jsonvalue.Array(nil),
+		{Kind: jsonvalue.KindObject, Object: []jsonvalue.Member{}},
 	}
 
 	for _, number := range basicNumbers() {

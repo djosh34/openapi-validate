@@ -6,7 +6,6 @@ import (
 	"math"
 	"math/big"
 	"strconv"
-	"strings"
 	"unicode/utf8"
 
 	//nolint:depguard // Internal suite generation intentionally uses exact internal JSON values.
@@ -142,12 +141,12 @@ func (builder *RapidGeneratorBuilder) domainGenerator(domain Domain) (*rapid.Gen
 		generators, firstErr = appendConstructiveGenerator(generators, firstErr, generator, err)
 	}
 
-	if len(generators) > 0 {
-		return rapid.OneOf(generators...), nil
-	}
-
 	if firstErr != nil {
 		return nil, firstErr
+	}
+
+	if len(generators) > 0 {
+		return rapid.OneOf(generators...), nil
 	}
 
 	return nil, errors.New("productive Domain has no reachable JSON kind")
@@ -481,9 +480,9 @@ func (builder *RapidGeneratorBuilder) trustedStringGenerator(
 
 // generatedCollectionMaximum caps an unbounded collection range above minimum.
 func generatedCollectionMaximum(minimum int, configuredMaximum *int) int {
-	maximum := minimum + generatedCollectionSlack
-	if maximum < minimum {
-		maximum = minimum
+	maximum := minimum
+	if minimum <= math.MaxInt-generatedCollectionSlack {
+		maximum += generatedCollectionSlack
 	}
 
 	if configuredMaximum != nil && maximum > *configuredMaximum {
@@ -495,7 +494,15 @@ func generatedCollectionMaximum(minimum int, configuredMaximum *int) int {
 
 // stringLanguageKey identifies a shared set of pattern and format constraints.
 func stringLanguageKey(constraints StringConstraints) string {
-	return strings.Join(constraints.Patterns, "\x00") + "\x01" + strings.Join(constraints.Formats, "\x00")
+	key := ""
+	for _, values := range [][]string{constraints.Patterns, constraints.Formats} {
+		key += strconv.Itoa(len(values)) + ":"
+		for _, value := range values {
+			key += strconv.Itoa(len(value)) + ":" + value
+		}
+	}
+
+	return key
 }
 
 // arrayGenerator builds arrays from the generator for their item Domain.
@@ -504,7 +511,7 @@ func (builder *RapidGeneratorBuilder) arrayGenerator(
 ) (*rapid.Generator[jsonvalue.Value], error) {
 	items, err := builder.Generator(constraints.Items)
 	if err != nil {
-		if constraints.MinItems == 0 {
+		if constraints.MinItems == 0 && constraints.MaxItems != nil && *constraints.MaxItems == 0 {
 			return rapid.Just(jsonvalue.Array(nil)), nil
 		}
 
@@ -583,7 +590,7 @@ func objectPropertyCountRange(
 ) (int, int, error) {
 	minimum := max(constraints.MinProps, requiredCount)
 
-	maximum := minimum + generatedCollectionSlack
+	maximum := generatedCollectionMaximum(minimum, nil)
 	if additionalAllowed {
 		maximum = max(maximum, requiredCount+optionalCount)
 	} else {
@@ -677,12 +684,16 @@ func additionalPropertyName(properties []NamedProperty, index int) string {
 		names[property.Name] = struct{}{}
 	}
 
-	for {
-		name := fmt.Sprintf("additional%d", index)
-		if _, exists := names[name]; !exists {
+	for candidate := 0; ; candidate++ {
+		name := fmt.Sprintf("additional%d", candidate)
+		if _, exists := names[name]; exists {
+			continue
+		}
+
+		if index == 0 {
 			return name
 		}
 
-		index++
+		index--
 	}
 }

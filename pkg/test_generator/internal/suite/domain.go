@@ -171,9 +171,10 @@ type CasePlan struct {
 
 // CasePlanner builds canonical semantic partitions from a compiled Domain graph.
 type CasePlanner struct {
-	Domains      *DomainRegistry
-	LocalDomains map[string]DomainID
-	Constraints  []ConstraintPlan
+	Domains       *DomainRegistry
+	LocalDomains  map[string]DomainID
+	AtomicDomains map[ConstraintSource]DomainID
+	Constraints   []ConstraintPlan
 }
 
 // CompiledSuite is a planned suite with one constructive generator per CasePlan.

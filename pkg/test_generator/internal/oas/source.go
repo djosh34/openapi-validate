@@ -182,21 +182,26 @@ func (source Source) selectRequest(paths json.RawMessage, operationID string) (S
 	}
 
 	var body struct {
-		Required bool                       `json:"required"`
+		Required json.RawMessage            `json:"required"`
 		Content  map[string]json.RawMessage `json:"content"`
 	}
 	if unmarshalErr := json.Unmarshal(requestBody.Raw, &body); unmarshalErr != nil {
 		return Source{}, fmt.Errorf("parse operationId %q request body: %w", operationID, unmarshalErr)
 	}
 
-	mediaTypeRaw, ok := body.Content["application/json"]
+	required, err := optionalBoolean(body.Required, "required")
+	if err != nil {
+		return Source{}, fmt.Errorf("parse operationId %q request body: %w", operationID, err)
+	}
+
+	mediaTypeName, mediaTypeRaw, ok := applicationJSONMediaType(body.Content)
 	if !ok {
 		return Source{}, fmt.Errorf("operationId %q request body has no application/json content", operationID)
 	}
 
 	mediaType := LocatedSchema{
 		Raw:     append(json.RawMessage(nil), mediaTypeRaw...),
-		Pointer: appendPointer(requestBody.Pointer, "content", "application/json"),
+		Pointer: appendPointer(requestBody.Pointer, "content", mediaTypeName),
 	}
 
 	schema, err := source.requiredChild(mediaType, "schema")
@@ -205,9 +210,38 @@ func (source Source) selectRequest(paths json.RawMessage, operationID string) (S
 	}
 
 	source.RequestSchema = schema
-	source.RequestBodyRequired = body.Required
+	source.RequestBodyRequired = required
 
 	return source, nil
+}
+
+// optionalBoolean decodes an absent-or-boolean field without accepting null.
+func optionalBoolean(raw json.RawMessage, name string) (bool, error) {
+	if raw == nil {
+		return false, nil
+	}
+
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return false, fmt.Errorf("%s must be a boolean", name)
+	}
+
+	var value bool
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return false, fmt.Errorf("%s must be a boolean: %w", name, err)
+	}
+
+	return value, nil
+}
+
+// applicationJSONMediaType selects the most specific content entry matching application/json.
+func applicationJSONMediaType(content map[string]json.RawMessage) (string, json.RawMessage, bool) {
+	for _, name := range []string{"application/json", "application/*", "*/*"} {
+		if raw, ok := content[name]; ok {
+			return name, raw, true
+		}
+	}
+
+	return "", nil, false
 }
 
 // findOperation finds exactly one operation with operationID.

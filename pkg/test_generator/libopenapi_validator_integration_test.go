@@ -119,6 +119,9 @@ components:
 			name: "allOf object intersection",
 			schema: `
       type: object
+      properties:
+        id: {type: integer, minimum: 1}
+        score: {type: number, minimum: 0, maximum: 10}
       additionalProperties: false
       allOf:
         - type: object
@@ -226,7 +229,7 @@ components:
       maxProperties: 3
       properties:
         'a/b': {type: string, minLength: 0, maxLength: 0}
-        't~n': {type: array, minItems: 0, maxItems: 0}
+        't~n': {type: array, minItems: 0, maxItems: 0, items: {}}
         empty: {type: object, minProperties: 0, maxProperties: 0, additionalProperties: false}
       additionalProperties: false
 `,

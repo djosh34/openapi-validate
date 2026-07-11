@@ -24,6 +24,7 @@ type Compiler struct {
 	Domains              *DomainRegistry
 	DomainByPointer      map[string]DomainID
 	LocalDomainByPointer map[string]DomainID
+	AtomicDomainBySource map[ConstraintSource]DomainID
 	SchemaUses           []SchemaUse
 }
 
@@ -34,6 +35,7 @@ func NewCompiler(source oas.Source) *Compiler {
 		Domains:              NewDomainRegistry(),
 		DomainByPointer:      make(map[string]DomainID),
 		LocalDomainByPointer: make(map[string]DomainID),
+		AtomicDomainBySource: make(map[ConstraintSource]DomainID),
 		SchemaUses:           make([]SchemaUse, 0),
 	}
 }
@@ -166,6 +168,10 @@ func (compiler *Compiler) compileSchemaDomain(
 	domain := anyJSONDomain()
 	constraints := make([]ConstraintSource, 0, len(members))
 
+	if validationErr := compiler.validateFormat(schema.Pointer, members); validationErr != nil {
+		return Domain{}, nil, GenerationExamples{}, validationErr
+	}
+
 	hasType, err := applyTypeAndNullable(&domain, members)
 	if err != nil {
 		return Domain{}, nil, GenerationExamples{}, compiler.failure("compile", "malformed", schema.Pointer, "type", err)
@@ -175,12 +181,8 @@ func (compiler *Compiler) compileSchemaDomain(
 		constraints = append(constraints, ConstraintSource{Pointer: schema.Pointer, Keyword: "type"})
 	}
 
-	if err := compiler.compileNumber(&domain, members); err != nil {
-		return Domain{}, nil, GenerationExamples{}, compiler.failure("compile", "malformed", schema.Pointer, "number", err)
-	}
-
-	if err := compileString(&domain, members); err != nil {
-		return Domain{}, nil, GenerationExamples{}, compiler.failure("compile", "malformed", schema.Pointer, "string", err)
+	if err := compiler.compileScalarConstraints(&domain, schema.Pointer, members); err != nil {
+		return Domain{}, nil, GenerationExamples{}, err
 	}
 
 	if err := compiler.compileArray(&domain, schema, members, active); err != nil {
@@ -203,6 +205,37 @@ func (compiler *Compiler) compileSchemaDomain(
 	return domain, constraints, examples, nil
 }
 
+// compileScalarConstraints applies number and string keyword families.
+func (compiler *Compiler) compileScalarConstraints(
+	domain *Domain,
+	pointer string,
+	members map[string]json.RawMessage,
+) error {
+	if err := compiler.compileNumber(domain, members); err != nil {
+		return compiler.failure("compile", "malformed", pointer, "number", err)
+	}
+
+	if err := compileString(domain, members); err != nil {
+		return compiler.failure("compile", "malformed", pointer, "string", err)
+	}
+
+	return nil
+}
+
+// validateFormat validates format even when it is inapplicable to every reachable kind.
+func (compiler *Compiler) validateFormat(pointer string, members map[string]json.RawMessage) error {
+	raw, ok := members["format"]
+	if !ok {
+		return nil
+	}
+
+	if _, err := parseString(raw, "format"); err != nil {
+		return compiler.failure("compile", "malformed", pointer, "format", err)
+	}
+
+	return nil
+}
+
 // applyEnum replaces a Domain with the compatible finite enum values when enum is present.
 func (compiler *Compiler) applyEnum(
 	domain *Domain,
@@ -214,6 +247,34 @@ func (compiler *Compiler) applyEnum(
 	if !ok {
 		return nil
 	}
+
+	enumMembers, err := decodeEnumMembers(raw)
+	if err != nil {
+		return compiler.failure("compile", "malformed", pointer, "enum", err)
+	}
+
+	atomicValues := make([]jsonvalue.Value, 0, len(enumMembers))
+	for _, member := range enumMembers {
+		value, parseErr := jsonvalue.Parse(member)
+		if parseErr != nil {
+			return compiler.failure("compile", "malformed", pointer, "enum", parseErr)
+		}
+
+		if !jsonValuesContain(atomicValues, value) {
+			atomicValues = append(atomicValues, value)
+		}
+	}
+
+	preEnum := compiler.Domains.FindOrAddEquivalentDomain(*domain)
+
+	for _, source := range constraintSources(pointer, members) {
+		if source.Keyword != "enum" {
+			compiler.AtomicDomainBySource[source] = preEnum
+		}
+	}
+
+	compiler.AtomicDomainBySource[ConstraintSource{Pointer: pointer, Keyword: "enum"}] =
+		compiler.Domains.FindOrAddEquivalentDomain(finiteDomain(atomicValues))
 
 	values, err := compiler.compileEnum(raw, *domain, examples.Valid)
 	if err != nil {
@@ -247,6 +308,10 @@ func schemaMembers(schema oas.LocatedSchema) (map[string]json.RawMessage, error)
 
 // validateSchemaKeywords rejects unknown non-extension Schema Object keywords.
 func validateSchemaKeywords(members map[string]json.RawMessage) error {
+	if err := validateReadWriteOnly(members); err != nil {
+		return err
+	}
+
 	if raw, ok := members["uniqueItems"]; ok {
 		if isJSONNull(raw) {
 			return errors.New("uniqueItems must be a boolean")
@@ -274,6 +339,25 @@ func validateSchemaKeywords(members map[string]json.RawMessage) error {
 		}
 
 		return fmt.Errorf("unknown Schema Object keyword %q", keyword)
+	}
+
+	return nil
+}
+
+// validateReadWriteOnly validates the request/response property annotations.
+func validateReadWriteOnly(members map[string]json.RawMessage) error {
+	readOnly, _, err := parseOptionalBool(members, "readOnly")
+	if err != nil {
+		return err
+	}
+
+	writeOnly, _, err := parseOptionalBool(members, "writeOnly")
+	if err != nil {
+		return err
+	}
+
+	if readOnly && writeOnly {
+		return errors.New("readOnly and writeOnly must not both be true")
 	}
 
 	return nil
@@ -670,6 +754,17 @@ func (compiler *Compiler) compileArray(
 	members map[string]json.RawMessage,
 	active map[string]struct{},
 ) error {
+	if rawType, ok := members["type"]; ok {
+		var schemaType string
+		if err := json.Unmarshal(rawType, &schemaType); err == nil && schemaType == "array" {
+			if _, hasItems := members["items"]; !hasItems {
+				return compiler.failure(
+					"compile", "malformed", schema.Pointer, "items", errors.New("items must be present when type is array"),
+				)
+			}
+		}
+	}
+
 	array := &domain.Array
 	if err := compileArrayBounds(array, schema.Pointer, members, compiler); err != nil {
 		return err
@@ -868,9 +963,18 @@ func (compiler *Compiler) compileObjectProperties(
 		return err
 	}
 
+	readOnly, err := compiler.readOnlyProperties(schema, members)
+	if err != nil {
+		return err
+	}
+
 	required, err := parseRequired(members["required"])
 	if err != nil {
 		return compiler.failure("compile", "malformed", schema.Pointer, "required", err)
+	}
+
+	for name := range readOnly {
+		delete(required, name)
 	}
 
 	applyRequiredProperties(properties, required)
@@ -881,6 +985,49 @@ func (compiler *Compiler) compileObjectProperties(
 	}
 
 	return nil
+}
+
+// readOnlyProperties returns declared properties whose resolved Schema Object is read-only.
+func (compiler *Compiler) readOnlyProperties(
+	schema oas.LocatedSchema,
+	members map[string]json.RawMessage,
+) (map[string]struct{}, error) {
+	result := make(map[string]struct{})
+
+	var properties map[string]json.RawMessage
+	if raw, ok := members["properties"]; !ok {
+		return result, nil
+	} else if err := json.Unmarshal(raw, &properties); err != nil {
+		return nil, compiler.failure("compile", "malformed", schema.Pointer, "properties", err)
+	}
+
+	for name := range properties {
+		child, err := compiler.Source.Child(schema, "properties", name)
+		if err != nil {
+			return nil, compiler.failure("compile", "malformed", schema.Pointer, "properties", err)
+		}
+
+		resolved, err := compiler.Source.Resolve(child)
+		if err != nil {
+			return nil, compiler.failure("compile", "unsupported", child.Pointer, "$ref", err)
+		}
+
+		childMembers, err := schemaMembers(resolved)
+		if err != nil {
+			return nil, compiler.failure("compile", "malformed", resolved.Pointer, "", err)
+		}
+
+		readOnly, _, err := parseOptionalBool(childMembers, "readOnly")
+		if err != nil {
+			return nil, compiler.failure("compile", "malformed", resolved.Pointer, "readOnly", err)
+		}
+
+		if readOnly {
+			result[name] = struct{}{}
+		}
+	}
+
+	return result, nil
 }
 
 // applyRequiredProperties marks declared and implicit required properties.
@@ -1101,10 +1248,18 @@ var errUnconstructible = errors.New("unconstructible")
 // compileGenerationExamples parses trusted valid and invalid generation examples.
 func compileGenerationExamples(members map[string]json.RawMessage) (GenerationExamples, error) {
 	var examples GenerationExamples
-	for keyword, target := range map[string]*[]jsonvalue.Value{
-		"x-valid-examples":   &examples.Valid,
-		"x-invalid-examples": &examples.Invalid,
-	} {
+
+	entries := []struct {
+		keyword string
+		target  *[]jsonvalue.Value
+	}{
+		{keyword: "x-valid-examples", target: &examples.Valid},
+		{keyword: "x-invalid-examples", target: &examples.Invalid},
+	}
+
+	for _, entry := range entries {
+		keyword, target := entry.keyword, entry.target
+
 		raw, ok := members[keyword]
 		if !ok {
 			continue

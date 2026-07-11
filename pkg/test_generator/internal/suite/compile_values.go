@@ -80,6 +80,15 @@ func (compiler *Compiler) enumValueCompatibility(
 	domain Domain,
 	validExamples []jsonvalue.Value,
 ) (bool, bool, error) {
+	modeled := cloneDomain(domain)
+	modeled.String.Patterns = nil
+	modeled.String.Formats = nil
+
+	matches, err := compiler.valueFitsDomain(value, modeled)
+	if err != nil || !matches {
+		return matches, false, err
+	}
+
 	if value.Kind == jsonvalue.KindString &&
 		(len(domain.String.Patterns) > 0 || len(domain.String.Formats) > 0) {
 		if jsonValuesContain(validExamples, value) {
@@ -89,9 +98,7 @@ func (compiler *Compiler) enumValueCompatibility(
 		return false, true, nil
 	}
 
-	matches, err := compiler.valueFitsDomain(value, domain)
-
-	return matches, false, err
+	return true, false, nil
 }
 
 // finiteDomain returns a Domain containing exactly the supplied enum values.

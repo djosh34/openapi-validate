@@ -328,7 +328,7 @@ type: object
 properties:
   plain: {}
   stringNoOp: {minLength: 0}
-  arrayPlain: {type: array}
+  arrayPlain: {type: array, items: {}}
   arrayNoOp: {type: array, minItems: 0, items: {}}
   objectPlain: {type: object}
   objectNoOp: {type: object, minProperties: 0, additionalProperties: true}
@@ -378,6 +378,91 @@ func TestDomainRegistryVerifiesHashCollisions(t *testing.T) {
 	second := registry.FindOrAddEquivalentDomain(secondCandidate)
 	require.NotEqual(t, first, second)
 	require.Equal(t, second, registry.FindOrAddEquivalentDomain(secondCandidate))
+}
+
+// TestCompilerAppliesModeledConstraintsBeforeTrustingStringEnumExamples verifies examples only prove languages.
+func TestCompilerAppliesModeledConstraintsBeforeTrustingStringEnumExamples(t *testing.T) {
+	t.Parallel()
+
+	compiler, id := compileSchemaYAML(t, `type: integer
+pattern: '^x$'
+x-valid-examples: [x]
+enum: [1, x]`, "")
+	domain := mustDomain(t, compiler.Domains, id)
+	require.Len(t, domain.Enum.Values, 1)
+	require.Equal(t, jsonvalue.KindNumber, domain.Enum.Values[0].Kind)
+
+	_, empty := compileSchemaYAML(t, `type: string
+minLength: 3
+pattern: '^x$'
+x-valid-examples: [x]
+enum: [x]`, "")
+	require.Equal(t, EmptyDomainID, empty)
+}
+
+// TestCompilerDoesNotUseEnumBranchExamplesAsPatternProof verifies allOf branch-local trust.
+func TestCompilerDoesNotUseEnumBranchExamplesAsPatternProof(t *testing.T) {
+	t.Parallel()
+
+	source := parseSchemaSource(t, `allOf:
+  - enum: [bad]
+    x-valid-examples: [bad]
+  - pattern: '^ok$'`, "", "create")
+	_, err := NewCompiler(source).Compile()
+	require.ErrorContains(t, err, "unconstructible")
+}
+
+// TestCompilerValidatesAdjustedOpenAPIFields verifies malformed and required adjusted fields.
+func TestCompilerValidatesAdjustedOpenAPIFields(t *testing.T) {
+	t.Parallel()
+
+	for _, schema := range []string{
+		"type: array",
+		"type: boolean\nformat: 7",
+		"readOnly: yes",
+		"readOnly: true\nwriteOnly: true",
+	} {
+		t.Run(schema, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := NewCompiler(parseSchemaSource(t, schema, "", "create")).Compile()
+			require.Error(t, err)
+
+			var compileError *Error
+			require.ErrorAs(t, err, &compileError)
+			require.Equal(t, "malformed", compileError.Code)
+		})
+	}
+}
+
+// TestCompilerAppliesReadOnlyRequirednessForRequests verifies required read-only properties remain optional.
+func TestCompilerAppliesReadOnlyRequirednessForRequests(t *testing.T) {
+	t.Parallel()
+
+	compiler, id := compileSchemaYAML(t, `type: object
+required: [id, name]
+properties:
+  id: {type: string, readOnly: true}
+  name: {type: string}`, "")
+	domain := mustDomain(t, compiler.Domains, id)
+	properties := propertiesByName(domain.Object.Properties)
+	require.False(t, properties["id"].Required)
+	require.True(t, properties["name"].Required)
+}
+
+// TestDomainRegistryDeduplicatesSemanticEnumMembers verifies finite-set identity ignores duplicates.
+func TestDomainRegistryDeduplicatesSemanticEnumMembers(t *testing.T) {
+	t.Parallel()
+
+	one, err := jsonvalue.Parse([]byte("1"))
+	require.NoError(t, err)
+	oneDecimal, err := jsonvalue.Parse([]byte("1.0"))
+	require.NoError(t, err)
+
+	registry := NewDomainRegistry()
+	first := registry.FindOrAddEquivalentDomain(finiteDomain([]jsonvalue.Value{one}))
+	second := registry.FindOrAddEquivalentDomain(finiteDomain([]jsonvalue.Value{one, oneDecimal}))
+	require.Equal(t, first, second)
 }
 
 // compileSchemaYAML compiles a request schema and optional OpenAPI components.
