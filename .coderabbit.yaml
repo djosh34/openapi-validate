@@ -1,5 +1,6 @@
 reviews:
   path_filters:
+    - "pkg/test_generator/**"
     - "go.sum"
     - "!vendor/**"
     - "!**/vendor/**"
