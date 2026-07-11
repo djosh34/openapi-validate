@@ -229,11 +229,6 @@ func TestCompilerReportsMalformedUnsupportedAndRecursiveSchemas(t *testing.T) {
 			code:   "unsupported",
 			text:   "oneOf is unsupported",
 		},
-		"allOf belongs to step four": {
-			schema: `allOf: [{type: string}]`,
-			code:   "unsupported",
-			text:   "allOf is unsupported",
-		},
 		"recursive reference": {
 			schema: `type: object
 properties:

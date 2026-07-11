@@ -16,6 +16,9 @@ import (
 	"decode_and_validate_generator/pkg/test_generator/internal/oas"
 )
 
+// exactDecimalRadix is the JSON number radix used for symbolic exponent comparison.
+const exactDecimalRadix = 10
+
 // Compiler compiles located Schema Objects into canonical DomainIDs.
 type Compiler struct {
 	Source          oas.Source
@@ -117,6 +120,12 @@ func (compiler *Compiler) compileResolvedSchema(
 	}
 
 	id := compiler.Domains.FindOrAddEquivalentDomain(domain)
+
+	id, constraints, examples, err = compiler.compileAllOf(resolved, members, active, id, constraints, examples)
+	if err != nil {
+		return NoDomain, err
+	}
+
 	compiler.DomainByPointer[resolved.Pointer] = id
 	compiler.DomainByPointer[occurrence.Pointer] = id
 	compiler.addSchemaUse(occurrence.Pointer, id, constraints, examples)
@@ -183,7 +192,7 @@ func (compiler *Compiler) compileSchemaDomain(
 		return Domain{}, nil, GenerationExamples{}, compiler.failure("compile", "unconstructible", schema.Pointer, "", err)
 	}
 
-	if err := compiler.applyEnum(&domain, schema.Pointer, members); err != nil {
+	if err := compiler.applyEnum(&domain, schema.Pointer, members, examples); err != nil {
 		return Domain{}, nil, GenerationExamples{}, err
 	}
 
@@ -191,13 +200,18 @@ func (compiler *Compiler) compileSchemaDomain(
 }
 
 // applyEnum replaces a Domain with the compatible finite enum values when enum is present.
-func (compiler *Compiler) applyEnum(domain *Domain, pointer string, members map[string]json.RawMessage) error {
+func (compiler *Compiler) applyEnum(
+	domain *Domain,
+	pointer string,
+	members map[string]json.RawMessage,
+	examples GenerationExamples,
+) error {
 	raw, ok := members["enum"]
 	if !ok {
 		return nil
 	}
 
-	values, err := compiler.compileEnum(raw, *domain)
+	values, err := compiler.compileEnum(raw, *domain, examples.Valid)
 	if err != nil {
 		code := "malformed"
 		if errors.Is(err, errUnconstructible) {
@@ -263,7 +277,7 @@ func validateSchemaKeywords(members map[string]json.RawMessage) error {
 
 // unsupportedKeyword returns the first recognized keyword unsupported by this step.
 func unsupportedKeyword(members map[string]json.RawMessage) string {
-	for _, keyword := range []string{"allOf", "oneOf", "anyOf", "not", "discriminator"} {
+	for _, keyword := range []string{"oneOf", "anyOf", "not", "discriminator"} {
 		if _, ok := members[keyword]; ok {
 			return keyword
 		}
@@ -277,6 +291,275 @@ func unsupportedKeyword(members map[string]json.RawMessage) string {
 	}
 
 	return ""
+}
+
+// compileAllOf folds each allOf child into the local sibling Domain.
+//
+//nolint:cyclop,gocognit // Source metadata and distinct failure outcomes belong at this seam.
+func (compiler *Compiler) compileAllOf(
+	schema oas.LocatedSchema,
+	members map[string]json.RawMessage,
+	active map[string]struct{},
+	result DomainID,
+	constraints []ConstraintSource,
+	examples GenerationExamples,
+) (DomainID, []ConstraintSource, GenerationExamples, error) {
+	raw, ok := members["allOf"]
+	if !ok {
+		return result, constraints, examples, nil
+	}
+
+	if isJSONNull(raw) {
+		return NoDomain, nil, GenerationExamples{}, compiler.failure(
+			"compile", "malformed", schema.Pointer, "allOf", errors.New("allOf must be a non-empty array"),
+		)
+	}
+
+	var children []json.RawMessage
+	if err := json.Unmarshal(raw, &children); err != nil || len(children) == 0 {
+		if err == nil {
+			err = errors.New("allOf must contain at least one Schema Object")
+		}
+
+		return NoDomain, nil, GenerationExamples{}, compiler.failure(
+			"compile", "malformed", schema.Pointer, "allOf", err,
+		)
+	}
+
+	schemaWideValid := cloneJSONValues(examples.Valid)
+
+	for index := range children {
+		child, err := compiler.Source.Child(schema, "allOf", fmt.Sprintf("%d", index))
+		if err != nil {
+			return NoDomain, nil, GenerationExamples{}, compiler.failure(
+				"compile", "malformed", schema.Pointer, "allOf", err,
+			)
+		}
+
+		childID, err := compiler.compileSchema(child, active)
+		if err != nil {
+			return NoDomain, nil, GenerationExamples{}, err
+		}
+
+		childConstraints, childExamples := compiler.metadataForPointer(child.Pointer)
+		leftDomain, leftOK := compiler.Domains.Domain(result)
+
+		rightDomain, rightOK := compiler.Domains.Domain(childID)
+		if !leftOK || !rightOK {
+			return NoDomain, nil, GenerationExamples{}, compiler.failure(
+				"compile", "malformed", schema.Pointer, "allOf", errors.New("compiled allOf Domain does not exist"),
+			)
+		}
+
+		enumNeedsStringExamples := enumCrossesStringLanguage(leftDomain, rightDomain)
+		mergedExamples := mergeGenerationExamples(examples, childExamples)
+
+		compatibleStringExamples, needsStringExamples := compatibleStringExamples(
+			leftDomain,
+			rightDomain,
+			examples.Valid,
+			childExamples.Valid,
+		)
+		if len(schemaWideValid) > 0 {
+			mergedExamples.Valid = cloneJSONValues(schemaWideValid)
+		} else if needsStringExamples {
+			mergedExamples.Valid = compatibleStringExamples
+		}
+
+		result, err = compiler.Domains.IntersectDomains(result, childID)
+		if err != nil {
+			code := "malformed"
+			if errors.Is(err, errUnconstructible) {
+				code = "unconstructible"
+			}
+
+			return NoDomain, nil, GenerationExamples{}, compiler.failure(
+				"compile", code, schema.Pointer, "allOf", err,
+			)
+		}
+
+		mergedDomain, mergedOK := compiler.Domains.Domain(result)
+		if !mergedOK {
+			return NoDomain, nil, GenerationExamples{}, compiler.failure(
+				"compile", "malformed", schema.Pointer, "allOf", errors.New("merged allOf Domain does not exist"),
+			)
+		}
+
+		if enumNeedsStringExamples && mergedDomain.Enum != nil {
+			constructiveValues, hadString := enumValuesBackedByExamples(mergedDomain.Enum, mergedExamples.Valid)
+			if hadString && len(constructiveValues) != len(mergedDomain.Enum.Values) {
+				return NoDomain, nil, GenerationExamples{}, compiler.failure(
+					"compile",
+					"unconstructible",
+					schema.Pointer,
+					"allOf",
+					errors.New("enum string with pattern or format has no compatible trusted valid generation example"),
+				)
+			}
+
+			result = compiler.Domains.FindOrAddEquivalentDomain(finiteDomain(constructiveValues))
+
+			mergedDomain, mergedOK = compiler.Domains.Domain(result)
+			if !mergedOK {
+				return NoDomain, nil, GenerationExamples{}, compiler.failure(
+					"compile", "malformed", schema.Pointer, "allOf", errors.New("constructive enum Domain does not exist"),
+				)
+			}
+		}
+
+		if mergedDomain.String.State != KindExcluded && needsStringExamples && len(mergedExamples.Valid) == 0 {
+			return NoDomain, nil, GenerationExamples{}, compiler.failure(
+				"compile",
+				"unconstructible",
+				schema.Pointer,
+				"allOf",
+				errors.New("pattern or format conjunction has no compatible trusted valid generation examples"),
+			)
+		}
+
+		examples = mergedExamples
+
+		constraints = append(constraints, childConstraints...)
+	}
+
+	return result, constraints, examples, nil
+}
+
+// enumCrossesStringLanguage reports whether an enum meets an unmodeled string language.
+func enumCrossesStringLanguage(left Domain, right Domain) bool {
+	leftLanguage := len(left.String.Patterns) > 0 || len(left.String.Formats) > 0
+	rightLanguage := len(right.String.Patterns) > 0 || len(right.String.Formats) > 0
+
+	return left.Enum != nil && rightLanguage || right.Enum != nil && leftLanguage
+}
+
+// enumValuesBackedByExamples retains non-strings and trusted example-backed strings.
+func enumValuesBackedByExamples(enum *EnumSet, examples []jsonvalue.Value) ([]jsonvalue.Value, bool) {
+	values := make([]jsonvalue.Value, 0, len(enum.Values))
+	hadString := false
+
+	for _, value := range enum.Values {
+		if value.Kind != jsonvalue.KindString {
+			values = append(values, cloneJSONValue(value))
+
+			continue
+		}
+
+		hadString = true
+
+		if jsonValuesContain(examples, value) {
+			values = append(values, cloneJSONValue(value))
+		}
+	}
+
+	return values, hadString
+}
+
+// compatibleStringExamples chooses trusted inputs for a newly strengthened pattern/format conjunction.
+func compatibleStringExamples(
+	left Domain,
+	right Domain,
+	leftExamples []jsonvalue.Value,
+	rightExamples []jsonvalue.Value,
+) ([]jsonvalue.Value, bool) {
+	if left.String.State == KindExcluded || right.String.State == KindExcluded {
+		return nil, false
+	}
+
+	leftLanguages := stringLanguages(left.String)
+
+	rightLanguages := stringLanguages(right.String)
+	if len(leftLanguages) == 0 || len(rightLanguages) == 0 ||
+		stringsContainAll(leftLanguages, rightLanguages) && stringsContainAll(rightLanguages, leftLanguages) {
+		return nil, false
+	}
+
+	if stringsContainAll(leftLanguages, rightLanguages) {
+		return cloneJSONValues(leftExamples), true
+	}
+
+	if stringsContainAll(rightLanguages, leftLanguages) {
+		return cloneJSONValues(rightExamples), true
+	}
+
+	return intersectJSONValues(leftExamples, rightExamples), true
+}
+
+// stringLanguages gives patterns and formats distinct set keys.
+func stringLanguages(constraints StringConstraints) []string {
+	languages := make([]string, 0, len(constraints.Patterns)+len(constraints.Formats))
+	for _, pattern := range constraints.Patterns {
+		languages = append(languages, "pattern:"+pattern)
+	}
+
+	for _, format := range constraints.Formats {
+		languages = append(languages, "format:"+format)
+	}
+
+	return languages
+}
+
+// stringsContainAll reports set inclusion for a small string slice.
+func stringsContainAll(values []string, wanted []string) bool {
+	for _, candidate := range wanted {
+		found := false
+
+		for _, value := range values {
+			if value == candidate {
+				found = true
+
+				break
+			}
+		}
+
+		if !found {
+			return false
+		}
+	}
+
+	return true
+}
+
+// mergeGenerationExamples unions trusted examples semantically.
+func mergeGenerationExamples(left GenerationExamples, right GenerationExamples) GenerationExamples {
+	valid := cloneJSONValues(left.Valid)
+	for _, candidate := range right.Valid {
+		if !jsonValuesContain(valid, candidate) {
+			valid = append(valid, cloneJSONValue(candidate))
+		}
+	}
+
+	invalid := cloneJSONValues(left.Invalid)
+	for _, candidate := range right.Invalid {
+		if !jsonValuesContain(invalid, candidate) {
+			invalid = append(invalid, cloneJSONValue(candidate))
+		}
+	}
+
+	return GenerationExamples{Valid: valid, Invalid: invalid}
+}
+
+// intersectJSONValues intersects exact semantic JSON values in left order.
+func intersectJSONValues(left []jsonvalue.Value, right []jsonvalue.Value) []jsonvalue.Value {
+	result := make([]jsonvalue.Value, 0, min(len(left), len(right)))
+	for _, candidate := range left {
+		if jsonValuesContain(right, candidate) && !jsonValuesContain(result, candidate) {
+			result = append(result, cloneJSONValue(candidate))
+		}
+	}
+
+	return result
+}
+
+// jsonValuesContain reports semantic JSON set membership.
+func jsonValuesContain(values []jsonvalue.Value, candidate jsonvalue.Value) bool {
+	for _, value := range values {
+		if value.Equal(candidate) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // applyTypeAndNullable applies the type-restricted kinds and its nullable modifier.
@@ -1034,19 +1317,18 @@ func eliminateContradictoryKinds(domain *Domain) error {
 	return nil
 }
 
-// eliminateContradictoryNumbers excludes numbers with incompatible bounds.
+// eliminateContradictoryNumbers excludes exact ranges with no reachable lattice value.
 func eliminateContradictoryNumbers(domain *Domain) error {
-	number := &domain.Number
-	if number.State == KindExcluded || number.Minimum == nil || number.Maximum == nil {
+	if domain.Number.State == KindExcluded {
 		return nil
 	}
 
-	comparison, ok := compareExactNumbers(number.Minimum.Value, number.Maximum.Value)
-	if !ok {
-		return errors.New("number bounds are too large to compare constructively")
+	productive, err := numberConstraintsAreProductive(domain.Number)
+	if err != nil {
+		return err
 	}
 
-	if comparison > 0 || comparison == 0 && (number.Minimum.Exclusive || number.Maximum.Exclusive) {
+	if !productive {
 		domain.Number = NumberConstraints{State: KindExcluded}
 	}
 
@@ -1082,7 +1364,13 @@ func eliminateContradictoryObjects(domain *Domain) {
 var errUnconstructible = errors.New("unconstructible")
 
 // compileEnum parses and filters enum values compatible with a Domain.
-func (compiler *Compiler) compileEnum(raw json.RawMessage, domain Domain) ([]jsonvalue.Value, error) {
+//
+//nolint:cyclop // Enum parsing keeps malformed, unconstructible, duplicate, and excluded outcomes distinct.
+func (compiler *Compiler) compileEnum(
+	raw json.RawMessage,
+	domain Domain,
+	validExamples []jsonvalue.Value,
+) ([]jsonvalue.Value, error) {
 	var members []json.RawMessage
 	if err := json.Unmarshal(raw, &members); err != nil {
 		return nil, fmt.Errorf("enum must be an array: %w", err)
@@ -1093,6 +1381,8 @@ func (compiler *Compiler) compileEnum(raw json.RawMessage, domain Domain) ([]jso
 	}
 
 	values := make([]jsonvalue.Value, 0, len(members))
+	unconstructibleString := false
+
 	for _, member := range members {
 		value, err := jsonvalue.Parse(member)
 		if err != nil {
@@ -1113,6 +1403,17 @@ func (compiler *Compiler) compileEnum(raw json.RawMessage, domain Domain) ([]jso
 			continue
 		}
 
+		if value.Kind == jsonvalue.KindString &&
+			(len(domain.String.Patterns) > 0 || len(domain.String.Formats) > 0) {
+			if jsonValuesContain(validExamples, value) {
+				values = append(values, value)
+			} else {
+				unconstructibleString = true
+			}
+
+			continue
+		}
+
 		matches, err := compiler.valueFitsDomain(value, domain)
 		if err != nil {
 			return nil, err
@@ -1121,6 +1422,13 @@ func (compiler *Compiler) compileEnum(raw json.RawMessage, domain Domain) ([]jso
 		if matches {
 			values = append(values, value)
 		}
+	}
+
+	if unconstructibleString {
+		return nil, fmt.Errorf(
+			"%w: enum string with pattern or format needs a trusted compatible valid example",
+			errUnconstructible,
+		)
 	}
 
 	return values, nil
@@ -1461,7 +1769,7 @@ func constraintSources(pointer string, members map[string]json.RawMessage) []Con
 		switch keyword {
 		case "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
 			"minLength", "maxLength", "pattern", "format", "minItems", "maxItems", "items",
-			"minProperties", "maxProperties", "required", "properties", "additionalProperties", "enum", "nullable":
+			"minProperties", "maxProperties", "required", "properties", "additionalProperties", "enum", "nullable", "allOf":
 			keywords = append(keywords, keyword)
 		}
 	}
@@ -1585,11 +1893,127 @@ func compareNumberToZero(number jsonvalue.Number) int {
 	return 1
 }
 
-// compareExactNumbers compares rational JSON numbers when both are constructible.
+// compareExactNumbers compares arbitrary-size canonical JSON decimals without materializing their exponents.
 func compareExactNumbers(left jsonvalue.Number, right jsonvalue.Number) (int, bool) {
-	if left.Rational == nil || right.Rational == nil {
+	if left.Rational != nil && right.Rational != nil {
+		return left.Rational.Cmp(right.Rational), true
+	}
+
+	leftNegative, leftDigits, leftExponent, leftOK := exactDecimalParts(left.Lexeme)
+
+	rightNegative, rightDigits, rightExponent, rightOK := exactDecimalParts(right.Lexeme)
+	if !leftOK || !rightOK {
 		return 0, false
 	}
 
-	return left.Rational.Cmp(right.Rational), true
+	if leftDigits == "0" || rightDigits == "0" {
+		return compareExactZero(leftNegative, leftDigits, rightNegative, rightDigits), true
+	}
+
+	if leftNegative != rightNegative {
+		if leftNegative {
+			return -1, true
+		}
+
+		return 1, true
+	}
+
+	comparison := compareDecimalMagnitudes(leftDigits, leftExponent, rightDigits, rightExponent)
+	if leftNegative {
+		comparison = -comparison
+	}
+
+	return comparison, true
+}
+
+// exactDecimalParts splits a canonical JSON decimal into sign, digits, and a base-ten exponent.
+func exactDecimalParts(lexeme string) (bool, string, *big.Int, bool) {
+	negative := strings.HasPrefix(lexeme, "-")
+	if negative {
+		lexeme = lexeme[1:]
+	}
+
+	exponent := new(big.Int)
+	if exponentIndex := strings.IndexByte(lexeme, 'e'); exponentIndex >= 0 {
+		parsed, ok := new(big.Int).SetString(lexeme[exponentIndex+1:], exactDecimalRadix)
+		if !ok {
+			return false, "", nil, false
+		}
+
+		exponent = parsed
+		lexeme = lexeme[:exponentIndex]
+	}
+
+	if decimalIndex := strings.IndexByte(lexeme, '.'); decimalIndex >= 0 {
+		fractionLength := len(lexeme) - decimalIndex - 1
+		lexeme = lexeme[:decimalIndex] + lexeme[decimalIndex+1:]
+
+		exponent.Sub(exponent, big.NewInt(int64(fractionLength)))
+	}
+
+	digits := strings.TrimLeft(lexeme, "0")
+	if digits == "" {
+		return false, "0", new(big.Int), true
+	}
+
+	return negative, digits, exponent, true
+}
+
+// compareExactZero handles sign while canonical zero remains unsigned.
+func compareExactZero(leftNegative bool, leftDigits string, rightNegative bool, rightDigits string) int {
+	if leftDigits == "0" && rightDigits == "0" {
+		return 0
+	}
+
+	if leftDigits == "0" {
+		if rightNegative {
+			return 1
+		}
+
+		return -1
+	}
+
+	if leftNegative {
+		return -1
+	}
+
+	return 1
+}
+
+// compareDecimalMagnitudes compares positive digit/exponent pairs exactly.
+func compareDecimalMagnitudes(
+	leftDigits string,
+	leftExponent *big.Int,
+	rightDigits string,
+	rightExponent *big.Int,
+) int {
+	leftMagnitude := new(big.Int).Add(leftExponent, big.NewInt(int64(len(leftDigits))))
+
+	rightMagnitude := new(big.Int).Add(rightExponent, big.NewInt(int64(len(rightDigits))))
+	if comparison := leftMagnitude.Cmp(rightMagnitude); comparison != 0 {
+		return comparison
+	}
+
+	width := max(len(leftDigits), len(rightDigits))
+	for index := range width {
+		leftDigit := byte('0')
+		if index < len(leftDigits) {
+			leftDigit = leftDigits[index]
+		}
+
+		rightDigit := byte('0')
+		if index < len(rightDigits) {
+			rightDigit = rightDigits[index]
+		}
+
+		if leftDigit < rightDigit {
+			return -1
+		}
+
+		if leftDigit > rightDigit {
+			return 1
+		}
+	}
+
+	return 0
 }

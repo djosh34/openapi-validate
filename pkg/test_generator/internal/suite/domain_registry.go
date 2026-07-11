@@ -118,7 +118,12 @@ func (registry *DomainRegistry) normalizeDomain(domain Domain) Domain {
 	normalizeString(&domain.String)
 	normalizeArray(&domain.Array)
 	normalizeObject(&domain.Object)
+	registry.normalizeChildProductivity(&domain)
 	normalizeEnum(domain.Enum)
+
+	if allKindsExcluded(domain) {
+		return emptyDomain()
+	}
 
 	return domain
 }
@@ -199,6 +204,38 @@ func normalizeObject(object *ObjectConstraints) {
 			State:      KindUnrestricted,
 			Additional: AdditionalProperties{Values: AnyJSONDomainID},
 		}
+	}
+}
+
+// normalizeChildProductivity canonicalizes empty child Domains and excludes impossible containers.
+func (registry *DomainRegistry) normalizeChildProductivity(domain *Domain) {
+	if domain.Array.State != KindExcluded && registry.domainIsEmpty(domain.Array.Items) {
+		domain.Array.MaxItems = new(0)
+		if domain.Array.MinItems > 0 {
+			domain.Array = ArrayConstraints{State: KindExcluded}
+		}
+	}
+
+	if domain.Object.State == KindExcluded {
+		return
+	}
+
+	for index := range domain.Object.Properties {
+		property := &domain.Object.Properties[index]
+		if property.State == PropertyForbidden || registry.domainIsEmpty(property.Values) {
+			if property.Required {
+				domain.Object = ObjectConstraints{State: KindExcluded}
+
+				return
+			}
+
+			property.State = PropertyForbidden
+			property.Values = EmptyDomainID
+		}
+	}
+
+	if !registry.objectConstraintsAreProductive(domain.Object) {
+		domain.Object = ObjectConstraints{State: KindExcluded}
 	}
 }
 
