@@ -127,7 +127,7 @@ func ParseNumber(lexeme string) (Number, error) {
 
 	var rational *big.Rat
 
-	magnitude := new(big.Int).Abs(new(big.Int).Set(exponent))
+	magnitude := new(big.Int).Abs(exponent)
 	if magnitude.Cmp(big.NewInt(maximumMaterializedExponent)) <= 0 {
 		parsed, parsedOK := new(big.Rat).SetString(canonical)
 		if !parsedOK {

@@ -46,7 +46,7 @@ func (c *GenerateContext) GenerateInMemory() (FileSet, error) {
 			return nil, err
 		}
 
-		modelTests, err := renderModelsTestFile(openAPI, c.JSONRequestBodyOperations, schemas)
+		modelTests, err := renderModelsTestFile(openAPI, c.JSONRequestBodyOperations)
 		if err != nil {
 			return nil, err
 		}

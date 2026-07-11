@@ -14,7 +14,7 @@ Never ignore errors.
 
 Official JSONSchema for openapi 3.0.3: https://spec.openapis.org/oas/3.0/schema/2024-10-18.html 
 SchemaObject spec openapi 3.0.3: https://spec.openapis.org/oas/v3.0.3.html#schema-object
-JsonSchema of which openapi 3.0.3 is a superset: https://datatracker.ietf.org/doc/html/draft-wright-json-schema-00#section-4.2
+JSON Schema dialect that OpenAPI 3.0.3 extends as an extended subset: https://datatracker.ietf.org/doc/html/draft-wright-json-schema-00#section-4.2
 
 ### More resources:
 

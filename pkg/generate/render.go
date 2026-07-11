@@ -5,7 +5,6 @@ import (
 	"embed"
 	"fmt"
 	"go/format"
-	"strings"
 	"sync"
 	"text/template"
 )
@@ -27,18 +26,8 @@ type fileTemplateContext struct {
 }
 
 type modelsTestTemplateContext struct {
-	OpenAPI       string
-	Operations    []JSONRequestBodyOperation
-	ObjectSchemas []modelObjectSchemaTest
-}
-
-type modelObjectSchemaTest struct {
-	OperationID string
-	TypeName    string
-}
-
-func (m modelObjectSchemaTest) TestName() string {
-	return m.TypeName + "MalformedObjectJSON"
+	OpenAPI    string
+	Operations []JSONRequestBodyOperation
 }
 
 func renderModelsFile(schemas []Schema) ([]byte, error) {
@@ -76,7 +65,7 @@ func usesRFC3339(schemas []Schema) bool {
 	return false
 }
 
-func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation, schemas []Schema) ([]byte, error) {
+func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation) ([]byte, error) {
 	if bytes.Contains(openAPI, []byte("`")) {
 		return nil, fmt.Errorf("openapi source contains backtick")
 	}
@@ -86,17 +75,11 @@ func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation,
 		return nil, err
 	}
 
-	objectTests, err := objectSchemaTests(operations, schemas)
-	if err != nil {
-		return nil, err
-	}
-
 	var out bytes.Buffer
 
 	err = templates.ExecuteTemplate(&out, "models_test.go.tmpl", modelsTestTemplateContext{
-		OpenAPI:       string(openAPI),
-		Operations:    operations,
-		ObjectSchemas: objectTests,
+		OpenAPI:    string(openAPI),
+		Operations: operations,
 	})
 	if err != nil {
 		return nil, err
@@ -108,49 +91,6 @@ func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation,
 	}
 
 	return formatted, nil
-}
-
-func objectSchemaTests(operations []JSONRequestBodyOperation, schemas []Schema) ([]modelObjectSchemaTest, error) {
-	tests := make([]modelObjectSchemaTest, 0, len(schemas))
-	for _, schema := range schemas {
-		if _, ok := schema.(*ObjectSchema); !ok {
-			continue
-		}
-
-		operationID, err := schemaOperationID(operations, schema.SchemaTypeName())
-		if err != nil {
-			return nil, err
-		}
-
-		tests = append(tests, modelObjectSchemaTest{
-			OperationID: operationID,
-			TypeName:    schema.SchemaTypeName(),
-		})
-	}
-
-	return tests, nil
-}
-
-func schemaOperationID(operations []JSONRequestBodyOperation, schemaTypeName string) (string, error) {
-	var match JSONRequestBodyOperation
-
-	for _, operation := range operations {
-		if schemaTypeName != operation.TypeName && !strings.HasPrefix(schemaTypeName, operation.TypeName) {
-			continue
-		}
-
-		if len(operation.TypeName) <= len(match.TypeName) {
-			continue
-		}
-
-		match = operation
-	}
-
-	if match.OperationID == "" {
-		return "", fmt.Errorf("object schema %q has no source operation", schemaTypeName)
-	}
-
-	return match.OperationID, nil
 }
 
 func executeGoTemplate(name string, data any) (string, error) {
