@@ -8,6 +8,12 @@ import (
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 )
 
+// labeledIntBoundary identifies an integer boundary used to name a partition.
+type labeledIntBoundary struct {
+	label string
+	value int
+}
+
 // addValidPartitions adds kind/classes and recursively lifts child partitions by DomainID.
 func (planner *CasePlanner) addValidPartitions(
 	result *caseSet,
@@ -162,24 +168,18 @@ func (planner *CasePlanner) addStringLengthPartitions(
 	constraints StringConstraints,
 	use SchemaUse,
 ) error {
-	lengths := []struct {
-		label  string
-		length int
-	}{
-		{label: "minimum", length: constraints.MinLength},
+	lengths := []labeledIntBoundary{
+		{label: "minimum", value: constraints.MinLength},
 	}
 	if constraints.MaxLength != nil {
-		lengths = append(lengths, struct {
-			label  string
-			length int
-		}{label: "maximum", length: *constraints.MaxLength})
+		lengths = append(lengths, labeledIntBoundary{label: "maximum", value: *constraints.MaxLength})
 	}
 
 	for _, length := range lengths {
 		candidate := planner.stringDomain(StringConstraints{
 			State:     KindRestricted,
-			MinLength: length.length,
-			MaxLength: new(length.length),
+			MinLength: length.value,
+			MaxLength: new(length.value),
 		})
 
 		value, err := planner.Domains.IntersectDomains(root, candidate)
@@ -260,17 +260,11 @@ func (planner *CasePlanner) addArrayPartitions(
 
 // addArrayCountPartitions adds accepted partitions at the configured array item counts.
 func (planner *CasePlanner) addArrayCountPartitions(result *caseSet, domain Domain, use SchemaUse) {
-	counts := []struct {
-		label string
-		value int
-	}{
+	counts := []labeledIntBoundary{
 		{label: "minimum", value: domain.Array.MinItems},
 	}
 	if domain.Array.MaxItems != nil {
-		counts = append(counts, struct {
-			label string
-			value int
-		}{label: "maximum", value: *domain.Array.MaxItems})
+		counts = append(counts, labeledIntBoundary{label: "maximum", value: *domain.Array.MaxItems})
 	}
 
 	for _, count := range counts {
@@ -383,17 +377,11 @@ func (planner *CasePlanner) addObjectPartitions(
 
 // addObjectCountPartitions adds accepted partitions at the configured object property counts.
 func (planner *CasePlanner) addObjectCountPartitions(result *caseSet, domain Domain, use SchemaUse) {
-	counts := []struct {
-		label string
-		value int
-	}{
+	counts := []labeledIntBoundary{
 		{label: "minimum", value: domain.Object.MinProps},
 	}
 	if domain.Object.MaxProps != nil {
-		counts = append(counts, struct {
-			label string
-			value int
-		}{label: "maximum", value: *domain.Object.MaxProps})
+		counts = append(counts, labeledIntBoundary{label: "maximum", value: *domain.Object.MaxProps})
 	}
 
 	for _, count := range counts {
