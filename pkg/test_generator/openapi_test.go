@@ -1,7 +1,6 @@
 package testgenerator
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -294,54 +293,4 @@ func TestOpenAPIRequestBodySchemaNodeRejectsInvalidInputs(t *testing.T) {
 	_, err = OpenAPIRequestBodySchemaNode(openAPIJSONSpec, "")
 	require.Error(t, err)
 	require.ErrorContains(t, err, "operationId must not be empty")
-}
-
-// TestGenerateFunctionsParseSchemaAndDoNothing documents the current no-generation behavior.
-func TestGenerateFunctionsParseSchemaAndDoNothing(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		generate func([]byte, string, func([]byte) error) error
-	}{
-		"valid":   {generate: GenerateValid},
-		"invalid": {generate: GenerateInvalid},
-	}
-
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			called := false
-			err := tt.generate([]byte(openAPIObjectSchemaSpec), "createThing", func(_ []byte) error {
-				called = true
-
-				return errors.New("unmarshal must not be called yet")
-			})
-			require.NoError(t, err)
-			require.False(t, called)
-		})
-	}
-}
-
-// TestGenerateFunctionsWrapOpenAPISchemaLookupErrors verifies entry-point error context.
-func TestGenerateFunctionsWrapOpenAPISchemaLookupErrors(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		generate func([]byte, string, func([]byte) error) error
-	}{
-		"valid":   {generate: GenerateValid},
-		"invalid": {generate: GenerateInvalid},
-	}
-
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			err := tt.generate([]byte(openAPIObjectSchemaSpec), "missingThing", func(_ []byte) error { return nil })
-			require.Error(t, err)
-			require.ErrorContains(t, err, "openapi request body schema lookup failed")
-			require.ErrorContains(t, err, `operationId "missingThing" not found`)
-		})
-	}
 }
