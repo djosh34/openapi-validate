@@ -247,7 +247,8 @@ func (compiler *Compiler) validateAllOfStringExamples(
 	needsStringExamples bool,
 	validExamples []jsonvalue.Value,
 ) error {
-	if domain.String.State == KindExcluded || !needsStringExamples || len(validExamples) > 0 {
+	if !compiler.mustHaveAllXValidCases || domain.String.State == KindExcluded ||
+		!needsStringExamples || len(validExamples) > 0 {
 		return nil
 	}
 

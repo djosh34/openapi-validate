@@ -10,8 +10,20 @@ import (
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 )
 
+// CompileOption configures a Compiler.
+type CompileOption func(*Compiler)
+
+// MustHaveAllXValidCases rejects allOf string merges without a shared trusted valid example.
+func MustHaveAllXValidCases(compiler *Compiler) {
+	compiler.mustHaveAllXValidCases = true
+}
+
 // CompileSuite compiles, plans, and links the request schema to Rapid generators.
-func (compiler *Compiler) CompileSuite() (*CompiledSuite, error) {
+func (compiler *Compiler) CompileSuite(options ...CompileOption) (*CompiledSuite, error) {
+	for _, option := range options {
+		option(compiler)
+	}
+
 	root, err := compiler.Compile()
 	if err != nil {
 		return nil, err

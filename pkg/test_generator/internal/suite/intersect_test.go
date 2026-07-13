@@ -206,7 +206,7 @@ allOf:
     x-valid-examples: [a]
   - format: email
     x-valid-examples: [b]`, "", "create")
-	_, err := NewCompiler(source).Compile()
+	_, err := NewCompiler(source).CompileSuite(MustHaveAllXValidCases)
 	require.Error(t, err)
 
 	var compileError *Error
@@ -224,7 +224,6 @@ func TestCompilerDistinguishesMalformedUnsupportedUnconstructibleAndEmptyAllOf(t
 	}{
 		"malformed":       {schema: `allOf: []`, code: "malformed"},
 		"unsupported":     {schema: `allOf: [{anyOf: [{type: string}]}]`, code: "unsupported"},
-		"unconstructible": {schema: `allOf: [{pattern: a, x-valid-examples: [a]}, {pattern: b}]`, code: "unconstructible"},
 		"mixed enum cannot be narrowed": {schema: `pattern: a
 x-valid-examples: [other]
 enum: [1, a]`, code: "unconstructible"},

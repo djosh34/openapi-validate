@@ -62,7 +62,7 @@ func corpusFixtureWithComponents(
 
 // validatorCorpus is the sole shared fixture table. Its builders append in a fixed category and dimension order.
 func validatorCorpus() []validatorCorpusFixture {
-	fixtures := make([]validatorCorpusFixture, 0, 320)
+	fixtures := make([]validatorCorpusFixture, 0, 322)
 	fixtures = append(fixtures, typeNullableEnumCorpus()...)
 	fixtures = append(fixtures, numericCorpus()...)
 	fixtures = append(fixtures, stringCorpus()...)
@@ -83,6 +83,23 @@ func TestValidatorCorpusSelfCheck(t *testing.T) {
 	}
 }
 
+// TestValidatorCorpusHasConstructibleValidCases ensures trusted examples make every conjunction generatable.
+// In particular, this catches allOf string intersections whose pattern or format languages have no shared
+// x-valid-examples witness.
+func TestValidatorCorpusHasConstructibleValidCases(t *testing.T) {
+	t.Parallel()
+
+	for _, fixture := range validatorCorpus() {
+		t.Run(fixture.ID, func(t *testing.T) {
+			t.Parallel()
+
+			if _, err := compileValidatorFixture(fixture.spec()); err != nil {
+				t.Fatalf("validator corpus fixture is not constructible: %v", err)
+			}
+		})
+	}
+}
+
 // validateValidatorCorpus verifies the exact agreed category matrix and semantic complete-spec uniqueness.
 func validateValidatorCorpus(fixtures []validatorCorpusFixture) error {
 	expectedCounts := map[string]int{
@@ -91,7 +108,7 @@ func validateValidatorCorpus(fixtures []validatorCorpusFixture) error {
 		corpusCategoryStrings: 52,
 		corpusCategoryArrays:  36,
 		corpusCategoryObjects: 52,
-		corpusCategoryRefs:    34,
+		corpusCategoryRefs:    36,
 		corpusCategoryCross:   38,
 	}
 	expectedCategories := []string{
@@ -104,8 +121,8 @@ func validateValidatorCorpus(fixtures []validatorCorpusFixture) error {
 		corpusCategoryCross,
 	}
 
-	if len(fixtures) != 320 {
-		return fmt.Errorf("validator corpus total is %d, want 320", len(fixtures))
+	if len(fixtures) != 322 {
+		return fmt.Errorf("validator corpus total is %d, want 322", len(fixtures))
 	}
 
 	var (
@@ -1279,7 +1296,7 @@ func objectCorpus() []validatorCorpusFixture {
 	return fixtures
 }
 
-// referenceAllOfCorpus covers local pointers and allOf intersections in 34 rows.
+// referenceAllOfCorpus covers local pointers and allOf intersections in 36 rows.
 func referenceAllOfCorpus() []validatorCorpusFixture {
 	return []validatorCorpusFixture{
 		corpusFixtureWithComponents(corpusCategoryRefs, "direct-ref", `
@@ -1391,16 +1408,37 @@ components:
 `),
 		corpusFixture(corpusCategoryRefs, "allof-string-length", `
       type: string
+      x-valid-examples: [ab, abc, abcd]
       allOf:
         - {minLength: 2}
         - {maxLength: 4}
 `),
 		corpusFixture(corpusCategoryRefs, "allof-string-pattern-length", `
       type: string
-      x-valid-examples: [A1]
+      x-valid-examples: [A0, A1, A5, A9]
       allOf:
-        - {pattern: '^A[0-9]$', x-valid-examples: [A1], x-invalid-examples: [B1]}
+        - {pattern: '^A[0-9]$', x-valid-examples: [A0, A1, A5, A9], x-invalid-examples: [B1]}
         - {minLength: 2, maxLength: 2}
+`),
+		corpusFixture(corpusCategoryRefs, "allof-string-pattern-pattern-shared-witness", `
+      type: string
+      allOf:
+        - pattern: '^[A-Z][0-9]+$'
+          x-valid-examples: [A1, B20]
+          x-invalid-examples: [a1]
+        - pattern: '^A[0-9]$'
+          x-valid-examples: [A1, A2]
+          x-invalid-examples: [B20]
+`),
+		corpusFixture(corpusCategoryRefs, "allof-string-pattern-format-shared-witness", `
+      type: string
+      allOf:
+        - pattern: '^[a-z]+@[a-z]+[.][a-z]+$'
+          x-valid-examples: [a@b.co, user@example.com]
+          x-invalid-examples: [not-an-email]
+        - format: email
+          x-valid-examples: [a@b.co, other@example.com]
+          x-invalid-examples: [plain]
 `),
 		corpusFixture(corpusCategoryRefs, "allof-object-required", `
       type: object
@@ -1437,6 +1475,7 @@ components:
     Maximum: {maximum: 2}
 `),
 		corpusFixtureWithComponents(corpusCategoryRefs, "ref-string-intersection", `
+      x-valid-examples: [ab, abc, abcd]
       allOf:
         - {$ref: '#/components/schemas/Short'}
         - {$ref: '#/components/schemas/LongEnough'}

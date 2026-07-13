@@ -10,6 +10,8 @@ Do not create extra fields/functions without reason that you need it
 
 Never ignore errors.
 
+use make lint & fmt, instead of gofump directly
+
 ### Please use online references to validate openapi logic/spec, including but not limited to:
 
 Official JSONSchema for openapi 3.0.3: https://spec.openapis.org/oas/3.0/schema/2024-10-18.html 
