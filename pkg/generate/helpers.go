@@ -35,7 +35,7 @@ func LoadOpenapi(ctx context.Context, path string) (*GenerateContext, error) {
 	}, nil
 }
 
-// FilterOperations removes operations not named in operation.
+// FilterOperations keeps operations whose IDs are listed and removes all others.
 func (c *GenerateContext) FilterOperations(operation ...string) error {
 	if len(operation) == 0 {
 		return nil

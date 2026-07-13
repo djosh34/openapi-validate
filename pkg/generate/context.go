@@ -200,7 +200,7 @@ func (p *ObjectFieldContext) FieldName() string {
 // Generate renders an object property decoder.
 func (p *ObjectFieldContext) Generate() (string, error) {
 	if p == nil {
-		return "", fmt.Errorf("nil object schema")
+		return "", fmt.Errorf("nil object property")
 	}
 
 	return executeGoTemplate("object_property.go.tmpl", p)
