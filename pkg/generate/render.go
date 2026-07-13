@@ -9,27 +9,36 @@ import (
 	"text/template"
 )
 
+// templateFS contains every generator template.
+//
 //go:embed templates/*.go.tmpl
 var templateFS embed.FS
 
+// templatePattern selects every embedded generator template.
 const templatePattern = "templates/*.go.tmpl"
 
 var (
+	// generateTemplatesOnce ensures templates are parsed once.
 	generateTemplatesOnce sync.Once
-	generateTemplates     *template.Template
-	generateTemplatesErr  error
+	// generateTemplates contains the parsed templates.
+	generateTemplates *template.Template
+	// errGenerateTemplates records a template parsing failure.
+	errGenerateTemplates error
 )
 
+// fileTemplateContext contains data rendered into models.go.
 type fileTemplateContext struct {
 	Schemas     []Schema
 	UsesRFC3339 bool
 }
 
+// modelsTestTemplateContext contains data rendered into models_test.go.
 type modelsTestTemplateContext struct {
 	OpenAPI    string
 	Operations []JSONRequestBodyOperation
 }
 
+// renderModelsFile renders and formats models.go.
 func renderModelsFile(schemas []Schema) ([]byte, error) {
 	templates, err := parsedGenerateTemplates()
 	if err != nil {
@@ -54,6 +63,7 @@ func renderModelsFile(schemas []Schema) ([]byte, error) {
 	return formatted, nil
 }
 
+// usesRFC3339 reports whether generated models need the time package.
 func usesRFC3339(schemas []Schema) bool {
 	for _, schema := range schemas {
 		stringSchema, ok := schema.(*StringSchema)
@@ -65,6 +75,7 @@ func usesRFC3339(schemas []Schema) bool {
 	return false
 }
 
+// renderModelsTestFile renders and formats models_test.go.
 func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation) ([]byte, error) {
 	if bytes.Contains(openAPI, []byte("`")) {
 		return nil, fmt.Errorf("openapi source contains backtick")
@@ -93,6 +104,7 @@ func renderModelsTestFile(openAPI []byte, operations []JSONRequestBodyOperation)
 	return formatted, nil
 }
 
+// executeGoTemplate executes one named generator template.
 func executeGoTemplate(name string, data any) (string, error) {
 	templates, err := parsedGenerateTemplates()
 	if err != nil {
@@ -109,13 +121,14 @@ func executeGoTemplate(name string, data any) (string, error) {
 	return out.String(), nil
 }
 
+// parsedGenerateTemplates returns the shared parsed templates.
 func parsedGenerateTemplates() (*template.Template, error) {
 	generateTemplatesOnce.Do(func() {
-		generateTemplates, generateTemplatesErr = template.ParseFS(templateFS, templatePattern)
+		generateTemplates, errGenerateTemplates = template.ParseFS(templateFS, templatePattern)
 	})
 
-	if generateTemplatesErr != nil {
-		return nil, fmt.Errorf("parse generate templates: %w", generateTemplatesErr)
+	if errGenerateTemplates != nil {
+		return nil, fmt.Errorf("parse generate templates: %w", errGenerateTemplates)
 	}
 
 	return generateTemplates, nil

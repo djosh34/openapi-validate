@@ -4,9 +4,7 @@ package testgenerator
 import (
 	"testing"
 
-	//nolint:depguard // Public checking is implemented by the internal OpenAPI compiler and suite planner.
 	"decode_and_validate_generator/pkg/test_generator/internal/oas"
-	//nolint:depguard // Public checking executes internally compiled semantic CasePlans.
 	"decode_and_validate_generator/pkg/test_generator/internal/suite"
 	"pgregory.net/rapid"
 )
@@ -63,14 +61,18 @@ func CheckJSONRequestBody(
 				rt.Fatalf("encode generated JSON: %v", marshalErr)
 			}
 
-			err := validate(body)
-			if plannedCase.Expect == suite.ExpectAccepted && err != nil {
-				rt.Fatalf("valid JSON rejected: %v\n%s", err, body)
-			}
-
-			if plannedCase.Expect == suite.ExpectRejected && err == nil {
-				rt.Fatalf("invalid JSON accepted:\n%s", body)
-			}
+			checkValidationResult(rt, plannedCase.Expect, body, validate(body))
 		}))
+	}
+}
+
+// checkValidationResult checks one validator verdict against its planned expectation.
+func checkValidationResult(rt *rapid.T, expectation suite.ExpectedResult, body []byte, err error) {
+	if expectation == suite.ExpectAccepted && err != nil {
+		rt.Fatalf("valid JSON rejected: %v\n%s", err, body)
+	}
+
+	if expectation == suite.ExpectRejected && err == nil {
+		rt.Fatalf("invalid JSON accepted:\n%s", body)
 	}
 }

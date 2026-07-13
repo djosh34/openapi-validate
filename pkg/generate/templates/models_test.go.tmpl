@@ -6,16 +6,27 @@ import (
 	"decode_and_validate_generator/pkg/test_generator"
 )
 
+// exampleOpenAPI is the source document for generated model tests.
 var exampleOpenAPI = []byte(`
 {{ .OpenAPI -}}
 `)
 
 {{- range .Operations }}
 
+// Test{{ .TestName }} checks the generated decoder.
 func Test{{ .TestName }}(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "{{ .OperationID }}", func(data []byte) error {
-		var value {{ .TypeName }}
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"{{ .OperationID }}",
+		func(data []byte) error {
+			var value {{ .TypeName }}
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 {{- end }}

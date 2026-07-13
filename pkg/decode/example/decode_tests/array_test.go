@@ -8,31 +8,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestArrayNullableDecodeAllowedWays checks accepted nullable array forms.
 func TestArrayNullableDecodeAllowedWays(t *testing.T) {
 	t.Parallel()
 
 	for name, tt := range map[string]struct {
-		inputJson      string
+		inputJSON      string
 		expectedStruct example.ArrayNullable
 	}{
 		"null array": {
-			inputJson:      `null`,
+			inputJSON:      `null`,
 			expectedStruct: example.ArrayNullable{},
 		},
 		"empty array": {
-			inputJson: `[]`,
+			inputJSON: `[]`,
 			expectedStruct: example.ArrayNullable{
 				Value: []example.ArrayNullableItem{},
 			},
 		},
 		"single item": {
-			inputJson: `["one"]`,
+			inputJSON: `["one"]`,
 			expectedStruct: example.ArrayNullable{
 				Value: []example.ArrayNullableItem{"one"},
 			},
 		},
 		"multiple items": {
-			inputJson: `["one","two",""]`,
+			inputJSON: `["one","two",""]`,
 			expectedStruct: example.ArrayNullable{
 				Value: []example.ArrayNullableItem{"one", "two", ""},
 			},
@@ -45,7 +46,7 @@ func TestArrayNullableDecodeAllowedWays(t *testing.T) {
 			var actualStruct example.ArrayNullable
 
 			// Act
-			err := actualStruct.UnmarshalJSON([]byte(tt.inputJson))
+			err := actualStruct.UnmarshalJSON([]byte(tt.inputJSON))
 
 			// Assert
 			require.NoError(t, err)
@@ -54,47 +55,48 @@ func TestArrayNullableDecodeAllowedWays(t *testing.T) {
 	}
 }
 
+// TestArrayNullableDecodeRejectsInvalidShapes checks rejected nullable array forms.
 func TestArrayNullableDecodeRejectsInvalidShapes(t *testing.T) {
 	t.Parallel()
 
 	for name, tt := range map[string]struct {
-		inputJson   string
+		inputJSON   string
 		expectedErr error
 	}{
 		"not array string": {
-			inputJson: `"not-array"`,
+			inputJSON: `"not-array"`,
 		},
 		"not array object": {
-			inputJson: `{}`,
+			inputJSON: `{}`,
 		},
 		"not array number": {
-			inputJson: `123`,
+			inputJSON: `123`,
 		},
 		"not array bool": {
-			inputJson: `true`,
+			inputJSON: `true`,
 		},
 		"null item": {
-			inputJson:   `[null]`,
+			inputJSON:   `[null]`,
 			expectedErr: example.NullForNotNullableStringError,
 		},
 		"number item": {
-			inputJson:   `[123]`,
+			inputJSON:   `[123]`,
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"bool item": {
-			inputJson:   `[false]`,
+			inputJSON:   `[false]`,
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"object item": {
-			inputJson:   `[{}]`,
+			inputJSON:   `[{}]`,
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"array item": {
-			inputJson:   `[[]]`,
+			inputJSON:   `[[]]`,
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"invalid json": {
-			inputJson: `[`,
+			inputJSON: `[`,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -104,7 +106,7 @@ func TestArrayNullableDecodeRejectsInvalidShapes(t *testing.T) {
 			var actualStruct example.ArrayNullable
 
 			// Act
-			err := actualStruct.UnmarshalJSON([]byte(tt.inputJson))
+			err := actualStruct.UnmarshalJSON([]byte(tt.inputJSON))
 
 			// Assert
 			if tt.expectedErr == nil {
@@ -116,23 +118,24 @@ func TestArrayNullableDecodeRejectsInvalidShapes(t *testing.T) {
 	}
 }
 
+// TestArrayNotNullableDecodeAllowedWays checks accepted non-nullable array forms.
 func TestArrayNotNullableDecodeAllowedWays(t *testing.T) {
 	t.Parallel()
 
 	for name, tt := range map[string]struct {
-		inputJson      string
+		inputJSON      string
 		expectedStruct example.ArrayNotNullable
 	}{
 		"empty array": {
-			inputJson:      `[]`,
+			inputJSON:      `[]`,
 			expectedStruct: example.ArrayNotNullable{},
 		},
 		"single item": {
-			inputJson:      `["one"]`,
+			inputJSON:      `["one"]`,
 			expectedStruct: example.ArrayNotNullable{"one"},
 		},
 		"multiple items": {
-			inputJson:      `["one","two",""]`,
+			inputJSON:      `["one","two",""]`,
 			expectedStruct: example.ArrayNotNullable{"one", "two", ""},
 		},
 	} {
@@ -143,7 +146,7 @@ func TestArrayNotNullableDecodeAllowedWays(t *testing.T) {
 			var actualStruct example.ArrayNotNullable
 
 			// Act
-			err := actualStruct.UnmarshalJSON([]byte(tt.inputJson))
+			err := actualStruct.UnmarshalJSON([]byte(tt.inputJSON))
 
 			// Assert
 			require.NoError(t, err)
@@ -152,52 +155,53 @@ func TestArrayNotNullableDecodeAllowedWays(t *testing.T) {
 	}
 }
 
+// TestArrayNotNullableDecodeRejectsInvalidShapes checks rejected non-nullable array forms.
 func TestArrayNotNullableDecodeRejectsInvalidShapes(t *testing.T) {
 	t.Parallel()
 
 	for name, tt := range map[string]struct {
-		inputJson           string
+		inputJSON           string
 		expectedErr         error
 		expectedErrContains string
 	}{
 		"null array": {
-			inputJson:           `null`,
+			inputJSON:           `null`,
 			expectedErrContains: "null for not nullable array",
 		},
 		"not array string": {
-			inputJson: `"not-array"`,
+			inputJSON: `"not-array"`,
 		},
 		"not array object": {
-			inputJson: `{}`,
+			inputJSON: `{}`,
 		},
 		"not array number": {
-			inputJson: `123`,
+			inputJSON: `123`,
 		},
 		"not array bool": {
-			inputJson: `true`,
+			inputJSON: `true`,
 		},
 		"null item": {
-			inputJson:   `[null]`,
+			inputJSON:   `[null]`,
 			expectedErr: example.NullForNotNullableStringError,
 		},
 		"number item": {
-			inputJson:   `[123]`,
+			inputJSON:   `[123]`,
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"bool item": {
-			inputJson:   `[false]`,
+			inputJSON:   `[false]`,
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"object item": {
-			inputJson:   `[{}]`,
+			inputJSON:   `[{}]`,
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"array item": {
-			inputJson:   `[[]]`,
+			inputJSON:   `[[]]`,
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"invalid json": {
-			inputJson: `[`,
+			inputJSON: `[`,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -207,7 +211,7 @@ func TestArrayNotNullableDecodeRejectsInvalidShapes(t *testing.T) {
 			var actualStruct example.ArrayNotNullable
 
 			// Act
-			err := actualStruct.UnmarshalJSON([]byte(tt.inputJson))
+			err := actualStruct.UnmarshalJSON([]byte(tt.inputJSON))
 
 			// Assert
 			switch {
@@ -222,38 +226,39 @@ func TestArrayNotNullableDecodeRejectsInvalidShapes(t *testing.T) {
 	}
 }
 
+// TestOptionalArrayNullableDecodeAllowedWays checks accepted optional array forms.
 func TestOptionalArrayNullableDecodeAllowedWays(t *testing.T) {
 	t.Parallel()
 
 	for name, tt := range map[string]struct {
-		inputJson      []byte
+		inputJSON      []byte
 		expectedStruct example.OptionalArrayNullable
 	}{
 		"nil body": {
 			expectedStruct: example.OptionalArrayNullable{},
 		},
 		"empty body": {
-			inputJson:      []byte(""),
+			inputJSON:      []byte(""),
 			expectedStruct: example.OptionalArrayNullable{},
 		},
 		"null array": {
-			inputJson:      []byte(`null`),
+			inputJSON:      []byte(`null`),
 			expectedStruct: example.OptionalArrayNullable{},
 		},
 		"empty array": {
-			inputJson: []byte(`[]`),
+			inputJSON: []byte(`[]`),
 			expectedStruct: example.OptionalArrayNullable{
 				Value: []example.OptionalArrayNullableItem{},
 			},
 		},
 		"single item": {
-			inputJson: []byte(`["one"]`),
+			inputJSON: []byte(`["one"]`),
 			expectedStruct: example.OptionalArrayNullable{
 				Value: []example.OptionalArrayNullableItem{"one"},
 			},
 		},
 		"multiple items": {
-			inputJson: []byte(`["one","two",""]`),
+			inputJSON: []byte(`["one","two",""]`),
 			expectedStruct: example.OptionalArrayNullable{
 				Value: []example.OptionalArrayNullableItem{"one", "two", ""},
 			},
@@ -266,7 +271,7 @@ func TestOptionalArrayNullableDecodeAllowedWays(t *testing.T) {
 			var actualStruct example.OptionalArrayNullable
 
 			// Act
-			err := actualStruct.UnmarshalJSON(tt.inputJson)
+			err := actualStruct.UnmarshalJSON(tt.inputJSON)
 
 			// Assert
 			require.NoError(t, err)
@@ -275,47 +280,48 @@ func TestOptionalArrayNullableDecodeAllowedWays(t *testing.T) {
 	}
 }
 
+// TestOptionalArrayNullableDecodeRejectsInvalidShapes checks rejected optional array forms.
 func TestOptionalArrayNullableDecodeRejectsInvalidShapes(t *testing.T) {
 	t.Parallel()
 
 	for name, tt := range map[string]struct {
-		inputJson   []byte
+		inputJSON   []byte
 		expectedErr error
 	}{
 		"not array string": {
-			inputJson: []byte(`"not-array"`),
+			inputJSON: []byte(`"not-array"`),
 		},
 		"not array object": {
-			inputJson: []byte(`{}`),
+			inputJSON: []byte(`{}`),
 		},
 		"not array number": {
-			inputJson: []byte(`123`),
+			inputJSON: []byte(`123`),
 		},
 		"not array bool": {
-			inputJson: []byte(`true`),
+			inputJSON: []byte(`true`),
 		},
 		"null item": {
-			inputJson:   []byte(`[null]`),
+			inputJSON:   []byte(`[null]`),
 			expectedErr: example.NullForNotNullableStringError,
 		},
 		"number item": {
-			inputJson:   []byte(`[123]`),
+			inputJSON:   []byte(`[123]`),
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"bool item": {
-			inputJson:   []byte(`[false]`),
+			inputJSON:   []byte(`[false]`),
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"object item": {
-			inputJson:   []byte(`[{}]`),
+			inputJSON:   []byte(`[{}]`),
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"array item": {
-			inputJson:   []byte(`[[]]`),
+			inputJSON:   []byte(`[[]]`),
 			expectedErr: example.NonStringForStringSchemaError,
 		},
 		"invalid json": {
-			inputJson: []byte(`[`),
+			inputJSON: []byte(`[`),
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -325,7 +331,7 @@ func TestOptionalArrayNullableDecodeRejectsInvalidShapes(t *testing.T) {
 			var actualStruct example.OptionalArrayNullable
 
 			// Act
-			err := actualStruct.UnmarshalJSON(tt.inputJson)
+			err := actualStruct.UnmarshalJSON(tt.inputJSON)
 
 			// Assert
 			if tt.expectedErr == nil {

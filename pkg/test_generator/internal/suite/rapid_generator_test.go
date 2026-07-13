@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"testing"
 
-	//nolint:depguard // Generator tests inspect exact private JSON numbers.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"

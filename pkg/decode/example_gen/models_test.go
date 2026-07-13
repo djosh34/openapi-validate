@@ -6,6 +6,7 @@ import (
 	"decode_and_validate_generator/pkg/test_generator"
 )
 
+// exampleOpenAPI is the source document for generated model tests.
 var exampleOpenAPI = []byte(`
 openapi: 3.0.3
 info:
@@ -647,86 +648,206 @@ components:
       nullable: false
 `)
 
+// TestStringNoFormatNullable checks the generated decoder.
 func TestStringNoFormatNullable(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "stringNoFormatNullable", func(data []byte) error {
-		var value StringNoFormatNullable
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"stringNoFormatNullable",
+		func(data []byte) error {
+			var value StringNoFormatNullable
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestStringNoFormatNotNullable checks the generated decoder.
 func TestStringNoFormatNotNullable(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "stringNoFormatNotNullable", func(data []byte) error {
-		var value StringNoFormatNotNullable
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"stringNoFormatNotNullable",
+		func(data []byte) error {
+			var value StringNoFormatNotNullable
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestRefStressObjectPut checks the generated decoder.
 func TestRefStressObjectPut(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "refStressObjectPut", func(data []byte) error {
-		var value RefStressObjectPut
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"refStressObjectPut",
+		func(data []byte) error {
+			var value RefStressObjectPut
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestRefStressObject checks the generated decoder.
 func TestRefStressObject(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "refStressObject", func(data []byte) error {
-		var value RefStressObject
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"refStressObject",
+		func(data []byte) error {
+			var value RefStressObject
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestRefObject checks the generated decoder.
 func TestRefObject(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "refObject", func(data []byte) error {
-		var value RefObject
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"refObject",
+		func(data []byte) error {
+			var value RefObject
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestOptionalArrayNullable checks the generated decoder.
 func TestOptionalArrayNullable(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "optionalArrayNullable", func(data []byte) error {
-		var value OptionalArrayNullable
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"optionalArrayNullable",
+		func(data []byte) error {
+			var value OptionalArrayNullable
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestObjectKeysAdditionalPropertiesFalse checks the generated decoder.
 func TestObjectKeysAdditionalPropertiesFalse(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "objectKeysAdditionalPropertiesFalse", func(data []byte) error {
-		var value ObjectKeysAdditionalPropertiesFalse
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"objectKeysAdditionalPropertiesFalse",
+		func(data []byte) error {
+			var value ObjectKeysAdditionalPropertiesFalse
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestNullableObjectKeysAdditionalPropertiesFalse checks the generated decoder.
 func TestNullableObjectKeysAdditionalPropertiesFalse(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "nullableObjectKeysAdditionalPropertiesFalse", func(data []byte) error {
-		var value NullableObjectKeysAdditionalPropertiesFalse
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"nullableObjectKeysAdditionalPropertiesFalse",
+		func(data []byte) error {
+			var value NullableObjectKeysAdditionalPropertiesFalse
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestCompositeObject checks the generated decoder.
 func TestCompositeObject(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "compositeObject", func(data []byte) error {
-		var value CompositeObject
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"compositeObject",
+		func(data []byte) error {
+			var value CompositeObject
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestArrayNullable checks the generated decoder.
 func TestArrayNullable(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "arrayNullable", func(data []byte) error {
-		var value ArrayNullable
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"arrayNullable",
+		func(data []byte) error {
+			var value ArrayNullable
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestArrayNotNullable checks the generated decoder.
 func TestArrayNotNullable(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "arrayNotNullable", func(data []byte) error {
-		var value ArrayNotNullable
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"arrayNotNullable",
+		func(data []byte) error {
+			var value ArrayNotNullable
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }
 
+// TestAllOfObject checks the generated decoder.
 func TestAllOfObject(t *testing.T) {
-	testgenerator.CheckJSONRequestBody(t, exampleOpenAPI, "allOfObject", func(data []byte) error {
-		var value AllOfObject
-		return value.UnmarshalJSON(data)
-	}, testgenerator.DefaultOption)
+	t.Parallel()
+
+	testgenerator.CheckJSONRequestBody(
+		t,
+		exampleOpenAPI,
+		"allOfObject",
+		func(data []byte) error {
+			var value AllOfObject
+
+			return value.UnmarshalJSON(data)
+		},
+		testgenerator.DefaultOption,
+	)
 }

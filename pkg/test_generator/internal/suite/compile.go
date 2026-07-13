@@ -9,9 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	//nolint:depguard // Internal suite architecture intentionally depends on internal/jsonvalue.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
-	//nolint:depguard // Internal suite architecture intentionally depends on internal/oas.
 	"decode_and_validate_generator/pkg/test_generator/internal/oas"
 )
 
@@ -274,8 +272,10 @@ func (compiler *Compiler) applyEnum(
 		}
 	}
 
-	compiler.AtomicDomainBySource[ConstraintSource{Pointer: pointer, Keyword: "enum"}] =
-		compiler.Domains.FindOrAddEquivalentDomain(finiteDomain(atomicValues))
+	compiler.AtomicDomainBySource[ConstraintSource{
+		Pointer: pointer,
+		Keyword: "enum",
+	}] = compiler.Domains.FindOrAddEquivalentDomain(finiteDomain(atomicValues))
 
 	values, err := compiler.compileEnum(raw, *domain, examples.Valid)
 	if err != nil {

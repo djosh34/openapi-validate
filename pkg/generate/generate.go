@@ -6,18 +6,27 @@ import (
 	"path/filepath"
 )
 
+const (
+	// directoryMode configures generator behavior.
+	directoryMode = 0o755
+	// fileMode configures generator behavior.
+	fileMode = 0o644
+)
+
+// FileSet maps generated relative paths to their contents.
 type FileSet map[string][]byte
 
+// WriteToDir writes every generated file below dir.
 func (fs FileSet) WriteToDir(dir string) error {
 	for name, contents := range fs {
 		path := filepath.Join(dir, filepath.FromSlash(name))
 
-		err := os.MkdirAll(filepath.Dir(path), 0o755)
+		err := os.MkdirAll(filepath.Dir(path), directoryMode)
 		if err != nil {
 			return err
 		}
 
-		err = os.WriteFile(path, contents, 0o644)
+		err = os.WriteFile(path, contents, fileMode)
 		if err != nil {
 			return err
 		}
@@ -26,6 +35,7 @@ func (fs FileSet) WriteToDir(dir string) error {
 	return nil
 }
 
+// GenerateInMemory renders the configured models without writing files.
 func (c *GenerateContext) GenerateInMemory() (FileSet, error) {
 	schemas, err := c.JSONRequestBodyModelSchemas()
 	if err != nil {
@@ -57,6 +67,7 @@ func (c *GenerateContext) GenerateInMemory() (FileSet, error) {
 	return fileSet, nil
 }
 
+// openAPISourceForTests returns the source embedded in generated tests.
 func (c *GenerateContext) openAPISourceForTests() ([]byte, error) {
 	if len(c.OpenAPISource) != 0 {
 		return c.OpenAPISource, nil
@@ -70,13 +81,14 @@ func (c *GenerateContext) openAPISourceForTests() ([]byte, error) {
 	return append(openAPI, '\n'), nil
 }
 
+// Generate replaces dir with the generated model files.
 func (c *GenerateContext) Generate(dir string) error {
 	err := os.RemoveAll(dir)
 	if err != nil {
 		return err
 	}
 
-	err = os.MkdirAll(dir, 0o755)
+	err = os.MkdirAll(dir, directoryMode)
 	if err != nil {
 		return err
 	}

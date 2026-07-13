@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"strings"
 
-	//nolint:depguard // Internal suite witness planning intentionally depends on internal/jsonvalue.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 )
 
@@ -200,7 +199,8 @@ func rationalWitnessCandidates(constraints NumberConstraints) []*big.Rat {
 
 	if constraints.Minimum != nil && constraints.Minimum.Value.Rational != nil {
 		minimum := constraints.Minimum.Value.Rational
-		rationals = append(rationals,
+		rationals = append(
+			rationals,
 			new(big.Rat).Set(minimum),
 			new(big.Rat).Add(minimum, big.NewRat(1, halfDenominator)),
 			new(big.Rat).Add(minimum, big.NewRat(1, 1)),
@@ -209,7 +209,8 @@ func rationalWitnessCandidates(constraints NumberConstraints) []*big.Rat {
 
 	if constraints.Maximum != nil && constraints.Maximum.Value.Rational != nil {
 		maximum := constraints.Maximum.Value.Rational
-		rationals = append(rationals,
+		rationals = append(
+			rationals,
 			new(big.Rat).Set(maximum),
 			new(big.Rat).Sub(maximum, big.NewRat(1, halfDenominator)),
 			new(big.Rat).Sub(maximum, big.NewRat(1, 1)),

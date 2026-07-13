@@ -10,6 +10,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
+// LoadOpenapi loads and validates an OpenAPI document for generation.
 func LoadOpenapi(ctx context.Context, path string) (*GenerateContext, error) {
 	openAPISource, err := os.ReadFile(path)
 	if err != nil {
@@ -34,6 +35,7 @@ func LoadOpenapi(ctx context.Context, path string) (*GenerateContext, error) {
 	}, nil
 }
 
+// FilterOperations removes operations not named in operation.
 func (c *GenerateContext) FilterOperations(operation ...string) error {
 	if len(operation) == 0 {
 		return nil
@@ -54,19 +56,7 @@ func (c *GenerateContext) FilterOperations(operation ...string) error {
 			continue
 		}
 
-		for method, openapiOperation := range pathItem.Operations() {
-			if openapiOperation == nil {
-				continue
-			}
-
-			if _, ok := required[openapiOperation.OperationID]; ok {
-				delete(required, openapiOperation.OperationID)
-
-				continue
-			}
-
-			pathItem.SetOperation(method, nil)
-		}
+		filterPathItemOperations(pathItem, required)
 
 		if len(pathItem.Operations()) == 0 {
 			c.Document.Paths.Delete(path)
@@ -78,4 +68,21 @@ func (c *GenerateContext) FilterOperations(operation ...string) error {
 	}
 
 	return nil
+}
+
+// filterPathItemOperations removes operations absent from required.
+func filterPathItemOperations(pathItem *openapi3.PathItem, required map[string]struct{}) {
+	for method, operation := range pathItem.Operations() {
+		if operation == nil {
+			continue
+		}
+
+		if _, ok := required[operation.OperationID]; ok {
+			delete(required, operation.OperationID)
+
+			continue
+		}
+
+		pathItem.SetOperation(method, nil)
+	}
 }

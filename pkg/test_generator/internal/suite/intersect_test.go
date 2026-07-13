@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	//nolint:depguard // Internal suite architecture intentionally depends on internal/jsonvalue.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 	"github.com/stretchr/testify/require"
 )
@@ -222,8 +221,8 @@ func TestCompilerDistinguishesMalformedUnsupportedUnconstructibleAndEmptyAllOf(t
 		schema string
 		code   string
 	}{
-		"malformed":       {schema: `allOf: []`, code: "malformed"},
-		"unsupported":     {schema: `allOf: [{anyOf: [{type: string}]}]`, code: "unsupported"},
+		"malformed":   {schema: `allOf: []`, code: "malformed"},
+		"unsupported": {schema: `allOf: [{anyOf: [{type: string}]}]`, code: "unsupported"},
 		"mixed enum cannot be narrowed": {schema: `pattern: a
 x-valid-examples: [other]
 enum: [1, a]`, code: "unconstructible"},

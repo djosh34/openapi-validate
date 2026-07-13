@@ -1,4 +1,3 @@
-// Package example contains generated decode examples.
 package example
 
 import (
@@ -7,6 +6,7 @@ import (
 	"decode_and_validate_generator/pkg/peekjson"
 )
 
+// Decoder decodes a JSON value and supports standard JSON marshaling.
 type Decoder interface {
 	Decode(decoder *peekjson.Decoder) error
 	json.Marshaler
