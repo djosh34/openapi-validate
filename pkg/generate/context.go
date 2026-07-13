@@ -344,8 +344,9 @@ func (c *GenerateContext) jsonRequestBodies() ([]jsonRequestBody, error) {
 			continue
 		}
 
-		for _, operation := range pathItem.Operations() {
-			requestBody, ok := requestBodyForOperation(operation)
+		operations := pathItem.Operations()
+		for _, method := range slices.Sorted(maps.Keys(operations)) {
+			requestBody, ok := requestBodyForOperation(operations[method])
 			if ok {
 				requestBodies = append(requestBodies, requestBody)
 			}

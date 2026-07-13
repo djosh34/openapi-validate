@@ -251,3 +251,36 @@ func TestJSONRequestBodySchemasSupportsHTTPMethods(t *testing.T) {
 		operation: schema,
 	}, schemas)
 }
+
+// TestJSONRequestBodyModelSchemasOrdersMethods keeps generated output deterministic.
+func TestJSONRequestBodyModelSchemasOrdersMethods(t *testing.T) {
+	t.Parallel()
+
+	pathItem := new(openapi3.PathItem)
+
+	for method, operationID := range map[string]string{
+		http.MethodPut:  "putBody",
+		http.MethodGet:  "getBody",
+		http.MethodPost: "postBody",
+	} {
+		operation := operationWithContent(
+			operationID,
+			openapi3.NewContentWithJSONSchema(openapi3.NewStringSchema()),
+		)
+		pathItem.SetOperation(method, operation)
+	}
+
+	generateContext := &GenerateContext{
+		Document: &openapi3.T{
+			Paths: openapi3.NewPaths(openapi3.WithPath("/multi-method", pathItem)),
+		},
+	}
+
+	_, err := generateContext.JSONRequestBodyModelSchemas()
+	require.NoError(t, err)
+	require.Equal(t, []JSONRequestBodyOperation{
+		{OperationID: "getBody", TypeName: "GetBody"},
+		{OperationID: "postBody", TypeName: "PostBody"},
+		{OperationID: "putBody", TypeName: "PutBody"},
+	}, generateContext.JSONRequestBodyOperations)
+}
