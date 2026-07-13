@@ -13,7 +13,7 @@ import (
 // CompileOption configures a Compiler.
 type CompileOption func(*Compiler)
 
-// MustHaveAllXValidCases rejects suites with any understood but unconstructible case obligation.
+// MustHaveAllXValidCases rejects allOf string merges without a shared trusted valid example.
 func MustHaveAllXValidCases(compiler *Compiler) {
 	compiler.mustHaveAllXValidCases = true
 }
@@ -45,20 +45,6 @@ func (compiler *Compiler) CompileSuite(options ...CompileOption) (*CompiledSuite
 	}
 
 	planner.markUnconstructibleConstraints(linked)
-
-	if compiler.mustHaveAllXValidCases {
-		for _, constraint := range planner.Constraints {
-			if constraint.Outcome == ObligationUnconstructible {
-				return nil, compiler.failure(
-					"generate",
-					"unconstructible",
-					constraint.Source.Pointer,
-					constraint.Source.Keyword,
-					errors.New(constraint.Reason),
-				)
-			}
-		}
-	}
 
 	if err := compiler.requireAcceptedCase(root, linked); err != nil {
 		return nil, err

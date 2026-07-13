@@ -14,7 +14,7 @@ import (
 // Option configures request-body case generation.
 type Option func(*suite.Compiler)
 
-// MustHaveAllXValidCases fails before validation if any understood case obligation is unconstructible.
+// MustHaveAllXValidCases rejects allOf string merges without a shared trusted valid example.
 func MustHaveAllXValidCases(compiler *suite.Compiler) {
 	suite.MustHaveAllXValidCases(compiler)
 }
