@@ -11,51 +11,57 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// PrettyDiff prints a colored line diff for a failed test.
 func PrettyDiff(t *testing.T, expected, actual string) {
 	t.Helper()
 
-	fmt.Print(coloredStandardDiff(expected, actual))
+	_, err := fmt.Print(coloredStandardDiff(expected, actual))
+	require.NoError(t, err)
 }
 
+// coloredStandardDiff returns a colored unified diff.
 func coloredStandardDiff(expected, actual string) string {
 	expectedLines := diffInputLines(expected)
 	actualLines := diffInputLines(actual)
 	alignedLines := diff.AlignLines(expectedLines, actualLines, diff.NewOptions())
 
-	var builder strings.Builder
-	builder.WriteString(coloredDiffLine(ansiRed, "--- expected"))
-	builder.WriteString(coloredDiffLine(ansiGreen, "+++ actual"))
-	builder.WriteString(coloredDiffLine(
-		ansiCyan,
-		fmt.Sprintf("@@ -1,%d +1,%d @@", len(expectedLines), len(actualLines)),
-	))
+	output := []string{
+		coloredDiffLine(ansiRed, "--- expected"),
+		coloredDiffLine(ansiGreen, "+++ actual"),
+		coloredDiffLine(
+			ansiCyan,
+			fmt.Sprintf("@@ -1,%d +1,%d @@", len(expectedLines), len(actualLines)),
+		),
+	}
 
 	for _, alignedLine := range alignedLines {
 		if alignedLine.Type == diff.DiffEqual {
-			builder.WriteString(" ")
-			builder.WriteString(alignedLine.Left)
-			builder.WriteString("\n")
+			output = append(output, " ", alignedLine.Left, "\n")
 
 			continue
 		}
 
 		if alignedLine.Left != "" {
-			builder.WriteString(coloredDiffLine(ansiRed, "-"+alignedLine.Left))
+			output = append(output, coloredDiffLine(ansiRed, "-"+alignedLine.Left))
 		}
 
 		if alignedLine.Right != "" {
-			builder.WriteString(coloredDiffLine(ansiGreen, "+"+alignedLine.Right))
+			output = append(output, coloredDiffLine(ansiGreen, "+"+alignedLine.Right))
 		}
 
 		if alignedLine.Left == "" && alignedLine.Right == "" {
-			builder.WriteString(coloredDiffLine(ansiRed, "-"))
-			builder.WriteString(coloredDiffLine(ansiGreen, "+"))
+			output = append(
+				output,
+				coloredDiffLine(ansiRed, "-"),
+				coloredDiffLine(ansiGreen, "+"),
+			)
 		}
 	}
 
-	return builder.String()
+	return strings.Join(output, "")
 }
 
+// diffInputLines splits input without a final empty line.
 func diffInputLines(input string) []string {
 	if input == "" {
 		return nil
@@ -69,10 +75,12 @@ func diffInputLines(input string) []string {
 	return lines
 }
 
+// coloredDiffLine decorates one diff line with an ANSI color.
 func coloredDiffLine(color string, line string) string {
 	return color + line + ansiReset + "\n"
 }
 
+// comparableFiles lists regular fixture files outside exceptions.
 func comparableFiles(t *testing.T, root string, exceptions map[string]struct{}) map[string]struct{} {
 	t.Helper()
 
@@ -114,6 +122,7 @@ func comparableFiles(t *testing.T, root string, exceptions map[string]struct{}) 
 	return files
 }
 
+// exceptedPath reports whether rel is excluded from fixture comparison.
 func exceptedPath(rel string, exceptions map[string]struct{}) bool {
 	if _, ok := exceptions[rel]; ok {
 		return true

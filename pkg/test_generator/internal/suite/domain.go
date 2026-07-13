@@ -4,7 +4,6 @@ package suite
 import (
 	"fmt"
 
-	//nolint:depguard // Internal suite architecture intentionally depends on internal/jsonvalue.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 	"pgregory.net/rapid"
 )

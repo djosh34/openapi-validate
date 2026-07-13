@@ -5,9 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	//nolint:depguard // Internal suite architecture intentionally depends on internal/jsonvalue.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
-	//nolint:depguard // Internal suite architecture intentionally depends on internal/oas.
 	"decode_and_validate_generator/pkg/test_generator/internal/oas"
 	"github.com/stretchr/testify/require"
 )

@@ -245,7 +245,8 @@ func typeNullableEnumCorpus() []validatorCorpusFixture {
 		fixtures = append(fixtures, corpusFixture(corpusCategoryTypes, variant.id, variant.schema))
 	}
 
-	fixtures = append(fixtures,
+	fixtures = append(
+		fixtures,
 		corpusFixture(corpusCategoryTypes, "enum-homogeneous-boolean", `
       type: boolean
       enum: [true, false]
@@ -470,7 +471,8 @@ func numericCorpus() []validatorCorpusFixture {
 		}
 	}
 
-	fixtures = append(fixtures,
+	fixtures = append(
+		fixtures,
 		corpusFixture(corpusCategoryNumeric, "integer-nullable-enum-bounds", `
       type: integer
       nullable: true
@@ -613,7 +615,8 @@ func stringCorpus() []validatorCorpusFixture {
 		))
 	}
 
-	fixtures = append(fixtures,
+	fixtures = append(
+		fixtures,
 		corpusFixture(corpusCategoryStrings, "format-byte-valid", `
       type: string
       format: byte

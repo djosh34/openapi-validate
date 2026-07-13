@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	//nolint:depguard // allOf compilation intentionally depends on internal/jsonvalue.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
-	//nolint:depguard // allOf compilation intentionally consumes located internal/oas schemas.
 	"decode_and_validate_generator/pkg/test_generator/internal/oas"
 )
 

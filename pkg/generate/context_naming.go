@@ -2,10 +2,10 @@ package generate
 
 import (
 	"fmt"
-	"strings"
 	"unicode"
 )
 
+// namedSchemaDefinitions assigns names and returns every schema definition.
 func namedSchemaDefinitions(schema Schema) ([]Schema, error) {
 	var definitions []Schema
 
@@ -17,6 +17,7 @@ func namedSchemaDefinitions(schema Schema) ([]Schema, error) {
 	return definitions, nil
 }
 
+// nameSchema assigns a parent-qualified name and recursively collects children.
 func nameSchema(schema Schema, parentName string, definitions *[]Schema) error {
 	if schema == nil {
 		return fmt.Errorf("nil schema")
@@ -45,42 +46,44 @@ func nameSchema(schema Schema, parentName string, definitions *[]Schema) error {
 	return nil
 }
 
+// exportedName converts name to an exported Go identifier.
 func exportedName(name string) string {
 	return identifierName(name, true)
 }
 
+// unexportedName converts name to an unexported Go identifier.
 func unexportedName(name string) string {
 	return identifierName(name, false)
 }
 
+// identifierName converts arbitrary text to a Go identifier.
 func identifierName(name string, exported bool) string {
-	var out strings.Builder
+	var out []rune
 
 	upperNext := exported
 
-	for _, r := range name {
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+	for _, character := range name {
+		if !unicode.IsLetter(character) && !unicode.IsDigit(character) {
 			upperNext = true
 
 			continue
 		}
 
-		if out.Len() == 0 && unicode.IsDigit(r) {
-			out.WriteString("Schema")
+		if len(out) == 0 && unicode.IsDigit(character) {
+			out = append(out, []rune("Schema")...)
 		}
 
 		if upperNext {
-			out.WriteRune(unicode.ToUpper(r))
-
+			out = append(out, unicode.ToUpper(character))
 			upperNext = false
 
 			continue
 		}
 
-		out.WriteRune(r)
+		out = append(out, character)
 	}
 
-	if out.Len() == 0 {
+	if len(out) == 0 {
 		if exported {
 			return "Schema"
 		}
@@ -89,11 +92,10 @@ func identifierName(name string, exported bool) string {
 	}
 
 	if exported {
-		return out.String()
+		return string(out)
 	}
 
-	runes := []rune(out.String())
-	runes[0] = unicode.ToLower(runes[0])
+	out[0] = unicode.ToLower(out[0])
 
-	return string(runes)
+	return string(out)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// GetRepoRoot supports generator tests.
 func GetRepoRoot(t *testing.T) string {
 	t.Helper()
 
@@ -31,30 +33,39 @@ func GetRepoRoot(t *testing.T) string {
 	}
 }
 
+// exampleOpenAPIPath supports generator tests.
 func exampleOpenAPIPath(t *testing.T) string {
 	t.Helper()
 
 	return filepath.Join(GetRepoRoot(t), "resources", "openapi.yaml")
 }
 
+// TestGenerateExample exercises the named generator behavior.
 func TestGenerateExample(t *testing.T) {
+	t.Parallel()
+
 	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
 
-	generateOutputDir := filepath.Join(GetRepoRoot(t), "pkg", "decode", "example_gen")
+	generateOutputDir := t.TempDir()
 
 	err = GenerateWithPathError(t, generateContext, generateOutputDir)
 	require.NoError(t, err)
 }
 
+// SharedGenerateExampleMatchesFixture supports generator tests.
 func SharedGenerateExampleMatchesFixture(t *testing.T, regen bool) {
 	t.Helper()
 
 	repoRoot := GetRepoRoot(t)
 	exampleDir := filepath.Join(repoRoot, "pkg", "decode", "example")
 	openapiExamplePath := exampleOpenAPIPath(t)
-	generateOutputDir := filepath.Join(repoRoot, "pkg", "decode", "example_gen")
+
+	generateOutputDir := filepath.Join(t.TempDir(), "example_gen")
+	if regen {
+		generateOutputDir = filepath.Join(repoRoot, "pkg", "decode", "example_gen")
+	}
 
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
@@ -73,13 +84,19 @@ func SharedGenerateExampleMatchesFixture(t *testing.T, regen bool) {
 	}, regen)
 }
 
+// TestGenerateExampleMatchesFixture_NoRegen exercises the named generator behavior.
 func TestGenerateExampleMatchesFixture_NoRegen(t *testing.T) {
+	t.Parallel()
+
 	SharedGenerateExampleMatchesFixture(t, false)
 }
 
+// TestGenerateExampleMatchesFixture_Regen exercises the named generator behavior.
+//
+//nolint:paralleltest // Direct regeneration intentionally updates the checked-in fixture.
 func TestGenerateExampleMatchesFixture_Regen(t *testing.T) {
 	name := t.Name()
-	fmt.Println(name)
+	t.Log(name)
 
 	if len(os.Args) == 0 {
 		return
@@ -105,7 +122,10 @@ func TestGenerateExampleMatchesFixture_Regen(t *testing.T) {
 	t.Skip("Intentionally no regen, when not ran directly")
 }
 
+// TestGeneratePopulatesOperationsMap exercises the named generator behavior.
 func TestGeneratePopulatesOperationsMap(t *testing.T) {
+	t.Parallel()
+
 	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
@@ -187,7 +207,10 @@ func TestGeneratePopulatesOperationsMap(t *testing.T) {
 	}, operations)
 }
 
+// TestStringSchemaGenerateRequiredNotNullableString exercises the named generator behavior.
 func TestStringSchemaGenerateRequiredNotNullableString(t *testing.T) {
+	t.Parallel()
+
 	schema := &StringSchema{
 		BaseSchema: BaseSchema{Name: "RequiredNotNullableString"},
 	}
@@ -195,27 +218,42 @@ func TestStringSchemaGenerateRequiredNotNullableString(t *testing.T) {
 	generated, err := schema.Generate()
 	require.NoError(t, err)
 
-	require.Equal(t, `type RequiredNotNullableString string
+	require.Equal(t, `// RequiredNotNullableString is generated.
+type RequiredNotNullableString string
 
 var _ json.Unmarshaler = new(RequiredNotNullableString)
 
+// UnmarshalJSON decodes JSON into the model.
 func (s *RequiredNotNullableString) UnmarshalJSON(data []byte) error {
 	if bytes.Equal(data, jsonNull) {
 		return NullForNotNullableStringError
 	}
 
 	var value string
+
 	err := json.Unmarshal(data, &value)
 	if err != nil {
 		return NonStringForStringSchemaError
 	}
+
+
+
 	*s = RequiredNotNullableString(value)
+
 	return nil
+}
+
+// jsonFields returns fields promoted when the model is embedded in allOf.
+func (s RequiredNotNullableString) jsonFields() []jsonField {
+	return []jsonField{requiredJSONField("RequiredNotNullableString", s)}
 }
 `, generated)
 }
 
+// TestAllOfSchemaGenerate exercises the named generator behavior.
 func TestAllOfSchemaGenerate(t *testing.T) {
+	t.Parallel()
+
 	schema := &AllOfSchema{
 		BaseSchema: BaseSchema{Name: "AllOfObject"},
 		Schemas: []Schema{
@@ -227,28 +265,55 @@ func TestAllOfSchemaGenerate(t *testing.T) {
 	generated, err := schema.Generate()
 	require.NoError(t, err)
 
-	require.Equal(t, `type AllOfObject struct {
+	require.Equal(t, `// AllOfObject is generated.
+type AllOfObject struct {
 	AllOfObjectFirst
 	AllOfObjectSecond
 }
 
-var _ json.Unmarshaler = (*AllOfObject)(nil)
+var (
+	_ json.Unmarshaler = (*AllOfObject)(nil)
+	_ json.Marshaler = AllOfObject{}
+)
 
+// UnmarshalJSON decodes JSON into every allOf member.
 func (a *AllOfObject) UnmarshalJSON(data []byte) error {
 	var errs []error
 	if err := a.AllOfObjectFirst.UnmarshalJSON(data); err != nil {
 		errs = append(errs, err)
 	}
+
+
 	if err := a.AllOfObjectSecond.UnmarshalJSON(data); err != nil {
 		errs = append(errs, err)
 	}
 
+
 	return errors.Join(errs...)
+}
+
+// MarshalJSON encodes every member as one JSON object.
+func (a AllOfObject) MarshalJSON() ([]byte, error) {
+	return marshalJSONFields(a.jsonFields())
+}
+
+// jsonFields returns the JSON fields promoted by the allOf model.
+func (a AllOfObject) jsonFields() []jsonField {
+	var fields []jsonField
+
+fields = appendEmbeddedJSONFields(fields, a.AllOfObjectFirst)
+fields = appendEmbeddedJSONFields(fields, a.AllOfObjectSecond)
+
+
+	return fields
 }
 `, generated)
 }
 
+// TestSchemaFromOpenAPISchemaAllOf exercises the named generator behavior.
 func TestSchemaFromOpenAPISchemaAllOf(t *testing.T) {
+	t.Parallel()
+
 	schema, err := SchemaFromOpenAPISchema(&openapi3.Schema{
 		AllOf: openapi3.SchemaRefs{
 			{
@@ -322,7 +387,10 @@ func TestSchemaFromOpenAPISchemaAllOf(t *testing.T) {
 	}, definitions)
 }
 
+// TestObjectSchemaGenerateObjectKeysAdditionalPropertiesFalse exercises the named generator behavior.
 func TestObjectSchemaGenerateObjectKeysAdditionalPropertiesFalse(t *testing.T) {
+	t.Parallel()
+
 	schema := &ObjectSchema{
 		BaseSchema:           BaseSchema{Name: "ObjectKeysAdditionalPropertiesFalse"},
 		AdditionalProperties: false,
@@ -359,101 +427,195 @@ func TestObjectSchemaGenerateObjectKeysAdditionalPropertiesFalse(t *testing.T) {
 	generated, err := schema.Generate()
 	require.NoError(t, err)
 
-	require.Equal(t, `type ObjectKeysAdditionalPropertiesFalse struct {
-	OptionalNotNullableString *OptionalNotNullableString `+"`"+`json:"optionalNotNullableString,omitzero"`+"`"+`
-	OptionalNullableString *OptionalNullableString `+"`"+`json:"optionalNullableString,omitzero"`+"`"+`
-	RequiredNotNullableString RequiredNotNullableString `+"`"+`json:"requiredNotNullableString"`+"`"+`
-	RequiredNullableString RequiredNullableString `+"`"+`json:"requiredNullableString"`+"`"+`
+	require.Contains(t, generated, "type ObjectKeysAdditionalPropertiesFalse struct {")
+	require.Contains(t, generated, `requiredObjectProperty("requiredNullableString", &o.RequiredNullableString)`)
+	require.Contains(t, generated, "return marshalJSONFields(o.jsonFields())")
+	require.NotContains(t, generated, "switch name")
+	require.NotContains(t, generated, "`json:")
 }
 
-var _ json.Unmarshaler = (*ObjectKeysAdditionalPropertiesFalse)(nil)
+// TestGeneratedAllOfMarshalPrefersAnonymousScalarOverPromotedObjectField preserves encoding/json field depth.
+func TestGeneratedAllOfMarshalPrefersAnonymousScalarOverPromotedObjectField(t *testing.T) {
+	t.Parallel()
 
-func (o *ObjectKeysAdditionalPropertiesFalse) UnmarshalJSON(data []byte) error {
-	d := json.NewDecoder(bytes.NewReader(data))
-	d.UseNumber()
+	operation := operationWithContent(
+		"marshalDominantScalarAllOf",
+		openapi3.NewContentWithJSONSchema(&openapi3.Schema{
+			AllOf: openapi3.SchemaRefs{
+				{Value: openapi3.NewStringSchema()},
+				{Value: &openapi3.Schema{
+					Type:     &openapi3.Types{openapi3.TypeObject},
+					Required: []string{"MarshalDominantScalarAllOfAllOf1"},
+					Properties: openapi3.Schemas{
+						"MarshalDominantScalarAllOfAllOf1": {
+							Value: openapi3.NewStringSchema(),
+						},
+					},
+				}},
+			},
+		}),
+	)
+	generateContext := &GenerateContext{
+		Document: &openapi3.T{
+			Paths: openapi3.NewPaths(openapi3.WithPath(
+				"/marshal-dominant-scalar-all-of",
+				&openapi3.PathItem{Post: operation},
+			)),
+		},
+		OpenAPISource: []byte("{}"),
+	}
 
-	tok, err := d.Token()
+	files, err := generateContext.GenerateInMemory()
+	require.NoError(t, err)
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "models.go"), files["models.go"], fileMode))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "models_test.go"),
+		[]byte(`package example
+
+import (
+	"encoding/json"
+	"testing"
+)
+
+func TestMarshalDominantField(t *testing.T) {
+	model := MarshalDominantScalarAllOf{
+		MarshalDominantScalarAllOfAllOf1: "scalar",
+		MarshalDominantScalarAllOfAllOf2: MarshalDominantScalarAllOfAllOf2{
+			MarshalDominantScalarAllOfAllOf1: "object",
+		},
+	}
+
+	data, err := json.Marshal(model)
 	if err != nil {
-		return err
+		t.Fatal(err)
 	}
-	if tok != json.Delim('{') {
-		return NotAnObjectError
+	if string(data) != "{\"MarshalDominantScalarAllOfAllOf1\":\"scalar\"}" {
+		t.Fatalf("unexpected JSON: %s", data)
 	}
-	var hasRequiredNotNullableString bool
-	var hasRequiredNullableString bool
-
-	for d.More() {
-		nameTok, nameErr := d.Token()
-		if nameErr != nil {
-			return nameErr
-		}
-
-		name := nameTok.(string)
-
-		var value json.RawMessage
-		err = d.Decode(&value)
-		if err != nil {
-			return err
-		}
-
-		switch name {
-		case "optionalNotNullableString":
-
-			var optionalNotNullableString OptionalNotNullableString
-			err = json.Unmarshal(value, &optionalNotNullableString)
-			if err != nil {
-				return err
-			}
-			o.OptionalNotNullableString = &optionalNotNullableString
-		case "optionalNullableString":
-
-			var optionalNullableString OptionalNullableString
-			err = json.Unmarshal(value, &optionalNullableString)
-			if err != nil {
-				return err
-			}
-			o.OptionalNullableString = &optionalNullableString
-		case "requiredNotNullableString":
-			hasRequiredNotNullableString = true
-
-			var requiredNotNullableString RequiredNotNullableString
-			err = json.Unmarshal(value, &requiredNotNullableString)
-			if err != nil {
-				return err
-			}
-			o.RequiredNotNullableString = requiredNotNullableString
-		case "requiredNullableString":
-			hasRequiredNullableString = true
-
-			var requiredNullableString RequiredNullableString
-			err = json.Unmarshal(value, &requiredNullableString)
-			if err != nil {
-				return err
-			}
-			o.RequiredNullableString = requiredNullableString
-		default:
-			return fmt.Errorf("%w: %s", AdditionalPropertyError, name)
-		}
-	}
-	if _, err := d.Token(); err != nil {
-		return err
-	}
-	if len(bytes.TrimSpace(data[d.InputOffset():])) != 0 {
-		return NotAnObjectError
-	}
-	if !hasRequiredNotNullableString {
-		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "requiredNotNullableString")
-	}
-	if !hasRequiredNullableString {
-		return fmt.Errorf("%w: %s", MissingRequiredPropertyError, "requiredNullableString")
-	}
-
-	return nil
 }
-`, generated)
+`),
+		fileMode,
+	))
+
+	command := exec.CommandContext(t.Context(), "go", "test", "-count=1", ".")
+	command.Dir = dir
+
+	command.Env = append(os.Environ(), "GO111MODULE=off")
+	output, err := command.CombinedOutput()
+	require.NoError(t, err, string(output))
 }
 
+// TestGeneratedAllOfMarshalPrefersTaggedObjectFieldAtSameDepth preserves encoding/json tag dominance.
+func TestGeneratedAllOfMarshalPrefersTaggedObjectFieldAtSameDepth(t *testing.T) {
+	t.Parallel()
+
+	operation := operationWithContent(
+		"marshalTaggedFieldAllOf",
+		openapi3.NewContentWithJSONSchema(&openapi3.Schema{
+			AllOf: openapi3.SchemaRefs{
+				{Value: &openapi3.Schema{
+					AllOf: openapi3.SchemaRefs{{Value: openapi3.NewStringSchema()}},
+				}},
+				{Value: &openapi3.Schema{
+					Type:     &openapi3.Types{openapi3.TypeObject},
+					Required: []string{"MarshalTaggedFieldAllOfAllOf1AllOf1"},
+					Properties: openapi3.Schemas{
+						"MarshalTaggedFieldAllOfAllOf1AllOf1": {
+							Value: openapi3.NewStringSchema(),
+						},
+					},
+				}},
+			},
+		}),
+	)
+	generateContext := &GenerateContext{
+		Document: &openapi3.T{
+			Paths: openapi3.NewPaths(openapi3.WithPath(
+				"/marshal-tagged-field-all-of",
+				&openapi3.PathItem{Post: operation},
+			)),
+		},
+		OpenAPISource: []byte("{}"),
+	}
+
+	files, err := generateContext.GenerateInMemory()
+	require.NoError(t, err)
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "models.go"), files["models.go"], fileMode))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "models_test.go"),
+		[]byte(`package example
+
+import (
+	"encoding/json"
+	"testing"
+)
+
+type BaselineField string
+
+type BaselineNested struct {
+	BaselineField
+}
+
+type BaselineObject struct {
+	Value string `+"`json:\"BaselineField\"`"+`
+}
+
+type BaselineRoot struct {
+	BaselineNested
+	BaselineObject
+}
+
+func TestMarshalTaggedField(t *testing.T) {
+	baseline, err := json.Marshal(BaselineRoot{
+		BaselineNested: BaselineNested{BaselineField: "scalar"},
+		BaselineObject: BaselineObject{Value: "object"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := "{\"BaselineField\":\"object\"}"
+	if string(baseline) != expected {
+		t.Fatalf("unexpected encoding/json baseline: %s", baseline)
+	}
+
+	model := MarshalTaggedFieldAllOf{
+		MarshalTaggedFieldAllOfAllOf1: MarshalTaggedFieldAllOfAllOf1{
+			MarshalTaggedFieldAllOfAllOf1AllOf1: "scalar",
+		},
+		MarshalTaggedFieldAllOfAllOf2: MarshalTaggedFieldAllOfAllOf2{
+			MarshalTaggedFieldAllOfAllOf1AllOf1: "object",
+		},
+	}
+
+	data, err := json.Marshal(model)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected = "{\"MarshalTaggedFieldAllOfAllOf1AllOf1\":\"object\"}"
+	if string(data) != expected {
+		t.Fatalf("unexpected generated JSON: %s", data)
+	}
+}
+`),
+		fileMode,
+	))
+
+	command := exec.CommandContext(t.Context(), "go", "test", "-count=1", ".")
+	command.Dir = dir
+
+	command.Env = append(os.Environ(), "GO111MODULE=off")
+	output, err := command.CombinedOutput()
+	require.NoError(t, err, string(output))
+}
+
+// TestFilterOperationsKeepsOnlyRequestedOperation exercises the named generator behavior.
 func TestFilterOperationsKeepsOnlyRequestedOperation(t *testing.T) {
+	t.Parallel()
+
 	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
@@ -461,13 +623,20 @@ func TestFilterOperationsKeepsOnlyRequestedOperation(t *testing.T) {
 	err = generateContext.FilterOperations("objectKeysAdditionalPropertiesFalse")
 	require.NoError(t, err)
 
-	require.Equal(t, []string{"/object-keys-additional-properties-false"}, generateContext.Document.Paths.InMatchingOrder())
+	require.Equal(
+		t,
+		[]string{"/object-keys-additional-properties-false"},
+		generateContext.Document.Paths.InMatchingOrder(),
+	)
 	operation := generateContext.Document.Paths.Value("/object-keys-additional-properties-false").Post
 	require.NotNil(t, operation)
 	require.Equal(t, "objectKeysAdditionalPropertiesFalse", operation.OperationID)
 }
 
+// TestFilterOperationsReturnsErrorWhenOperationMissing exercises the named generator behavior.
 func TestFilterOperationsReturnsErrorWhenOperationMissing(t *testing.T) {
+	t.Parallel()
+
 	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
@@ -476,6 +645,7 @@ func TestFilterOperationsReturnsErrorWhenOperationMissing(t *testing.T) {
 	require.ErrorContains(t, err, "operation not found: [notAnOperation]")
 }
 
+// requireSameFiles supports generator tests.
 func requireSameFiles(t *testing.T, expectedDir string, actualDir string, exceptions []string, regen bool) {
 	t.Helper()
 

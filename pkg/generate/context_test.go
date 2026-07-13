@@ -8,11 +8,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestJSONRequestBodySchemasKeepsOnlyOperationsWithJSONBodySchema exercises the named generator behavior.
 func TestJSONRequestBodySchemasKeepsOnlyOperationsWithJSONBodySchema(t *testing.T) {
+	t.Parallel()
+
 	jsonSchema := openapi3.NewStringSchema()
 	jsonOperation := operationWithContent("jsonBody", openapi3.NewContentWithJSONSchema(jsonSchema))
 	noRequestBodyOperation := &openapi3.Operation{OperationID: "noRequestBody"}
-	noJSONOperation := operationWithContent("noJSON", openapi3.NewContentWithSchema(openapi3.NewStringSchema(), []string{"text/plain"}))
+	noJSONOperation := operationWithContent(
+		"noJSON",
+		openapi3.NewContentWithSchema(openapi3.NewStringSchema(), []string{"text/plain"}),
+	)
 	noSchemaOperation := operationWithContent("noSchema", openapi3.Content{
 		"application/json": openapi3.NewMediaType(),
 	})
@@ -36,7 +42,10 @@ func TestJSONRequestBodySchemasKeepsOnlyOperationsWithJSONBodySchema(t *testing.
 	}, schemas)
 }
 
+// TestJSONRequestBodyModelSchemasConvertsRequestBodySchemas exercises the named generator behavior.
 func TestJSONRequestBodyModelSchemasConvertsRequestBodySchemas(t *testing.T) {
+	t.Parallel()
+
 	openapiExamplePath := exampleOpenAPIPath(t)
 	generateContext, err := LoadOpenapi(t.Context(), openapiExamplePath)
 	require.NoError(t, err)
@@ -92,7 +101,10 @@ func TestJSONRequestBodyModelSchemasConvertsRequestBodySchemas(t *testing.T) {
 	}, schemas)
 }
 
+// TestJSONRequestBodyModelSchemasAllowsEmptyBodyWhenRequestBodyIsOptional exercises the named generator behavior.
 func TestJSONRequestBodyModelSchemasAllowsEmptyBodyWhenRequestBodyIsOptional(t *testing.T) {
+	t.Parallel()
+
 	schema := openapi3.NewArraySchema()
 	schema.WithItems(openapi3.NewStringSchema())
 
@@ -122,7 +134,10 @@ func TestJSONRequestBodyModelSchemasAllowsEmptyBodyWhenRequestBodyIsOptional(t *
 	}, schemas)
 }
 
+// TestSchemaFromOpenAPISchemaRecursesObjectProperties exercises the named generator behavior.
 func TestSchemaFromOpenAPISchemaRecursesObjectProperties(t *testing.T) {
+	t.Parallel()
+
 	nestedSchema := openapi3.NewObjectSchema()
 	nestedSchema.WithProperty("child", openapi3.NewStringSchema().WithNullable())
 
@@ -165,7 +180,10 @@ func TestSchemaFromOpenAPISchemaRecursesObjectProperties(t *testing.T) {
 	}, generatedSchema)
 }
 
+// TestSchemaFromOpenAPISchemaConvertsArrayItems exercises the named generator behavior.
 func TestSchemaFromOpenAPISchemaConvertsArrayItems(t *testing.T) {
+	t.Parallel()
+
 	schema := openapi3.NewArraySchema().WithNullable()
 	schema.WithItems(openapi3.NewStringSchema())
 
@@ -180,7 +198,10 @@ func TestSchemaFromOpenAPISchemaConvertsArrayItems(t *testing.T) {
 	}, generatedSchema)
 }
 
+// TestSchemaFromOpenAPISchemaConvertsAdditionalPropertiesSchema exercises the named generator behavior.
 func TestSchemaFromOpenAPISchemaConvertsAdditionalPropertiesSchema(t *testing.T) {
+	t.Parallel()
+
 	schema := openapi3.NewObjectSchema()
 	schema.WithAdditionalProperties(openapi3.NewStringSchema().WithNullable())
 
@@ -196,6 +217,7 @@ func TestSchemaFromOpenAPISchemaConvertsAdditionalPropertiesSchema(t *testing.T)
 	}, generatedSchema)
 }
 
+// operationWithContent supports generator tests.
 func operationWithContent(operationID string, content openapi3.Content) *openapi3.Operation {
 	return &openapi3.Operation{
 		OperationID: operationID,
@@ -207,7 +229,10 @@ func operationWithContent(operationID string, content openapi3.Content) *openapi
 	}
 }
 
+// TestJSONRequestBodySchemasSupportsHTTPMethods exercises the named generator behavior.
 func TestJSONRequestBodySchemasSupportsHTTPMethods(t *testing.T) {
+	t.Parallel()
+
 	schema := openapi3.NewStringSchema()
 	operation := operationWithContent("putBody", openapi3.NewContentWithJSONSchema(schema))
 	pathItem := new(openapi3.PathItem)
@@ -225,4 +250,37 @@ func TestJSONRequestBodySchemasSupportsHTTPMethods(t *testing.T) {
 	require.Equal(t, map[*openapi3.Operation]*openapi3.Schema{
 		operation: schema,
 	}, schemas)
+}
+
+// TestJSONRequestBodyModelSchemasOrdersMethods keeps generated output deterministic.
+func TestJSONRequestBodyModelSchemasOrdersMethods(t *testing.T) {
+	t.Parallel()
+
+	pathItem := new(openapi3.PathItem)
+
+	for method, operationID := range map[string]string{
+		http.MethodPut:  "putBody",
+		http.MethodGet:  "getBody",
+		http.MethodPost: "postBody",
+	} {
+		operation := operationWithContent(
+			operationID,
+			openapi3.NewContentWithJSONSchema(openapi3.NewStringSchema()),
+		)
+		pathItem.SetOperation(method, operation)
+	}
+
+	generateContext := &GenerateContext{
+		Document: &openapi3.T{
+			Paths: openapi3.NewPaths(openapi3.WithPath("/multi-method", pathItem)),
+		},
+	}
+
+	_, err := generateContext.JSONRequestBodyModelSchemas()
+	require.NoError(t, err)
+	require.Equal(t, []JSONRequestBodyOperation{
+		{OperationID: "getBody", TypeName: "GetBody"},
+		{OperationID: "postBody", TypeName: "PostBody"},
+		{OperationID: "putBody", TypeName: "PutBody"},
+	}, generateContext.JSONRequestBodyOperations)
 }

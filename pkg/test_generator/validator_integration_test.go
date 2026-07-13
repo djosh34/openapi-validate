@@ -6,9 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	//nolint:depguard // The test-only harness compiles the generator's internal CasePlans once per fixture.
 	"decode_and_validate_generator/pkg/test_generator/internal/oas"
-	//nolint:depguard // The test-only harness executes the generator's internal CasePlans once per fixture.
 	"decode_and_validate_generator/pkg/test_generator/internal/suite"
 	"pgregory.net/rapid"
 )

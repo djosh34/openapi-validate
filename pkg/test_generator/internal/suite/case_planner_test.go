@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	//nolint:depguard // Internal suite tests intentionally inspect exact JSON values.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 	"github.com/stretchr/testify/require"
 )

@@ -1,3 +1,4 @@
+// Package generate creates Go request-body models from OpenAPI documents.
 package generate
 
 import (
@@ -8,39 +9,48 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
+// GenerateContext contains an OpenAPI document and generation selections.
+//
+//nolint:revive // Existing public API keeps its original generator-specific name.
 type GenerateContext struct {
 	Document                  *openapi3.T
 	OpenAPISource             []byte
 	JSONRequestBodyOperations []JSONRequestBodyOperation
 }
 
+// Schema is a model schema understood by the code generator.
 type Schema interface {
 	Base() *BaseSchema
 	ChildSchemas() []Schema
 	Generate() (string, error)
 	SchemaTypeName() string
-	SetTypeName(string)
+	SetTypeName(name string)
 }
 
+// BaseSchema contains fields common to every generated schema.
 type BaseSchema struct {
 	Name             string
 	Nullable         bool
 	EmptyBodyAllowed bool
 }
 
+// JSONRequestBodyOperation identifies one generated operation test.
 type JSONRequestBodyOperation struct {
 	OperationID string
 	TypeName    string
 }
 
+// TestName returns the operation's exported Go test suffix.
 func (o JSONRequestBodyOperation) TestName() string {
 	return exportedName(o.OperationID)
 }
 
+// Base returns b.
 func (b *BaseSchema) Base() *BaseSchema {
 	return b
 }
 
+// SchemaTypeName returns the generated Go type name.
 func (b *BaseSchema) SchemaTypeName() string {
 	if b == nil {
 		return ""
@@ -49,14 +59,17 @@ func (b *BaseSchema) SchemaTypeName() string {
 	return b.Name
 }
 
+// SetTypeName sets the generated Go type name.
 func (b *BaseSchema) SetTypeName(name string) {
 	b.Name = name
 }
 
+// LocalName returns the unexported form of the generated type name.
 func (b *BaseSchema) LocalName() string {
 	return unexportedName(b.SchemaTypeName())
 }
 
+// ObjectSchema describes a generated JSON object.
 type ObjectSchema struct {
 	BaseSchema
 
@@ -74,6 +87,7 @@ var (
 	_ Schema = new(NumberSchema)
 )
 
+// ObjectFieldContext describes one generated object property.
 type ObjectFieldContext struct {
 	Schema
 
@@ -81,32 +95,38 @@ type ObjectFieldContext struct {
 	Required     bool
 }
 
+// StringSchema describes a generated JSON string.
 type StringSchema struct {
 	BaseSchema
 
 	Format string
 }
 
+// BoolSchema describes a generated JSON boolean.
 type BoolSchema struct {
 	BaseSchema
 }
 
+// NumberSchema describes a generated JSON number.
 type NumberSchema struct {
 	BaseSchema
 }
 
+// ArraySchema describes a generated JSON array.
 type ArraySchema struct {
 	BaseSchema
 
 	Items Schema
 }
 
+// AllOfSchema describes a generated OpenAPI allOf schema.
 type AllOfSchema struct {
 	BaseSchema
 
 	Schemas []Schema
 }
 
+// ChildSchemas returns property and additional-property schemas.
 func (o *ObjectSchema) ChildSchemas() []Schema {
 	children := make([]Schema, 0, len(o.Properties)+1)
 	for _, property := range o.Properties {
@@ -120,18 +140,22 @@ func (o *ObjectSchema) ChildSchemas() []Schema {
 	return children
 }
 
+// ChildSchemas returns no children for a string schema.
 func (s *StringSchema) ChildSchemas() []Schema {
 	return nil
 }
 
+// ChildSchemas returns no children for a boolean schema.
 func (b *BoolSchema) ChildSchemas() []Schema {
 	return nil
 }
 
+// ChildSchemas returns no children for a number schema.
 func (n *NumberSchema) ChildSchemas() []Schema {
 	return nil
 }
 
+// ChildSchemas returns the array item schema.
 func (a *ArraySchema) ChildSchemas() []Schema {
 	if a.Items == nil {
 		return nil
@@ -140,11 +164,12 @@ func (a *ArraySchema) ChildSchemas() []Schema {
 	return []Schema{a.Items}
 }
 
+// ChildSchemas returns every allOf member.
 func (a *AllOfSchema) ChildSchemas() []Schema {
 	return a.Schemas
 }
 
-// TODO, put in tmpl.
+// FieldType returns the generated Go field type.
 func (p *ObjectFieldContext) FieldType() string {
 	if p.Required {
 		return p.SchemaTypeName()
@@ -153,7 +178,7 @@ func (p *ObjectFieldContext) FieldType() string {
 	return "*" + p.SchemaTypeName()
 }
 
-// TODO, put in tmpl.
+// JSONTag returns the generated JSON struct tag.
 func (p *ObjectFieldContext) JSONTag() string {
 	if p.Required {
 		return fmt.Sprintf("`json:%q`", p.PropertyName)
@@ -162,27 +187,26 @@ func (p *ObjectFieldContext) JSONTag() string {
 	return fmt.Sprintf("`json:%q`", p.PropertyName+",omitzero")
 }
 
-// TODO, we could decide to not care, and auto gen some valid var name.
+// LocalName returns the property's unexported Go identifier.
 func (p *ObjectFieldContext) LocalName() string {
 	return unexportedName(p.PropertyName)
 }
 
+// FieldName returns the property's exported Go identifier.
 func (p *ObjectFieldContext) FieldName() string {
 	return exportedName(p.PropertyName)
 }
 
-func (o *ObjectFieldContext) Generate() (string, error) {
-	if o == nil {
-		return "", fmt.Errorf("nil object schema")
+// Generate renders an object property decoder.
+func (p *ObjectFieldContext) Generate() (string, error) {
+	if p == nil {
+		return "", fmt.Errorf("nil object property")
 	}
 
-	return executeGoTemplate("object_property.go.tmpl", o)
+	return executeGoTemplate("object_property.go.tmpl", p)
 }
 
-//func (p ObjectFieldContext) SchemaTypeName() string {
-//	return schemaTypeName(p.Schema)
-//}
-
+// Generate renders an object schema.
 func (o *ObjectSchema) Generate() (string, error) {
 	if o == nil {
 		return "", fmt.Errorf("nil object schema")
@@ -191,10 +215,12 @@ func (o *ObjectSchema) Generate() (string, error) {
 	return executeGoTemplate("object.go.tmpl", o)
 }
 
+// AdditionalPropertiesTypeName returns the additional-property Go type.
 func (o *ObjectSchema) AdditionalPropertiesTypeName() string {
 	return schemaTypeName(o.AdditionalPropertiesSchema)
 }
 
+// Generate renders a string schema.
 func (s *StringSchema) Generate() (string, error) {
 	if s == nil {
 		return "", fmt.Errorf("nil string schema")
@@ -203,6 +229,7 @@ func (s *StringSchema) Generate() (string, error) {
 	return executeGoTemplate("string.go.tmpl", s)
 }
 
+// Generate renders a boolean schema.
 func (b *BoolSchema) Generate() (string, error) {
 	if b == nil {
 		return "", fmt.Errorf("nil bool schema")
@@ -211,6 +238,7 @@ func (b *BoolSchema) Generate() (string, error) {
 	return executeGoTemplate("bool.go.tmpl", b)
 }
 
+// Generate renders a number schema.
 func (n *NumberSchema) Generate() (string, error) {
 	if n == nil {
 		return "", fmt.Errorf("nil number schema")
@@ -219,6 +247,7 @@ func (n *NumberSchema) Generate() (string, error) {
 	return executeGoTemplate("number.go.tmpl", n)
 }
 
+// Generate renders an array schema.
 func (a *ArraySchema) Generate() (string, error) {
 	if a == nil {
 		return "", fmt.Errorf("nil array schema")
@@ -227,6 +256,7 @@ func (a *ArraySchema) Generate() (string, error) {
 	return executeGoTemplate("array.go.tmpl", a)
 }
 
+// Generate renders an allOf schema.
 func (a *AllOfSchema) Generate() (string, error) {
 	if a == nil {
 		return "", fmt.Errorf("nil allOf schema")
@@ -235,10 +265,12 @@ func (a *AllOfSchema) Generate() (string, error) {
 	return executeGoTemplate("all_of.go.tmpl", a)
 }
 
+// ItemsTypeName returns the array item Go type.
 func (a *ArraySchema) ItemsTypeName() string {
 	return schemaTypeName(a.Items)
 }
 
+// schemaTypeName returns schema's generated Go type name.
 func schemaTypeName(schema Schema) string {
 	if schema == nil {
 		return ""
@@ -252,44 +284,59 @@ func schemaTypeName(schema Schema) string {
 	return base.SchemaTypeName()
 }
 
+// jsonRequestBody pairs an operation with its resolved JSON schema.
+type jsonRequestBody struct {
+	operation *openapi3.Operation
+	schema    *openapi3.Schema
+	required  bool
+}
+
+// JSONRequestBodySchemas returns operation request-body JSON schemas.
 func (c *GenerateContext) JSONRequestBodySchemas() (map[*openapi3.Operation]*openapi3.Schema, error) {
-	if c.Document == nil || c.Document.Paths == nil {
-		return nil, fmt.Errorf("openapi document has no paths")
+	requestBodies, err := c.jsonRequestBodies()
+	if err != nil {
+		return nil, err
 	}
 
-	schemas := make(map[*openapi3.Operation]*openapi3.Schema)
-
-	for _, path := range c.Document.Paths.InMatchingOrder() {
-		pathItem := c.Document.Paths.Value(path)
-		if pathItem == nil {
-			continue
-		}
-
-		for _, operation := range pathItem.Operations() {
-			if operation == nil || operation.RequestBody == nil || operation.RequestBody.Value == nil {
-				continue
-			}
-
-			jsonBody := operation.RequestBody.Value.Content.Get("application/json")
-			if jsonBody == nil || jsonBody.Schema == nil || jsonBody.Schema.Value == nil {
-				continue
-			}
-
-			schemas[operation] = jsonBody.Schema.Value
-		}
+	schemas := make(map[*openapi3.Operation]*openapi3.Schema, len(requestBodies))
+	for _, requestBody := range requestBodies {
+		schemas[requestBody.operation] = requestBody.schema
 	}
 
 	return schemas, nil
 }
 
+// JSONRequestBodyModelSchemas converts selected request bodies to model schemas.
 func (c *GenerateContext) JSONRequestBodyModelSchemas() ([]Schema, error) {
-	var schemas []Schema
+	requestBodies, err := c.jsonRequestBodies()
+	if err != nil {
+		return nil, err
+	}
 
 	c.JSONRequestBodyOperations = nil
 
+	var schemas []Schema
+
+	for _, requestBody := range requestBodies {
+		definitions, operation, conversionErr := modelSchemasForRequestBody(requestBody)
+		if conversionErr != nil {
+			return nil, conversionErr
+		}
+
+		schemas = append(schemas, definitions...)
+		c.JSONRequestBodyOperations = append(c.JSONRequestBodyOperations, operation)
+	}
+
+	return schemas, nil
+}
+
+// jsonRequestBodies collects resolved application/json request bodies.
+func (c *GenerateContext) jsonRequestBodies() ([]jsonRequestBody, error) {
 	if c.Document == nil || c.Document.Paths == nil {
 		return nil, fmt.Errorf("openapi document has no paths")
 	}
+
+	var requestBodies []jsonRequestBody
 
 	for _, path := range c.Document.Paths.InMatchingOrder() {
 		pathItem := c.Document.Paths.Value(path)
@@ -297,52 +344,79 @@ func (c *GenerateContext) JSONRequestBodyModelSchemas() ([]Schema, error) {
 			continue
 		}
 
-		for _, operation := range pathItem.Operations() {
-			if operation == nil || operation.RequestBody == nil || operation.RequestBody.Value == nil {
-				continue
+		operations := pathItem.Operations()
+		for _, method := range slices.Sorted(maps.Keys(operations)) {
+			requestBody, ok := requestBodyForOperation(operations[method])
+			if ok {
+				requestBodies = append(requestBodies, requestBody)
 			}
-
-			jsonBody := operation.RequestBody.Value.Content.Get("application/json")
-			if jsonBody == nil || jsonBody.Schema == nil || jsonBody.Schema.Value == nil {
-				continue
-			}
-
-			schema, err := SchemaFromOpenAPISchema(jsonBody.Schema.Value)
-			if err != nil {
-				return nil, fmt.Errorf("operation %q request body schema: %w", operation.OperationID, err)
-			}
-
-			schema.Base().EmptyBodyAllowed = !operation.RequestBody.Value.Required
-
-			name := jsonBody.Schema.Value.Title
-			if name == "" {
-				name = operation.OperationID
-			}
-
-			if operation.OperationID == "" {
-				return nil, fmt.Errorf("json request body operation has no operationId")
-			}
-
-			if schema.SchemaTypeName() == "" {
-				schema.SetTypeName(exportedName(name))
-			}
-
-			definitions, err := namedSchemaDefinitions(schema)
-			if err != nil {
-				return nil, fmt.Errorf("operation %q request body schema names: %w", operation.OperationID, err)
-			}
-
-			schemas = append(schemas, definitions...)
-			c.JSONRequestBodyOperations = append(c.JSONRequestBodyOperations, JSONRequestBodyOperation{
-				OperationID: operation.OperationID,
-				TypeName:    schema.SchemaTypeName(),
-			})
 		}
 	}
 
-	return schemas, nil
+	return requestBodies, nil
 }
 
+// requestBodyForOperation returns an operation's resolved JSON request body.
+func requestBodyForOperation(operation *openapi3.Operation) (jsonRequestBody, bool) {
+	if operation == nil || operation.RequestBody == nil {
+		return jsonRequestBody{}, false
+	}
+
+	requestBody := operation.RequestBody.Value
+	if requestBody == nil {
+		return jsonRequestBody{}, false
+	}
+
+	mediaType := requestBody.Content.Get("application/json")
+	if mediaType == nil || mediaType.Schema == nil {
+		return jsonRequestBody{}, false
+	}
+
+	if mediaType.Schema.Value == nil {
+		return jsonRequestBody{}, false
+	}
+
+	return jsonRequestBody{
+		operation: operation,
+		schema:    mediaType.Schema.Value,
+		required:  requestBody.Required,
+	}, true
+}
+
+// modelSchemasForRequestBody converts and names one request-body schema.
+func modelSchemasForRequestBody(requestBody jsonRequestBody) ([]Schema, JSONRequestBodyOperation, error) {
+	operationID := requestBody.operation.OperationID
+	if operationID == "" {
+		return nil, JSONRequestBodyOperation{}, fmt.Errorf("json request body operation has no operationId")
+	}
+
+	schema, err := SchemaFromOpenAPISchema(requestBody.schema)
+	if err != nil {
+		return nil, JSONRequestBodyOperation{}, fmt.Errorf("operation %q request body schema: %w", operationID, err)
+	}
+
+	schema.Base().EmptyBodyAllowed = !requestBody.required
+	if schema.SchemaTypeName() == "" {
+		name := requestBody.schema.Title
+		if name == "" {
+			name = operationID
+		}
+
+		schema.SetTypeName(exportedName(name))
+	}
+
+	definitions, err := namedSchemaDefinitions(schema)
+	if err != nil {
+		return nil, JSONRequestBodyOperation{}, fmt.Errorf("operation %q request body schema names: %w", operationID, err)
+	}
+
+	return definitions, JSONRequestBodyOperation{
+		OperationID: operationID,
+		TypeName:    schema.SchemaTypeName(),
+	}, nil
+}
+
+// SchemaFromOpenAPISchema converts an OpenAPI schema to a generator schema.
 func SchemaFromOpenAPISchema(schema *openapi3.Schema) (Schema, error) {
 	if schema == nil {
 		return nil, fmt.Errorf("openapi schema is nil")
@@ -371,6 +445,11 @@ func SchemaFromOpenAPISchema(schema *openapi3.Schema) (Schema, error) {
 		return nil, err
 	}
 
+	return schemaFromType(schema, schemaType, base)
+}
+
+// schemaFromType converts a schema whose type has already been selected.
+func schemaFromType(schema *openapi3.Schema, schemaType string, base BaseSchema) (Schema, error) {
 	switch schemaType {
 	case openapi3.TypeObject:
 		objectSchema, err := objectSchemaFromOpenAPISchema(schema)
@@ -391,23 +470,17 @@ func SchemaFromOpenAPISchema(schema *openapi3.Schema) (Schema, error) {
 
 		return arraySchema, nil
 	case openapi3.TypeString:
-		return &StringSchema{
-			BaseSchema: base,
-			Format:     schema.Format,
-		}, nil
+		return &StringSchema{BaseSchema: base, Format: schema.Format}, nil
 	case openapi3.TypeBoolean:
-		return &BoolSchema{
-			BaseSchema: base,
-		}, nil
+		return &BoolSchema{BaseSchema: base}, nil
 	case openapi3.TypeNumber:
-		return &NumberSchema{
-			BaseSchema: base,
-		}, nil
+		return &NumberSchema{BaseSchema: base}, nil
 	default:
 		return nil, fmt.Errorf("unsupported schema type %q", schemaType)
 	}
 }
 
+// allOfSchemaFromOpenAPISchema converts allOf members.
 func allOfSchemaFromOpenAPISchema(schema *openapi3.Schema) (*AllOfSchema, error) {
 	if len(schema.AllOf) == 0 {
 		return nil, fmt.Errorf("allOf schema has no items")
@@ -434,13 +507,13 @@ func allOfSchemaFromOpenAPISchema(schema *openapi3.Schema) (*AllOfSchema, error)
 	return allOfSchema, nil
 }
 
+// objectSchemaFromOpenAPISchema converts object properties and policies.
 func objectSchemaFromOpenAPISchema(schema *openapi3.Schema) (*ObjectSchema, error) {
 	objectSchema := &ObjectSchema{
 		AdditionalProperties: true,
 		Properties:           make([]ObjectFieldContext, 0, len(schema.Properties)),
 	}
 
-	// TODO, I keep seeing this overly double and bad verbose ways. Why not just one if check, like i can't phathom why double if check is needed??
 	if hasAdditionalProperties := schema.AdditionalProperties.Has; hasAdditionalProperties != nil {
 		objectSchema.AdditionalProperties = *hasAdditionalProperties
 	}
@@ -489,6 +562,7 @@ func objectSchemaFromOpenAPISchema(schema *openapi3.Schema) (*ObjectSchema, erro
 	return objectSchema, nil
 }
 
+// arraySchemaFromOpenAPISchema converts an array item schema.
 func arraySchemaFromOpenAPISchema(schema *openapi3.Schema) (*ArraySchema, error) {
 	if schema.Items == nil {
 		return nil, fmt.Errorf("array schema has no items")
@@ -509,6 +583,7 @@ func arraySchemaFromOpenAPISchema(schema *openapi3.Schema) (*ArraySchema, error)
 	}, nil
 }
 
+// setSchemaTypeNameIfEmpty assigns name when schema is unnamed.
 func setSchemaTypeNameIfEmpty(schema Schema, name string) error {
 	if schema == nil {
 		return fmt.Errorf("nil schema")
@@ -526,7 +601,7 @@ func setSchemaTypeNameIfEmpty(schema Schema, name string) error {
 	return nil
 }
 
-// TODO, I have high concern for this function. But we would need first to get better testing than this. It looks to me that it doesn't try to find the reffed value at all.
+// schemaFromOpenAPISchemaRef converts a resolved OpenAPI schema reference.
 func schemaFromOpenAPISchemaRef(schemaRef *openapi3.SchemaRef) (Schema, error) {
 	if schemaRef == nil {
 		return nil, fmt.Errorf("openapi schema ref is nil")
@@ -543,9 +618,7 @@ func schemaFromOpenAPISchemaRef(schemaRef *openapi3.SchemaRef) (Schema, error) {
 	return SchemaFromOpenAPISchema(schemaRef.Value)
 }
 
-// TODO, Concerned about this as well. Wouldn't we want a better inferring of type method
-// Perhaps just one traversal over the whole schema, and setting Type once. From then on you just read out the 'Type'
-// I thought that openapi3.Schema would already do that for us, but perhaps not.
+// schemaType returns the single supported non-null schema type.
 func schemaType(schema *openapi3.Schema) (string, error) {
 	if schema.Type == nil || schema.Type.IsEmpty() {
 		return inferredSchemaType(schema)
@@ -567,9 +640,13 @@ func schemaType(schema *openapi3.Schema) (string, error) {
 	return nonNullTypes[0], nil
 }
 
-// TODO, validate if this is true. I thought that strings for instance could also be inferred.
+// inferredSchemaType infers object and array schemas from structural keywords.
 func inferredSchemaType(schema *openapi3.Schema) (string, error) {
-	if len(schema.Properties) != 0 || len(schema.Required) != 0 || schema.AdditionalProperties.Has != nil || schema.AdditionalProperties.Schema != nil {
+	hasObjectKeywords := len(schema.Properties) != 0 ||
+		len(schema.Required) != 0 ||
+		schema.AdditionalProperties.Has != nil ||
+		schema.AdditionalProperties.Schema != nil
+	if hasObjectKeywords {
 		return openapi3.TypeObject, nil
 	}
 

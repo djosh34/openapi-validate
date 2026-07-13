@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	//nolint:depguard // Internal suite partition planning intentionally depends on internal/jsonvalue.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 )
 

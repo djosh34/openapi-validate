@@ -8,7 +8,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	//nolint:depguard // Enum compilation and value checks intentionally use exact internal JSON values.
 	"decode_and_validate_generator/pkg/test_generator/internal/jsonvalue"
 )
 
