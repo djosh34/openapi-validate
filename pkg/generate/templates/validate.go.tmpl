@@ -4,10 +4,10 @@
 package {{.Package}}
 
 import (
-	{{if .UsesJSON}}"encoding/json"{{end}}
-	{{if .UsesRegexp}}"regexp"{{end}}
+	"encoding/json"
+	"regexp"
 
-	{{if .UsesValue}}"github.com/djosh34/decode_and_validate_generator/pkg/jsonvalue"{{end}}
+	"github.com/djosh34/decode_and_validate_generator/pkg/jsonvalue"
 	"github.com/djosh34/decode_and_validate_generator/pkg/validation"
 )
 

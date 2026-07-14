@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"go/format"
 	"strconv"
 	"text/template"
 
 	"github.com/djosh34/decode_and_validate_generator/pkg/validation"
+	"golang.org/x/tools/imports"
 )
 
 //go:embed templates/*.go.tmpl
@@ -18,9 +18,6 @@ var templateFiles embed.FS
 type sourceTemplate struct {
 	Package     string
 	Assignments []assignmentTemplate
-	UsesJSON    bool
-	UsesRegexp  bool
-	UsesValue   bool
 }
 
 type assignmentTemplate struct {
@@ -49,11 +46,7 @@ func render(
 	source := sourceTemplate{Package: packageName}
 
 	for index, compiled := range parsed {
-		assignment, imports := renderAssignment(operations[index].Variable, compiled)
-		source.Assignments = append(source.Assignments, assignment)
-		source.UsesJSON = source.UsesJSON || imports.json
-		source.UsesRegexp = source.UsesRegexp || imports.regexp
-		source.UsesValue = source.UsesValue || imports.value
+		source.Assignments = append(source.Assignments, renderAssignment(operations[index].Variable, compiled))
 	}
 
 	validate, err := executeTemplate(templates, "validate.go.tmpl", source)
@@ -82,7 +75,7 @@ func executeTemplate(templates *template.Template, name string, data any) ([]byt
 		return nil, fmt.Errorf("execute %s: %w", name, err)
 	}
 
-	formatted, err := format.Source(output.Bytes())
+	formatted, err := imports.Process(name, output.Bytes(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("format %s: %w", name, err)
 	}

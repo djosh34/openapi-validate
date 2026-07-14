@@ -10,13 +10,7 @@ import (
 	"github.com/djosh34/decode_and_validate_generator/pkg/validation"
 )
 
-type requiredImports struct {
-	json   bool
-	regexp bool
-	value  bool
-}
-
-func renderAssignment(name string, root *validation.Validation) (assignmentTemplate, requiredImports) {
+func renderAssignment(name string, root *validation.Validation) assignmentTemplate {
 	nodes := collectValidations(root)
 
 	indexes := make(map[*validation.Validation]int, len(nodes))
@@ -26,21 +20,15 @@ func renderAssignment(name string, root *validation.Validation) (assignmentTempl
 
 	assignment := assignmentTemplate{Name: name}
 
-	var imports requiredImports
-
 	for _, node := range nodes {
-		literal, nodeImports := validationLiteral(node)
-		assignment.Nodes = append(assignment.Nodes, literal)
-		imports.json = imports.json || nodeImports.json
-		imports.regexp = imports.regexp || nodeImports.regexp
-		imports.value = imports.value || nodeImports.value
+		assignment.Nodes = append(assignment.Nodes, validationLiteral(node))
 	}
 
 	for index, node := range nodes {
 		assignment.Links = append(assignment.Links, validationLinks(index, node, indexes)...)
 	}
 
-	return assignment, imports
+	return assignment
 }
 
 func collectValidations(root *validation.Validation) []*validation.Validation {
@@ -80,8 +68,7 @@ func collectValidations(root *validation.Validation) []*validation.Validation {
 	return nodes
 }
 
-//nolint:cyclop // Each independent validation family contributes its own literal and imports.
-func validationLiteral(compiled *validation.Validation) (string, requiredImports) {
+func validationLiteral(compiled *validation.Validation) string {
 	fields := []string{"SchemaPointer: " + strconv.Quote(compiled.SchemaPointer)}
 	if compiled.BodyRequired {
 		fields = append(fields, "BodyRequired: true")
@@ -91,40 +78,28 @@ func validationLiteral(compiled *validation.Validation) (string, requiredImports
 		fields = append(fields, "KindValidation: "+kindLiteral(compiled.KindValidation))
 	}
 
-	var imports requiredImports
-
 	if len(compiled.EnumValidation.Values) != 0 {
 		fields = append(fields, "EnumValidation: "+enumLiteral(compiled.EnumValidation))
-		imports.json = true
-		imports.value = true
 	}
 
 	if compiled.NumberValidation != (validation.NumberValidation{}) {
 		fields = append(fields, "NumberValidation: "+numberValidationLiteral(compiled.NumberValidation))
-		imports.value = true
 	}
 
 	if compiled.StringValidation != (validation.StringValidation{}) {
 		fields = append(fields, "StringValidation: "+stringValidationLiteral(compiled.StringValidation))
-		imports.value = imports.value || compiled.StringValidation.MinLength != nil ||
-			compiled.StringValidation.MaxLength != nil
-		imports.regexp = compiled.StringValidation.CompiledPattern != nil
 	}
 
 	if compiled.ArrayValidation.MinItems != nil || compiled.ArrayValidation.MaxItems != nil ||
 		compiled.ArrayValidation.UniqueItems {
 		fields = append(fields, "ArrayValidation: "+arrayLiteral(compiled.ArrayValidation))
-		imports.value = imports.value || compiled.ArrayValidation.MinItems != nil ||
-			compiled.ArrayValidation.MaxItems != nil
 	}
 
 	if hasObjectValues(compiled.ObjectValidation) {
 		fields = append(fields, "ObjectValidation: "+objectLiteral(compiled.ObjectValidation))
-		imports.value = imports.value || compiled.ObjectValidation.MinProperties != nil ||
-			compiled.ObjectValidation.MaxProperties != nil
 	}
 
-	return "{" + strings.Join(fields, ", ") + "}", imports
+	return "{" + strings.Join(fields, ", ") + "}"
 }
 
 func kindLiteral(kind validation.KindValidation) string {
