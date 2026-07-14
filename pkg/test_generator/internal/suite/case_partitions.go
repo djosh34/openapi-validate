@@ -73,12 +73,21 @@ func (planner *CasePlanner) addEnumValidPartitions(result *caseSet, enum *EnumSe
 			continue
 		}
 
+		source := ConstraintSource{Pointer: use.pointer, Keyword: "enum"}
+		for _, example := range use.examples.Valid {
+			if example.Value.Equal(value) {
+				source = example.Source
+
+				break
+			}
+		}
+
 		member := planner.Domains.FindOrAddEquivalentDomain(finiteDomain([]jsonvalue.Value{value}))
 		result.add(CasePlan{
 			Name:   caseName(fmt.Sprintf("valid enum member %d", index+1), use.pointer, "enum"),
 			Expect: ExpectAccepted,
 			Values: member,
-			Source: ConstraintSource{Pointer: use.pointer, Keyword: "enum"},
+			Source: source,
 		})
 	}
 }

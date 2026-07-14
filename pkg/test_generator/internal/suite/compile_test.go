@@ -327,6 +327,69 @@ x-valid-examples: [short]`, "", "create"))
 	})
 }
 
+// TestCompileSuiteEnforcesOracleOptionAfterCompilerReuse verifies cached occurrence
+// graphs do not bypass recursive option checks.
+func TestCompileSuiteEnforcesOracleOptionAfterCompilerReuse(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `type: object
+properties:
+  optional:
+    allOf:
+      - type: string
+        pattern: '^A$'
+        x-valid-examples: [A]
+      - type: string
+        format: email
+        x-valid-examples: [B]`, "", "create"))
+
+	_, err := compiler.Compile()
+	require.NoError(t, err)
+
+	_, err = compiler.CompileSuite(MustHaveAllXValidCases)
+	require.Error(t, err)
+
+	var compileError *Error
+	require.ErrorAs(t, err, &compileError)
+	require.Equal(t, "compile", compileError.Phase)
+	require.Equal(t, "unconstructible", compileError.Code)
+	require.Equal(t, "allOf", compileError.Keyword)
+	require.Contains(t, compileError.Pointer, "/properties/optional")
+}
+
+// TestCompileSuiteUnionsLocalEnumAndValidExamples verifies both local oracle
+// keywords contribute exact accepted cases before a later occurrence intersection.
+func TestCompileSuiteUnionsLocalEnumAndValidExamples(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `allOf:
+  - type: string
+    pattern: '^first$'
+    enum: [enum-only]
+    x-valid-examples: [shared]
+  - type: string
+    pattern: '^second$'
+    x-valid-examples: [shared]`, "", "create"))
+	compiled, err := compiler.CompileSuite(MustHaveAllXValidCases)
+	require.NoError(t, err)
+
+	checkAcceptedCases(t, compiled, func(t require.TestingT, body []byte) {
+		require.JSONEq(t, `"shared"`, string(body))
+	})
+
+	foundSource := false
+
+	for _, plannedCase := range compiled.Cases {
+		if plannedCase.Expect == ExpectAccepted && plannedCase.Source.Keyword == "x-valid-examples" {
+			require.Contains(t, plannedCase.Source.Pointer, "/allOf/0")
+
+			foundSource = true
+		}
+	}
+
+	require.True(t, foundSource)
+}
+
 // TestCompilerRejectsInvalidOraclePlacementAndOverlap verifies the extension contract is
 // diagnosed at the declaring occurrence instead of being repaired from an outer occurrence.
 func TestCompilerRejectsInvalidOraclePlacementAndOverlap(t *testing.T) {

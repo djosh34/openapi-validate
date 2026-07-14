@@ -27,6 +27,13 @@ func (compiler *Compiler) CompileSuite(options ...CompileOption) (*CompiledSuite
 		return nil, err
 	}
 
+	if compiler.mustHaveAllXValidCases {
+		err = compiler.requireAllXValidCases(compiler.rootUse, make(map[*schemaUse]struct{}))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	planner := &CasePlanner{Domains: compiler.Domains}
 
 	cases, err := planner.Plan(compiler.rootUse)

@@ -40,6 +40,40 @@ func (compiler *Compiler) meet(left *schemaUse, right *schemaUse) (*schemaUse, e
 	return result, nil
 }
 
+// requireAllXValidCases checks a reused occurrence graph for empty oracle-backed meets.
+func (compiler *Compiler) requireAllXValidCases(use *schemaUse, seen map[*schemaUse]struct{}) error {
+	if use == nil {
+		return nil
+	}
+
+	if _, ok := seen[use]; ok {
+		return nil
+	}
+
+	seen[use] = struct{}{}
+	if use.examples.ValidDeclared && len(use.examples.Valid) == 0 {
+		return compiler.failure(
+			"compile", "unconstructible", use.pointer, "allOf",
+			fmt.Errorf("%w: allOf merge has no trusted valid generation case", errUnconstructible),
+		)
+	}
+
+	children := []*schemaUse{use.resolved, use.items, use.additional}
+
+	children = append(children, use.allOf...)
+	for _, property := range use.properties {
+		children = append(children, property.use)
+	}
+
+	for _, child := range children {
+		if err := compiler.requireAllXValidCases(child, seen); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // meetDomains intersects semantic Domains and returns their canonical values.
 func (compiler *Compiler) meetDomains(
 	left *schemaUse,
