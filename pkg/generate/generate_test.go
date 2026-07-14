@@ -82,6 +82,38 @@ func TestGeneratedValidation(t *testing.T) {
 	require.NoError(t, err, string(result))
 }
 
+// TestGenerateWritesEmptyValidationMap verifies documents without JSON request bodies still generate valid tests.
+func TestGenerateWritesEmptyValidationMap(t *testing.T) {
+	t.Parallel()
+
+	repo := repoRoot(t)
+	output, err := os.MkdirTemp(filepath.Join(repo, "pkg"), "generate-empty-fixture-")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.RemoveAll(output))
+	})
+
+	err = Generate(output, "generateemptyfixture", []byte(`
+openapi: 3.0.3
+info: {title: generated, version: "1"}
+paths:
+  /bodyless:
+    get: {}
+  /plain:
+    post:
+      requestBody:
+        content:
+          text/plain:
+            schema: {type: string}
+`))
+	require.NoError(t, err)
+
+	command := exec.CommandContext(t.Context(), "go", "test", "./pkg/"+filepath.Base(output))
+	command.Dir = repo
+	result, err := command.CombinedOutput()
+	require.NoError(t, err, string(result))
+}
+
 // TestGenerateStopsBeforeWritingOnParseError checks the required failure ordering.
 func TestGenerateStopsBeforeWritingOnParseError(t *testing.T) {
 	t.Parallel()

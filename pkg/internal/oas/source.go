@@ -205,7 +205,7 @@ func (source Source) collectRequests(pathsRaw json.RawMessage) (map[string]Sourc
 		}
 
 		for _, operation := range operations {
-			operationSource, operationID, included, err := source.requestSource(operation)
+			operationSource, operationID, included, err := source.requestSource(operation.Schema)
 			if err != nil {
 				return nil, err
 			}
@@ -219,11 +219,11 @@ func (source Source) collectRequests(pathsRaw json.RawMessage) (map[string]Sourc
 					"operationId %q is duplicated at %s and %s",
 					operationID,
 					first,
-					operation.Pointer,
+					appendPointer(pathItem.Pointer, operation.Method),
 				)
 			}
 
-			locations[operationID] = operation.Pointer
+			locations[operationID] = appendPointer(pathItem.Pointer, operation.Method)
 			result[operationID] = operationSource
 		}
 	}
@@ -382,8 +382,14 @@ func (source Source) requiredChild(parent LocatedSchema, name string) (LocatedSc
 	return child, nil
 }
 
+// operationChild retains the resolved operation and its HTTP method.
+type operationChild struct {
+	Schema LocatedSchema
+	Method string
+}
+
 // operationChildren returns operation members in deterministic method order.
-func operationChildren(pathItem LocatedSchema) ([]LocatedSchema, error) {
+func operationChildren(pathItem LocatedSchema) ([]operationChild, error) {
 	var members map[string]json.RawMessage
 	if err := json.Unmarshal(pathItem.Raw, &members); err != nil {
 		return nil, err
@@ -395,12 +401,15 @@ func operationChildren(pathItem LocatedSchema) ([]LocatedSchema, error) {
 
 	methods := []string{"get", "put", "post", "delete", "options", "head", "patch", "trace"}
 
-	operations := make([]LocatedSchema, 0, len(methods))
+	operations := make([]operationChild, 0, len(methods))
 	for _, method := range methods {
 		if raw, ok := members[method]; ok {
-			operations = append(operations, LocatedSchema{
-				Raw:     raw,
-				Pointer: appendPointer(pathItem.Pointer, method),
+			operations = append(operations, operationChild{
+				Schema: LocatedSchema{
+					Raw:     raw,
+					Pointer: appendPointer(pathItem.Pointer, method),
+				},
+				Method: method,
 			})
 		}
 	}

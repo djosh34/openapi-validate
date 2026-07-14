@@ -168,6 +168,25 @@ paths:
 `,
 			wantError: `operationId "duplicate" is duplicated at #/paths/~1first/get and #/paths/~1second/post`,
 		},
+		"duplicate operation through shared path item reference": {
+			spec: `
+openapi: 3.0.3
+paths:
+  /first:
+    $ref: '#/x-path-items/Shared'
+  /second:
+    $ref: '#/x-path-items/Shared'
+x-path-items:
+  Shared:
+    post:
+      operationId: duplicate
+      requestBody:
+        content:
+          application/json:
+            schema: {type: string}
+`,
+			wantError: `operationId "duplicate" is duplicated at #/paths/~1first/post and #/paths/~1second/post`,
+		},
 		"missing schema": {
 			spec: `
 openapi: 3.0.3
