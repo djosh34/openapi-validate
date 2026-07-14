@@ -210,20 +210,23 @@ func (source Source) collectRequests(pathsRaw json.RawMessage) (map[string]Sourc
 				return nil, err
 			}
 
+			if operationID != "" {
+				if first, duplicate := locations[operationID]; duplicate {
+					return nil, fmt.Errorf(
+						"operationId %q is duplicated at %s and %s",
+						operationID,
+						first,
+						appendPointer(pathItem.Pointer, operation.Method),
+					)
+				}
+
+				locations[operationID] = appendPointer(pathItem.Pointer, operation.Method)
+			}
+
 			if !included {
 				continue
 			}
 
-			if first, duplicate := locations[operationID]; duplicate {
-				return nil, fmt.Errorf(
-					"operationId %q is duplicated at %s and %s",
-					operationID,
-					first,
-					appendPointer(pathItem.Pointer, operation.Method),
-				)
-			}
-
-			locations[operationID] = appendPointer(pathItem.Pointer, operation.Method)
 			result[operationID] = operationSource
 		}
 	}
@@ -244,9 +247,23 @@ func (source Source) requestSource(operation LocatedSchema) (Source, string, boo
 		return Source{}, "", false, fmt.Errorf("parse operation at %s: operation must be an object", operation.Pointer)
 	}
 
+	operationIDRaw, hasOperationID := members["operationId"]
+
+	var (
+		operationID    string
+		operationIDErr error
+	)
+	if hasOperationID {
+		operationIDErr = json.Unmarshal(operationIDRaw, &operationID)
+	}
+
+	if operationIDErr != nil {
+		operationID = ""
+	}
+
 	requestBodyRaw, hasRequestBody := members["requestBody"]
 	if !hasRequestBody {
-		return Source{}, "", false, nil
+		return Source{}, operationID, false, nil
 	}
 
 	requestBody := LocatedSchema{Raw: requestBodyRaw, Pointer: appendPointer(operation.Pointer, "requestBody")}
@@ -300,20 +317,18 @@ func (source Source) requestSource(operation LocatedSchema) (Source, string, boo
 
 	mediaTypeName, mediaTypeRaw, ok := applicationJSONMediaType(content)
 	if !ok {
-		return Source{}, "", false, nil
+		return Source{}, operationID, false, nil
 	}
 
-	operationIDRaw, hasOperationID := members["operationId"]
 	if !hasOperationID {
 		return Source{}, "", false, fmt.Errorf("operation at %s: operationId must be a non-empty string", operation.Pointer)
 	}
 
-	var operationID string
-	if unmarshalErr := json.Unmarshal(operationIDRaw, &operationID); unmarshalErr != nil {
+	if operationIDErr != nil {
 		return Source{}, "", false, fmt.Errorf(
 			"operation at %s: operationId must be a non-empty string: %w",
 			operation.Pointer,
-			unmarshalErr,
+			operationIDErr,
 		)
 	}
 

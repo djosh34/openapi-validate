@@ -187,6 +187,27 @@ x-path-items:
 `,
 			wantError: `operationId "duplicate" is duplicated at #/paths/~1first/post and #/paths/~1second/post`,
 		},
+		"duplicate operation with non-JSON body": {
+			spec: `
+openapi: 3.0.3
+paths:
+  /first:
+    post:
+      operationId: duplicate
+      requestBody:
+        content:
+          application/json:
+            schema: {type: string}
+  /second:
+    post:
+      operationId: duplicate
+      requestBody:
+        content:
+          text/plain:
+            schema: {type: string}
+`,
+			wantError: `operationId "duplicate" is duplicated at #/paths/~1first/post and #/paths/~1second/post`,
+		},
 		"missing schema": {
 			spec: `
 openapi: 3.0.3
