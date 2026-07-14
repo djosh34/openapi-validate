@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"sort"
 	"strings"
@@ -135,11 +136,11 @@ func (compiler *schemaCompiler) compileKeywords(
 	members map[string]json.RawMessage,
 	instanceDepth int,
 ) error {
-	if err := compileDocumentation(schema.Pointer, members); err != nil {
+	if err := compileKind(validation, schema.Pointer, members); err != nil {
 		return err
 	}
 
-	if err := compileKind(validation, schema.Pointer, members); err != nil {
+	if err := compileDocumentation(validation, schema.Pointer, members); err != nil {
 		return err
 	}
 
@@ -167,7 +168,9 @@ func (compiler *schemaCompiler) compileKeywords(
 }
 
 // compileDocumentation validates documentation-only field shapes.
-func compileDocumentation(pointer string, members map[string]json.RawMessage) error {
+//
+//nolint:cyclop // Each independent documentation field needs its own malformed-input diagnostic.
+func compileDocumentation(validation *Validation, pointer string, members map[string]json.RawMessage) error {
 	for _, keyword := range []string{"title", "description"} {
 		if raw, ok := members[keyword]; ok {
 			if _, err := decodeString(raw, keyword); err != nil {
@@ -182,16 +185,147 @@ func compileDocumentation(pointer string, members map[string]json.RawMessage) er
 		}
 	}
 
-	for _, keyword := range []string{"xml", "externalDocs"} {
-		if raw, ok := members[keyword]; ok {
-			var object map[string]json.RawMessage
-			if err := json.Unmarshal(raw, &object); err != nil || object == nil {
-				return keywordError(pointer, keyword, errors.New("must be an object"))
+	if raw, ok := members["default"]; ok {
+		if err := validateDefault(raw, validation.KindValidation); err != nil {
+			return keywordError(pointer, "default", err)
+		}
+	}
+
+	if raw, ok := members["xml"]; ok {
+		if err := validateXML(raw); err != nil {
+			return keywordError(pointer, "xml", err)
+		}
+	}
+
+	if raw, ok := members["externalDocs"]; ok {
+		if err := validateExternalDocs(raw); err != nil {
+			return keywordError(pointer, "externalDocs", err)
+		}
+	}
+
+	return nil
+}
+
+// validateDefault enforces OpenAPI's same-Schema-Object type rule for defaults.
+func validateDefault(raw json.RawMessage, kind KindValidation) error {
+	if kind.Type == "" {
+		return nil
+	}
+
+	value, err := jsonvalue.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("must be a valid value: %w", err)
+	}
+
+	if value.Kind == jsonvalue.KindNull && kind.Nullable {
+		return nil
+	}
+
+	matches := map[string]bool{
+		"boolean": value.Kind == jsonvalue.KindBoolean,
+		"integer": value.Kind == jsonvalue.KindNumber && value.Number.IsInteger(),
+		"number":  value.Kind == jsonvalue.KindNumber,
+		"string":  value.Kind == jsonvalue.KindString,
+		"array":   value.Kind == jsonvalue.KindArray,
+		"object":  value.Kind == jsonvalue.KindObject,
+	}
+	if !matches[kind.Type] {
+		return fmt.Errorf("must conform to type %q", kind.Type)
+	}
+
+	return nil
+}
+
+// validateXML validates the fixed fields of an OpenAPI XML Object.
+//
+//nolint:cyclop // XML Object fixed fields have distinct required shapes.
+func validateXML(raw json.RawMessage) error {
+	object, err := documentationObject(raw)
+	if err != nil {
+		return err
+	}
+
+	for name, value := range object {
+		switch name {
+		case "name", "prefix":
+			if _, err := decodeString(value, name); err != nil {
+				return err
+			}
+		case "namespace":
+			namespace, err := decodeString(value, name)
+			if err != nil {
+				return err
+			}
+
+			parsed, err := url.Parse(namespace)
+			if err != nil || !parsed.IsAbs() {
+				return errors.New("namespace must be an absolute URI")
+			}
+		case "attribute", "wrapped":
+			if _, err := decodeBoolean(value, name); err != nil {
+				return err
+			}
+		default:
+			if !strings.HasPrefix(name, "x-") {
+				return fmt.Errorf("unsupported field %q", name)
 			}
 		}
 	}
 
 	return nil
+}
+
+// validateExternalDocs validates the fixed fields of an External Documentation Object.
+//
+//nolint:cyclop // External Documentation fixed fields have distinct required shapes.
+func validateExternalDocs(raw json.RawMessage) error {
+	object, err := documentationObject(raw)
+	if err != nil {
+		return err
+	}
+
+	urlRaw, ok := object["url"]
+	if !ok {
+		return errors.New("url is required")
+	}
+
+	for name, value := range object {
+		switch name {
+		case "description", "url":
+			if _, decodeErr := decodeString(value, name); decodeErr != nil {
+				return decodeErr
+			}
+		default:
+			if !strings.HasPrefix(name, "x-") {
+				return fmt.Errorf("unsupported field %q", name)
+			}
+		}
+	}
+
+	documentationURL, err := decodeString(urlRaw, "url")
+	if err != nil {
+		return err
+	}
+
+	if documentationURL == "" {
+		return errors.New("url must not be empty")
+	}
+
+	if _, err := url.Parse(documentationURL); err != nil {
+		return fmt.Errorf("url must be a URI reference: %w", err)
+	}
+
+	return nil
+}
+
+// documentationObject decodes one non-null documentation object.
+func documentationObject(raw json.RawMessage) (map[string]json.RawMessage, error) {
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &object); err != nil || object == nil {
+		return nil, errors.New("must be an object")
+	}
+
+	return object, nil
 }
 
 // compileKind compiles type and same-object nullable.
@@ -306,8 +440,6 @@ func compileNumber(validation *Validation, pointer string, members map[string]js
 		validation.NumberValidation.exactMultipleOf = &multiple
 	}
 
-	validation.NumberValidation.Integer = validation.KindValidation.Type == "integer"
-
 	return nil
 }
 
@@ -372,6 +504,12 @@ func (compiler *schemaCompiler) compileArray(
 
 	validation.ArrayValidation.MinItems = minimum
 	validation.ArrayValidation.MaxItems = maximum
+
+	if validation.KindValidation.Type == "array" {
+		if _, ok := members["items"]; !ok {
+			return keywordError(schema.Pointer, "items", errors.New("must be present when type is array"))
+		}
+	}
 
 	if raw, ok := members["uniqueItems"]; ok {
 		unique, err := decodeBoolean(raw, "uniqueItems")
@@ -588,23 +726,28 @@ func decodeString(raw json.RawMessage, keyword string) (string, error) {
 }
 
 // decodeOptionalNonNegativeInteger decodes an optional collection bound.
-func decodeOptionalNonNegativeInteger(members map[string]json.RawMessage, keyword string) (*int, error) {
+func decodeOptionalNonNegativeInteger(members map[string]json.RawMessage, keyword string) (*CountBound, error) {
 	raw, ok := members[keyword]
 	if !ok {
 		//nolint:nilnil // A nil value is the explicit representation of an absent optional keyword.
 		return nil, nil
 	}
 
-	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+	value, err := decodeNumber(raw, keyword)
+	if err != nil || !value.IsInteger() {
 		return nil, fmt.Errorf("%s must be a non-negative integer", keyword)
 	}
 
-	var value int
-	if err := json.Unmarshal(raw, &value); err != nil || value < 0 {
+	zero, err := jsonvalue.ParseNumber("0")
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", keyword, err)
+	}
+
+	if value.Compare(zero) < 0 {
 		return nil, fmt.Errorf("%s must be a non-negative integer", keyword)
 	}
 
-	return &value, nil
+	return &CountBound{Value: value.Lexeme, exactValue: value}, nil
 }
 
 // decodeRequired decodes and lexically sorts unique required property names.

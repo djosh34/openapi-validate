@@ -40,6 +40,7 @@ func TestValidationSupportedKeywordsAtRootNestedAndAllOf(t *testing.T) {
 		{name: "minLength", schema: `{"minLength":2}`, valid: `"λx"`, invalid: `"λ"`, keyword: "minLength"},
 		{name: "maxLength", schema: `{"maxLength":1}`, valid: `"λ"`, invalid: `"λx"`, keyword: "maxLength"},
 		{name: "pattern", schema: `{"pattern":"^a+$"}`, valid: `"aa"`, invalid: `"b"`, keyword: "pattern"},
+		{name: "format", schema: `{"format":"date"}`, valid: `"2026-07-14"`, invalid: `"2026-02-30"`, keyword: "format"},
 		{name: "minItems", schema: `{"minItems":1}`, valid: `[0]`, invalid: `[]`, keyword: "minItems"},
 		{name: "maxItems", schema: `{"maxItems":1}`, valid: `[0]`, invalid: `[0,1]`, keyword: "maxItems"},
 		{name: "items", schema: `{"items":{"type":"integer"}}`, valid: `[1]`, invalid: `[1.5]`, keyword: "type"},
@@ -235,7 +236,7 @@ func TestValidationRecursionUniqueItemsAndAllOf(t *testing.T) {
 	errs := recursive.Validate(json.RawMessage(`{"value":1,"child":{"value":2.5}}`))
 	require.Contains(t, errors.Join(errs...).Error(), "instance #/child/value")
 
-	unique := mustParseSchema(t, `{"type":"array","uniqueItems":true}`, "")
+	unique := mustParseSchema(t, `{"type":"array","items":{},"uniqueItems":true}`, "")
 	require.NotEmpty(t, unique.Validate(json.RawMessage(`[{"a":1},{"a":1.0}]`)))
 
 	allOf := mustParseSchema(t, `{"allOf":[{"minimum":1},{"maximum":2}]}`, "")
@@ -264,8 +265,23 @@ func TestParseRejectsUnsupportedAndMalformedReachableSchemas(t *testing.T) {
 		{name: "unsupportedPattern", schema: `{"pattern":"^(?!bad$).+$"}`, want: "unsupported RE2 pattern"},
 		{name: "unknownKeyword", schema: `{"const":1}`, want: "unsupported Schema Object keyword"},
 		{name: "malformedBound", schema: `{"minItems":-1}`, want: "minItems"},
+		{name: "arrayWithoutItems", schema: `{"type":"array"}`, want: "items"},
 		{name: "malformedMultiple", schema: `{"multipleOf":0}`, want: "greater than zero"},
 		{name: "malformedRequired", schema: `{"required":["a","a"]}`, want: "unique strings"},
+		{name: "wrongDefaultType", schema: `{"type":"string","default":1}`, want: "must conform to type"},
+		{name: "fractionalIntegerDefault", schema: `{"type":"integer","default":1.5}`, want: "must conform to type"},
+		{name: "externalDocsWithoutURL", schema: `{"externalDocs":{"description":"docs"}}`, want: "url is required"},
+		{
+			name: "externalDocsWrongDescription", schema: `{"externalDocs":{"url":"/docs","description":1}}`,
+			want: "description",
+		},
+		{
+			name: "externalDocsUnknownField", schema: `{"externalDocs":{"url":"/docs","other":true}}`,
+			want: "unsupported field",
+		},
+		{name: "xmlWrongName", schema: `{"xml":{"name":1}}`, want: "name"},
+		{name: "xmlRelativeNamespace", schema: `{"xml":{"namespace":"/relative"}}`, want: "absolute URI"},
+		{name: "xmlUnknownField", schema: `{"xml":{"other":true}}`, want: "unsupported field"},
 		{
 			name:       "nonConsumingCycle",
 			schema:     `{"$ref":"#/components/schemas/Loop"}`,
@@ -295,6 +311,104 @@ func TestParseRejectsUnsupportedAndMalformedReachableSchemas(t *testing.T) {
 	require.ErrorContains(t, err, "not found")
 	_, err = Parse([]byte(`{"openapi":"3.0.3","paths":{"/a":{"post":{"operationId":"checkThing"}}}}`), "checkThing")
 	require.ErrorContains(t, err, "request body")
+}
+
+// TestParseAcceptsWellFormedDocumentationFields guards the supported documentation-only shapes.
+func TestParseAcceptsWellFormedDocumentationFields(t *testing.T) {
+	t.Parallel()
+
+	parsed := mustParseSchema(t, `{
+		"type":"string",
+		"nullable":true,
+		"default":null,
+		"title":"Thing",
+		"description":"A thing",
+		"deprecated":false,
+		"xml":{
+			"name":"thing",
+			"namespace":"https://example.com/things",
+			"prefix":"t",
+			"attribute":false,
+			"wrapped":true,
+			"x-extra":1
+		},
+		"externalDocs":{
+			"description":"More details",
+			"url":"https://example.com/docs",
+			"x-extra":1
+		}
+	}`, "")
+
+	require.Empty(t, parsed.Validate(json.RawMessage(`null`)))
+}
+
+// TestParseAcceptsArbitrarilyLargeCollectionBounds covers the unbounded OAS integer domain.
+func TestParseAcceptsArbitrarilyLargeCollectionBounds(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name       string
+		keyword    string
+		body       string
+		wantErrors bool
+	}{
+		{name: "minLength", keyword: "minLength", body: `"x"`, wantErrors: true},
+		{name: "maxLength", keyword: "maxLength", body: `"x"`},
+		{name: "minItems", keyword: "minItems", body: `[]`, wantErrors: true},
+		{name: "maxItems", keyword: "maxItems", body: `[]`},
+		{name: "minProperties", keyword: "minProperties", body: `{}`, wantErrors: true},
+		{name: "maxProperties", keyword: "maxProperties", body: `{}`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			parsed := mustParseSchema(t, fmt.Sprintf(`{%q:1e100001}`, test.keyword), "")
+
+			errs := parsed.Validate(json.RawMessage(test.body))
+			if test.wantErrors {
+				require.Contains(t, errors.Join(errs...).Error(), "keyword "+test.keyword)
+			} else {
+				require.Empty(t, errs)
+			}
+		})
+	}
+}
+
+// TestParseRejectsUnsupportedOpenAPIVersions enforces this package's exact dialect contract.
+func TestParseRejectsUnsupportedOpenAPIVersions(t *testing.T) {
+	t.Parallel()
+
+	valid := openAPISpec(`{}`, "", false)
+	for _, replacement := range []string{`"3.0.2"`, `"3.1.0"`, `3.0`, `null`} {
+		spec := strings.Replace(string(valid), `"3.0.3"`, replacement, 1)
+		_, err := Parse([]byte(spec), "checkThing")
+		require.ErrorContains(t, err, `version must be "3.0.3"`)
+	}
+
+	missing := strings.Replace(string(valid), `"openapi":"3.0.3",`, "", 1)
+	_, err := Parse([]byte(missing), "checkThing")
+	require.ErrorContains(t, err, `version must be "3.0.3"`)
+}
+
+// TestParseIgnoresMalformedUnreachableOperations verifies operation selection's reachability boundary.
+func TestParseIgnoresMalformedUnreachableOperations(t *testing.T) {
+	t.Parallel()
+
+	spec := []byte(`{
+		"openapi":"3.0.3",
+		"paths":{
+			"/broken-ref":{"$ref":"#/components/pathItems/Missing"},
+			"/broken-operation":{"post":false},
+			"/things":{"post":{
+				"operationId":"checkThing",
+				"requestBody":{"content":{"application/json":{"schema":{"type":"string"}}}}
+			}}
+		}
+	}`)
+
+	parsed, err := Parse(spec, "checkThing")
+	require.NoError(t, err)
+	require.Empty(t, parsed.Validate(json.RawMessage(`"valid"`)))
 }
 
 // TestValidationErrorsAreStableAndFresh covers repeatability and caller-owned result slices.

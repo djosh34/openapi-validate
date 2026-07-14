@@ -51,7 +51,6 @@ type NumberBound struct {
 
 // NumberValidation holds exact numeric constraints.
 type NumberValidation struct {
-	Integer    bool
 	Minimum    *NumberBound
 	Maximum    *NumberBound
 	MultipleOf string
@@ -59,10 +58,17 @@ type NumberValidation struct {
 	exactMultipleOf *jsonvalue.Number
 }
 
+// CountBound is one exact non-negative integer bound for a collection or string length.
+type CountBound struct {
+	Value string
+
+	exactValue jsonvalue.Number
+}
+
 // StringValidation holds string-specific constraints.
 type StringValidation struct {
-	MinLength *int
-	MaxLength *int
+	MinLength *CountBound
+	MaxLength *CountBound
 	Pattern   string
 	Format    string
 
@@ -71,8 +77,8 @@ type StringValidation struct {
 
 // ArrayValidation holds array-specific constraints.
 type ArrayValidation struct {
-	MinItems    *int
-	MaxItems    *int
+	MinItems    *CountBound
+	MaxItems    *CountBound
 	Items       *Validation
 	UniqueItems bool
 }
@@ -85,8 +91,8 @@ type PropertyValidation struct {
 
 // ObjectValidation holds object-specific constraints.
 type ObjectValidation struct {
-	MinProperties                  *int
-	MaxProperties                  *int
+	MinProperties                  *CountBound
+	MaxProperties                  *CountBound
 	Required                       []string
 	Properties                     []PropertyValidation
 	AdditionalPropertiesAllowed    bool

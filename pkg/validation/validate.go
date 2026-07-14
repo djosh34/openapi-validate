@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net/mail"
 	"sort"
 	"time"
@@ -290,15 +291,15 @@ func (stringValidation StringValidation) validate(
 	var errs []error
 
 	length := utf8.RuneCountInString(value.string)
-	if stringValidation.MinLength != nil && length < *stringValidation.MinLength {
+	if stringValidation.MinLength != nil && compareCount(length, stringValidation.MinLength) < 0 {
 		errs = append(errs, newValidationError(validation, pointer, "minLength", fmt.Sprintf(
-			"length %d is less than %d", length, *stringValidation.MinLength,
+			"length %d is less than %s", length, stringValidation.MinLength.Value,
 		)))
 	}
 
-	if stringValidation.MaxLength != nil && length > *stringValidation.MaxLength {
+	if stringValidation.MaxLength != nil && compareCount(length, stringValidation.MaxLength) > 0 {
 		errs = append(errs, newValidationError(validation, pointer, "maxLength", fmt.Sprintf(
-			"length %d is greater than %d", length, *stringValidation.MaxLength,
+			"length %d is greater than %s", length, stringValidation.MaxLength.Value,
 		)))
 	}
 
@@ -352,15 +353,15 @@ func (array ArrayValidation) validate(validation *Validation, value instance, po
 	}
 
 	var errs []error
-	if array.MinItems != nil && len(value.array) < *array.MinItems {
+	if array.MinItems != nil && compareCount(len(value.array), array.MinItems) < 0 {
 		errs = append(errs, newValidationError(validation, pointer, "minItems", fmt.Sprintf(
-			"item count %d is less than %d", len(value.array), *array.MinItems,
+			"item count %d is less than %s", len(value.array), array.MinItems.Value,
 		)))
 	}
 
-	if array.MaxItems != nil && len(value.array) > *array.MaxItems {
+	if array.MaxItems != nil && compareCount(len(value.array), array.MaxItems) > 0 {
 		errs = append(errs, newValidationError(validation, pointer, "maxItems", fmt.Sprintf(
-			"item count %d is greater than %d", len(value.array), *array.MaxItems,
+			"item count %d is greater than %s", len(value.array), array.MaxItems.Value,
 		)))
 	}
 
@@ -414,15 +415,15 @@ func (object ObjectValidation) validate(validation *Validation, value instance, 
 	}
 
 	var errs []error
-	if object.MinProperties != nil && len(value.object) < *object.MinProperties {
+	if object.MinProperties != nil && compareCount(len(value.object), object.MinProperties) < 0 {
 		errs = append(errs, newValidationError(validation, pointer, "minProperties", fmt.Sprintf(
-			"property count %d is less than %d", len(value.object), *object.MinProperties,
+			"property count %d is less than %s", len(value.object), object.MinProperties.Value,
 		)))
 	}
 
-	if object.MaxProperties != nil && len(value.object) > *object.MaxProperties {
+	if object.MaxProperties != nil && compareCount(len(value.object), object.MaxProperties) > 0 {
 		errs = append(errs, newValidationError(validation, pointer, "maxProperties", fmt.Sprintf(
-			"property count %d is greater than %d", len(value.object), *object.MaxProperties,
+			"property count %d is greater than %s", len(value.object), object.MaxProperties.Value,
 		)))
 	}
 
@@ -461,6 +462,16 @@ func (object ObjectValidation) validate(validation *Validation, value instance, 
 	}
 
 	return errs
+}
+
+// compareCount compares one in-memory count with an exact schema bound.
+func compareCount(count int, bound *CountBound) int {
+	value := jsonvalue.Number{
+		Lexeme:   fmt.Sprintf("%d", count),
+		Rational: new(big.Rat).SetInt64(int64(count)),
+	}
+
+	return value.Compare(bound.exactValue)
 }
 
 // hasObjectMember searches lexically sorted raw members.
