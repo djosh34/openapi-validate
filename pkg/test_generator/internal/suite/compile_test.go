@@ -372,6 +372,36 @@ components:
 	require.Contains(t, cachedError.Pointer, "/components/schemas/Disjoint")
 }
 
+// TestMustHaveAllXValidCasesInvalidatesOccurrenceCacheOnce verifies direct option
+// configuration after CompileSchema retains Domains and repeated enabling is idempotent.
+func TestMustHaveAllXValidCasesInvalidatesOccurrenceCacheOnce(t *testing.T) {
+	t.Parallel()
+
+	compiler := NewCompiler(parseSchemaSource(t, `type: boolean`, "", "create"))
+	registry := compiler.Domains
+
+	_, err := compiler.CompileSchema(compiler.Source.RequestSchema)
+	require.NoError(t, err)
+	require.NotEmpty(t, compiler.usesByPointer)
+
+	MustHaveAllXValidCases(compiler)
+	require.Same(t, registry, compiler.Domains)
+	require.Empty(t, compiler.usesByPointer)
+	require.Nil(t, compiler.rootUse)
+
+	_, err = compiler.Compile()
+	require.NoError(t, err)
+	require.NotNil(t, compiler.rootUse)
+	require.NotEmpty(t, compiler.usesByPointer)
+
+	rootUse := compiler.rootUse
+	useCount := len(compiler.usesByPointer)
+	MustHaveAllXValidCases(compiler)
+	require.Same(t, rootUse, compiler.rootUse)
+	require.Len(t, compiler.usesByPointer, useCount)
+	require.Same(t, registry, compiler.Domains)
+}
+
 // TestCompileSuiteKeepsCachedStructuralMeetLocations verifies synthesized child
 // meets retain the parent allOf boundary that fresh compilation reports.
 func TestCompileSuiteKeepsCachedStructuralMeetLocations(t *testing.T) {
@@ -499,6 +529,44 @@ components:
 			require.NotEqual(t, source.RequestSchema.Pointer, cachedError.Pointer)
 		})
 	}
+}
+
+// TestCompileSuiteKeepsFirstFoldShortCircuitAfterReuse verifies recompilation
+// reports an outer fold before a later nested branch that fresh compilation never reaches.
+func TestCompileSuiteKeepsFirstFoldShortCircuitAfterReuse(t *testing.T) {
+	t.Parallel()
+
+	source := parseSchemaSource(t, `type: string
+pattern: '^root$'
+x-valid-examples: [root]
+allOf:
+  - type: string
+    format: email
+    x-valid-examples: [first]
+  - allOf:
+      - {type: string, pattern: '^A$', x-valid-examples: [A]}
+      - {type: string, format: email, x-valid-examples: [B]}`, "", "create")
+	compiler := NewCompiler(source)
+
+	_, err := compiler.Compile()
+	require.NoError(t, err)
+
+	_, err = compiler.CompileSuite(MustHaveAllXValidCases)
+	require.Error(t, err)
+
+	var cachedError *Error
+	require.ErrorAs(t, err, &cachedError)
+
+	_, err = NewCompiler(source).CompileSuite(MustHaveAllXValidCases)
+	require.Error(t, err)
+
+	var freshError *Error
+	require.ErrorAs(t, err, &freshError)
+	require.Equal(t, freshError.Phase, cachedError.Phase)
+	require.Equal(t, freshError.Code, cachedError.Code)
+	require.Equal(t, freshError.Keyword, cachedError.Keyword)
+	require.Equal(t, freshError.Pointer, cachedError.Pointer)
+	require.Equal(t, source.RequestSchema.Pointer, cachedError.Pointer)
 }
 
 // TestCompileSuiteIgnoresEmptyLocalOracleForUnreachableString verifies the

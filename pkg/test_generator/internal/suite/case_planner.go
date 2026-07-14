@@ -13,7 +13,13 @@ type CompileOption func(*Compiler)
 
 // MustHaveAllXValidCases requires every oracle-backed allOf merge to retain a shared valid case.
 func MustHaveAllXValidCases(compiler *Compiler) {
+	if compiler.mustHaveAllXValidCases {
+		return
+	}
+
 	compiler.mustHaveAllXValidCases = true
+	compiler.usesByPointer = make(map[string]*schemaUse)
+	compiler.rootUse = nil
 }
 
 // CompileSuite compiles, plans, and links the request schema to Rapid generators.
@@ -25,13 +31,6 @@ func (compiler *Compiler) CompileSuite(options ...CompileOption) (*CompiledSuite
 	root, err := compiler.Compile()
 	if err != nil {
 		return nil, err
-	}
-
-	if compiler.mustHaveAllXValidCases {
-		err = compiler.requireAllXValidCases(compiler.rootUse, make(map[*schemaUse]struct{}))
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	planner := &CasePlanner{Domains: compiler.Domains}
