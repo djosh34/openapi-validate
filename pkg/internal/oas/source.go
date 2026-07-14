@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"mime"
 	"net/url"
 	"slices"
 	"strconv"
@@ -373,9 +374,18 @@ func optionalBoolean(raw json.RawMessage, name string) (bool, error) {
 
 // applicationJSONMediaType selects the most specific content entry matching application/json.
 func applicationJSONMediaType(content map[string]json.RawMessage) (string, json.RawMessage, bool) {
-	for _, name := range []string{"application/json", "application/*", "*/*"} {
-		if raw, ok := content[name]; ok {
-			return name, raw, true
+	names := slices.Sorted(maps.Keys(content))
+
+	for _, match := range []string{"application/json", "application/*", "*/*"} {
+		if raw, ok := content[match]; ok {
+			return match, raw, true
+		}
+
+		for _, name := range names {
+			mediaType, _, err := mime.ParseMediaType(name)
+			if err == nil && mediaType == match {
+				return name, content[name], true
+			}
 		}
 	}
 

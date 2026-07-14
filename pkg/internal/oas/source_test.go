@@ -304,6 +304,7 @@ func TestParseSelectsApplicationJSONMediaRangesBySpecificity(t *testing.T) {
 		"application wildcard": "application/*: {schema: {type: string}}",
 		"global wildcard":      "'*/*': {schema: {type: boolean}}",
 		"exact wins":           "'*/*': {schema: {type: boolean}}\n          application/json: {schema: {type: string}}",
+		"parameterized exact":  "'application/json; charset=utf-8': {schema: {type: string}}",
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -317,6 +318,7 @@ paths:
         content:
           ` + content))
 			require.NoError(t, err)
+			require.Contains(t, sources, "create")
 
 			source := sources["create"]
 
