@@ -85,6 +85,11 @@ func Parse(spec []byte, operationID string) (Source, error) {
 		return Source{}, errors.New("OpenAPI document must be an object")
 	}
 
+	var version string
+	if err := json.Unmarshal(root["openapi"], &version); err != nil || version != "3.0.3" {
+		return Source{}, errors.New(`OpenAPI document version must be "3.0.3"`)
+	}
+
 	source := Source{Document: append(json.RawMessage(nil), document...)}
 
 	return source.selectRequest(root["paths"], operationID)
@@ -250,6 +255,8 @@ func applicationJSONMediaType(content map[string]json.RawMessage) (string, json.
 }
 
 // findOperation finds exactly one operation with operationID.
+//
+//nolint:cyclop // Malformed unreachable paths are retained only as fallback diagnostics.
 func (source Source) findOperation(pathsRaw json.RawMessage, operationID string) (LocatedSchema, error) {
 	var paths map[string]json.RawMessage
 	if err := json.Unmarshal(pathsRaw, &paths); err != nil {
@@ -267,10 +274,16 @@ func (source Source) findOperation(pathsRaw json.RawMessage, operationID string)
 
 	matches := make([]LocatedSchema, 0, 1)
 
+	var firstMalformed error
+
 	for _, path := range pathNames {
 		pathMatches, err := source.matchingOperations(path, paths[path], operationID)
 		if err != nil {
-			return LocatedSchema{}, err
+			if firstMalformed == nil {
+				firstMalformed = err
+			}
+
+			continue
 		}
 
 		matches = append(matches, pathMatches...)
@@ -278,6 +291,10 @@ func (source Source) findOperation(pathsRaw json.RawMessage, operationID string)
 
 	switch len(matches) {
 	case 0:
+		if firstMalformed != nil {
+			return LocatedSchema{}, firstMalformed
+		}
+
 		return LocatedSchema{}, fmt.Errorf("operationId %q not found", operationID)
 	case 1:
 		return matches[0], nil
@@ -306,17 +323,27 @@ func (source Source) matchingOperations(
 
 	matches := make([]LocatedSchema, 0, 1)
 
+	var firstMalformed error
+
 	for _, operation := range operations {
 		var identity struct {
 			OperationID string `json:"operationId"`
 		}
 		if unmarshalErr := json.Unmarshal(operation.Raw, &identity); unmarshalErr != nil {
-			return nil, fmt.Errorf("parse operation at %s: %w", operation.Pointer, unmarshalErr)
+			if firstMalformed == nil {
+				firstMalformed = fmt.Errorf("parse operation at %s: %w", operation.Pointer, unmarshalErr)
+			}
+
+			continue
 		}
 
 		if identity.OperationID == operationID {
 			matches = append(matches, operation)
 		}
+	}
+
+	if len(matches) == 0 && firstMalformed != nil {
+		return nil, firstMalformed
 	}
 
 	return matches, nil
