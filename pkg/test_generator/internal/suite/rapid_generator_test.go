@@ -261,6 +261,24 @@ items:
 		})
 	})
 
+	t.Run("unconstrained sibling preserves contradictory item obligations", func(t *testing.T) {
+		t.Parallel()
+
+		compiler := NewCompiler(parseSchemaSource(t, `allOf:
+  - type: array
+    items:
+      allOf:
+        - {type: string}
+        - {type: boolean}
+  - maxItems: 2`, "", "create"))
+		compiled, err := compiler.CompileSuite()
+		require.NoError(t, err)
+		require.NotNil(t, compiled)
+
+		require.NotNil(t, compiler.rootUse.items)
+		require.Equal(t, EmptyDomainID, compiler.rootUse.items.domain)
+	})
+
 	t.Run("contradictory items with positive minimum are impossible", func(t *testing.T) {
 		t.Parallel()
 
@@ -341,6 +359,26 @@ additionalProperties: false`, "", "create"))
 			require.NoError(t, json.Unmarshal(body, &object))
 			require.NotContains(t, object, "value")
 		})
+	})
+
+	t.Run("unconstrained sibling preserves contradictory property obligations", func(t *testing.T) {
+		t.Parallel()
+
+		compiler := NewCompiler(parseSchemaSource(t, `allOf:
+  - type: object
+    properties:
+      value:
+        allOf:
+          - {type: string}
+          - {type: boolean}
+  - type: object`, "", "create"))
+		compiled, err := compiler.CompileSuite()
+		require.NoError(t, err)
+		require.NotNil(t, compiled)
+
+		property := compiler.rootUse.property("value")
+		require.NotNil(t, property)
+		require.Equal(t, EmptyDomainID, property.domain)
 	})
 
 	t.Run("required contradictory property is impossible", func(t *testing.T) {

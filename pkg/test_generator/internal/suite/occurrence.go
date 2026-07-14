@@ -143,7 +143,7 @@ func (compiler *Compiler) meetChild(
 	resultDomain DomainID,
 ) (*schemaUse, bool, error) {
 	if resultDomain == EmptyDomainID {
-		return compiler.meetEmptyChild(left, right)
+		return compiler.meetEmptyChild(left, leftDomain, right, rightDomain)
 	}
 
 	if resultDomain == NoDomain || resultDomain == AnyJSONDomainID {
@@ -173,8 +173,29 @@ func (compiler *Compiler) meetChild(
 }
 
 // meetEmptyChild retains the contradictory occurrences that made a child policy impossible.
-func (compiler *Compiler) meetEmptyChild(left *schemaUse, right *schemaUse) (*schemaUse, bool, error) {
-	if left == nil || right == nil {
+func (compiler *Compiler) meetEmptyChild(
+	left *schemaUse,
+	leftDomain DomainID,
+	right *schemaUse,
+	rightDomain DomainID,
+) (*schemaUse, bool, error) {
+	if left == nil && right == nil {
+		return nil, false, nil
+	}
+
+	if left == nil {
+		if leftDomain == AnyJSONDomainID {
+			return existingChild(right, EmptyDomainID, "left", leftDomain)
+		}
+
+		return nil, false, nil
+	}
+
+	if right == nil {
+		if rightDomain == AnyJSONDomainID {
+			return existingChild(left, EmptyDomainID, "right", rightDomain)
+		}
+
 		return nil, false, nil
 	}
 
@@ -245,7 +266,7 @@ func occurrencePropertyPolicy(
 	}
 
 	if property.State == PropertyForbidden {
-		return nil, EmptyDomainID
+		return use.property(name), EmptyDomainID
 	}
 
 	propertyUse := use.property(name)
