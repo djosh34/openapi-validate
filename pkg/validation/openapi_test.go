@@ -22,42 +22,22 @@ func TestParseOpenAPI(t *testing.T) {
 	}{
 		"allOfObject": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:   "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema",
+				BodyRequired:    true,
+				ArrayValidation: validation.ArrayValidation{},
 				ObjectValidation: validation.ObjectValidation{
 					AdditionalPropertiesAllowed: true,
 				},
 				AllOfValidations: []*validation.Validation{
 					{
-						SchemaPointer:    "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/0",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:  "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/0",
+						KindValidation: validation.KindValidation{Type: "object"},
 						ObjectValidation: validation.ObjectValidation{
 							Required: []string{"first"},
 							Properties: []validation.PropertyValidation{
 								{Name: "first", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/0/properties/first",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/0/properties/first",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
@@ -67,28 +47,14 @@ func TestParseOpenAPI(t *testing.T) {
 						},
 					},
 					{
-						SchemaPointer:    "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/1",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:  "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/1",
+						KindValidation: validation.KindValidation{Type: "object"},
 						ObjectValidation: validation.ObjectValidation{
 							Required: []string{"second"},
 							Properties: []validation.PropertyValidation{
 								{Name: "second", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/1/properties/second",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/1/properties/second",
+									KindValidation: validation.KindValidation{Type: "boolean"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
@@ -98,28 +64,14 @@ func TestParseOpenAPI(t *testing.T) {
 						},
 					},
 					{
-						SchemaPointer:    "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/2",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:  "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/2",
+						KindValidation: validation.KindValidation{Type: "object"},
 						ObjectValidation: validation.ObjectValidation{
 							Required: []string{"last"},
 							Properties: []validation.PropertyValidation{
 								{Name: "last", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/2/properties/last",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "number", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1all-of-object/post/requestBody/content/application~1json/schema/allOf/2/properties/last",
+									KindValidation: validation.KindValidation{Type: "number"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
@@ -133,28 +85,17 @@ func TestParseOpenAPI(t *testing.T) {
 		},
 		"arrayNotNullable": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1array-not-nullable/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "array", Nullable: false},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
+				SchemaPointer:  "#/paths/~1array-not-nullable/post/requestBody/content/application~1json/schema",
+				BodyRequired:   true,
+				KindValidation: validation.KindValidation{Type: "array"},
 				ArrayValidation: validation.ArrayValidation{
 					Items: &validation.Validation{
-						SchemaPointer:    "#/paths/~1array-not-nullable/post/requestBody/content/application~1json/schema/items",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:  "#/paths/~1array-not-nullable/post/requestBody/content/application~1json/schema/items",
+						KindValidation: validation.KindValidation{Type: "string"},
 						ObjectValidation: validation.ObjectValidation{
 							AdditionalPropertiesAllowed: true,
 						},
 					},
-					UniqueItems: false,
 				},
 				ObjectValidation: validation.ObjectValidation{
 					AdditionalPropertiesAllowed: true,
@@ -163,28 +104,17 @@ func TestParseOpenAPI(t *testing.T) {
 		},
 		"arrayNullable": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1array-nullable/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "array", Nullable: true},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
+				SchemaPointer:  "#/paths/~1array-nullable/post/requestBody/content/application~1json/schema",
+				BodyRequired:   true,
+				KindValidation: validation.KindValidation{Type: "array", Nullable: true},
 				ArrayValidation: validation.ArrayValidation{
 					Items: &validation.Validation{
-						SchemaPointer:    "#/paths/~1array-nullable/post/requestBody/content/application~1json/schema/items",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:  "#/paths/~1array-nullable/post/requestBody/content/application~1json/schema/items",
+						KindValidation: validation.KindValidation{Type: "string"},
 						ObjectValidation: validation.ObjectValidation{
 							AdditionalPropertiesAllowed: true,
 						},
 					},
-					UniqueItems: false,
 				},
 				ObjectValidation: validation.ObjectValidation{
 					AdditionalPropertiesAllowed: true,
@@ -193,208 +123,112 @@ func TestParseOpenAPI(t *testing.T) {
 		},
 		"compositeObject": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema",
+				BodyRequired:   true,
+				KindValidation: validation.KindValidation{Type: "object"},
 				ObjectValidation: validation.ObjectValidation{
 					Required: []string{"arrayNotNullableItemsNotNullable", "arrayNotNullableItemsNullable", "arrayNullableItemsNotNullable", "arrayNullableItemsNullable", "boolNotNullable", "boolNullable", "numberNotNullable", "numberNullable", "objectAdditionalPropertiesImplicit", "objectAdditionalPropertiesSchema", "objectAdditionalPropertiesTrue", "stringFormatNotNullable", "stringFormatNullable"},
 					Properties: []validation.PropertyValidation{
 						{Name: "arrayNotNullableItemsNotNullable", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNotNullableItemsNotNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "array", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNotNullableItemsNotNullable",
+							KindValidation: validation.KindValidation{Type: "array"},
 							ArrayValidation: validation.ArrayValidation{
 								Items: &validation.Validation{
-									SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNotNullableItemsNotNullable/items",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNotNullableItemsNotNullable/items",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								},
-								UniqueItems: false,
 							},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "arrayNotNullableItemsNullable", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNotNullableItemsNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "array", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNotNullableItemsNullable",
+							KindValidation: validation.KindValidation{Type: "array"},
 							ArrayValidation: validation.ArrayValidation{
 								Items: &validation.Validation{
-									SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNotNullableItemsNullable/items",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNotNullableItemsNullable/items",
+									KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								},
-								UniqueItems: false,
 							},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "arrayNullableItemsNotNullable", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNullableItemsNotNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "array", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNullableItemsNotNullable",
+							KindValidation: validation.KindValidation{Type: "array", Nullable: true},
 							ArrayValidation: validation.ArrayValidation{
 								Items: &validation.Validation{
-									SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNullableItemsNotNullable/items",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNullableItemsNotNullable/items",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								},
-								UniqueItems: false,
 							},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "arrayNullableItemsNullable", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNullableItemsNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "array", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNullableItemsNullable",
+							KindValidation: validation.KindValidation{Type: "array", Nullable: true},
 							ArrayValidation: validation.ArrayValidation{
 								Items: &validation.Validation{
-									SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNullableItemsNullable/items",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/arrayNullableItemsNullable/items",
+									KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								},
-								UniqueItems: false,
 							},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "boolNotNullable", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/boolNotNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/boolNotNullable",
+							KindValidation: validation.KindValidation{Type: "boolean"},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "boolNullable", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/boolNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "boolean", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/boolNullable",
+							KindValidation: validation.KindValidation{Type: "boolean", Nullable: true},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "numberNotNullable", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/numberNotNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "number", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/numberNotNullable",
+							KindValidation: validation.KindValidation{Type: "number"},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "numberNullable", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/numberNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "number", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/numberNullable",
+							KindValidation: validation.KindValidation{Type: "number", Nullable: true},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "objectAdditionalPropertiesImplicit", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesImplicit",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesImplicit",
+							KindValidation: validation.KindValidation{Type: "object"},
 							ObjectValidation: validation.ObjectValidation{
 								Properties: []validation.PropertyValidation{
 									{Name: "known", Validation: &validation.Validation{
-										SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesImplicit/properties/known",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesImplicit/properties/known",
+										KindValidation: validation.KindValidation{Type: "string"},
 										ObjectValidation: validation.ObjectValidation{
 											AdditionalPropertiesAllowed: true,
 										},
@@ -404,27 +238,13 @@ func TestParseOpenAPI(t *testing.T) {
 							},
 						}},
 						{Name: "objectAdditionalPropertiesSchema", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesSchema",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesSchema",
+							KindValidation: validation.KindValidation{Type: "object"},
 							ObjectValidation: validation.ObjectValidation{
 								Properties: []validation.PropertyValidation{
 									{Name: "known", Validation: &validation.Validation{
-										SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesSchema/properties/known",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesSchema/properties/known",
+										KindValidation: validation.KindValidation{Type: "string"},
 										ObjectValidation: validation.ObjectValidation{
 											AdditionalPropertiesAllowed: true,
 										},
@@ -432,15 +252,8 @@ func TestParseOpenAPI(t *testing.T) {
 								},
 								AdditionalPropertiesAllowed: true,
 								AdditionalPropertiesValidation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesSchema/additionalProperties",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesSchema/additionalProperties",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
@@ -448,27 +261,13 @@ func TestParseOpenAPI(t *testing.T) {
 							},
 						}},
 						{Name: "objectAdditionalPropertiesTrue", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesTrue",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesTrue",
+							KindValidation: validation.KindValidation{Type: "object"},
 							ObjectValidation: validation.ObjectValidation{
 								Properties: []validation.PropertyValidation{
 									{Name: "known", Validation: &validation.Validation{
-										SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesTrue/properties/known",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/objectAdditionalPropertiesTrue/properties/known",
+										KindValidation: validation.KindValidation{Type: "string"},
 										ObjectValidation: validation.ObjectValidation{
 											AdditionalPropertiesAllowed: true,
 										},
@@ -479,211 +278,116 @@ func TestParseOpenAPI(t *testing.T) {
 						}},
 						{Name: "stringFormatNotNullable", Validation: &validation.Validation{
 							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/stringFormatNotNullable",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
+							KindValidation:   validation.KindValidation{Type: "string"},
 							StringValidation: validation.StringValidation{Format: "date-time"},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "stringFormatNullable", Validation: &validation.Validation{
 							SchemaPointer:    "#/paths/~1composite-object/post/requestBody/content/application~1json/schema/properties/stringFormatNullable",
-							BodyRequired:     false,
 							KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
 							StringValidation: validation.StringValidation{Format: "date-time"},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 					},
-					AdditionalPropertiesAllowed: false,
 				},
 			},
 		},
 		"nullableObjectKeysAdditionalPropertiesFalse": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:  "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema",
+				BodyRequired:   true,
+				KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 				ObjectValidation: validation.ObjectValidation{
 					Required: []string{"requiredNotNullableString", "requiredNullableString"},
 					Properties: []validation.PropertyValidation{
 						{Name: "optionalNotNullableString", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/optionalNotNullableString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/optionalNotNullableString",
+							KindValidation: validation.KindValidation{Type: "string"},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "optionalNullableString", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/optionalNullableString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/optionalNullableString",
+							KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "requiredNotNullableString", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/requiredNotNullableString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/requiredNotNullableString",
+							KindValidation: validation.KindValidation{Type: "string"},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "requiredNullableString", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/requiredNullableString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1nullable-object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/requiredNullableString",
+							KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 					},
-					AdditionalPropertiesAllowed: false,
 				},
 			},
 		},
 		"objectKeysAdditionalPropertiesFalse": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:  "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema",
+				BodyRequired:   true,
+				KindValidation: validation.KindValidation{Type: "object"},
 				ObjectValidation: validation.ObjectValidation{
 					Required: []string{"requiredNotNullableString", "requiredNullableString"},
 					Properties: []validation.PropertyValidation{
 						{Name: "optionalNotNullableString", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/optionalNotNullableString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/optionalNotNullableString",
+							KindValidation: validation.KindValidation{Type: "string"},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "optionalNullableString", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/optionalNullableString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/optionalNullableString",
+							KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "requiredNotNullableString", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/requiredNotNullableString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/requiredNotNullableString",
+							KindValidation: validation.KindValidation{Type: "string"},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "requiredNullableString", Validation: &validation.Validation{
-							SchemaPointer:    "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/requiredNullableString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/paths/~1object-keys-additional-properties-false/post/requestBody/content/application~1json/schema/properties/requiredNullableString",
+							KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 					},
-					AdditionalPropertiesAllowed: false,
 				},
 			},
 		},
 		"optionalArrayNullable": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1optional-array-nullable/post/requestBody/content/application~1json/schema",
-				BodyRequired:     false,
-				KindValidation:   validation.KindValidation{Type: "array", Nullable: true},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
+				SchemaPointer:  "#/paths/~1optional-array-nullable/post/requestBody/content/application~1json/schema",
+				KindValidation: validation.KindValidation{Type: "array", Nullable: true},
 				ArrayValidation: validation.ArrayValidation{
 					Items: &validation.Validation{
-						SchemaPointer:    "#/paths/~1optional-array-nullable/post/requestBody/content/application~1json/schema/items",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:  "#/paths/~1optional-array-nullable/post/requestBody/content/application~1json/schema/items",
+						KindValidation: validation.KindValidation{Type: "string"},
 						ObjectValidation: validation.ObjectValidation{
 							AdditionalPropertiesAllowed: true,
 						},
 					},
-					UniqueItems: false,
 				},
 				ObjectValidation: validation.ObjectValidation{
 					AdditionalPropertiesAllowed: true,
@@ -692,144 +396,75 @@ func TestParseOpenAPI(t *testing.T) {
 		},
 		"refObject": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/components/schemas/RefObjectRequest",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:  "#/components/schemas/RefObjectRequest",
+				BodyRequired:   true,
+				KindValidation: validation.KindValidation{Type: "object"},
 				ObjectValidation: validation.ObjectValidation{
 					Required: []string{"refRequiredString"},
 					Properties: []validation.PropertyValidation{
 						{Name: "refOptionalBool", Validation: &validation.Validation{
-							SchemaPointer:    "#/components/schemas/RefObjectRequest/properties/refOptionalBool",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "boolean", Nullable: true},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/components/schemas/RefObjectRequest/properties/refOptionalBool",
+							KindValidation: validation.KindValidation{Type: "boolean", Nullable: true},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 						{Name: "refRequiredString", Validation: &validation.Validation{
-							SchemaPointer:    "#/components/schemas/RefObjectRequest/properties/refRequiredString",
-							BodyRequired:     false,
-							KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-							EnumValidation:   validation.EnumValidation{},
-							NumberValidation: validation.NumberValidation{},
-							StringValidation: validation.StringValidation{Format: ""},
-							ArrayValidation: validation.ArrayValidation{
-								UniqueItems: false,
-							},
+							SchemaPointer:  "#/components/schemas/RefObjectRequest/properties/refRequiredString",
+							KindValidation: validation.KindValidation{Type: "string"},
 							ObjectValidation: validation.ObjectValidation{
 								AdditionalPropertiesAllowed: true,
 							},
 						}},
 					},
-					AdditionalPropertiesAllowed: false,
 				},
 			},
 		},
 		"refStressObject": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:   "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema",
+				BodyRequired:    true,
+				ArrayValidation: validation.ArrayValidation{},
 				ObjectValidation: validation.ObjectValidation{
 					AdditionalPropertiesAllowed: true,
 				},
 				AllOfValidations: []*validation.Validation{
 					{
-						SchemaPointer:    "#/components/schemas/RefStressFirstAllOf",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:   "#/components/schemas/RefStressFirstAllOf",
+						ArrayValidation: validation.ArrayValidation{},
 						ObjectValidation: validation.ObjectValidation{
 							AdditionalPropertiesAllowed: true,
 						},
 						AllOfValidations: []*validation.Validation{
 							{
-								SchemaPointer:    "#/components/schemas/RefStressFinal",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:  "#/components/schemas/RefStressFinal",
+								KindValidation: validation.KindValidation{Type: "object"},
 								ObjectValidation: validation.ObjectValidation{
 									Required: []string{"finalCode", "sharedName"},
 									Properties: []validation.PropertyValidation{
 										{Name: "finalCode", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+											KindValidation: validation.KindValidation{Type: "string"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "nested", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+											KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"sameName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "leaf", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sameName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+														KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -839,29 +474,15 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										}},
 										{Name: "optionalShared", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+											KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "sharedName", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+											KindValidation: validation.KindValidation{Type: "string"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
@@ -871,97 +492,48 @@ func TestParseOpenAPI(t *testing.T) {
 								},
 							},
 							{
-								SchemaPointer:    "#/components/schemas/RefStressViaMiddle",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:   "#/components/schemas/RefStressViaMiddle",
+								ArrayValidation: validation.ArrayValidation{},
 								ObjectValidation: validation.ObjectValidation{
 									AdditionalPropertiesAllowed: true,
 								},
 								AllOfValidations: []*validation.Validation{
 									{
-										SchemaPointer:    "#/components/schemas/RefStressMiddleAllOf",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:   "#/components/schemas/RefStressMiddleAllOf",
+										ArrayValidation: validation.ArrayValidation{},
 										ObjectValidation: validation.ObjectValidation{
 											AdditionalPropertiesAllowed: true,
 										},
 										AllOfValidations: []*validation.Validation{
 											{
-												SchemaPointer:    "#/components/schemas/RefStressFinal",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressFinal",
+												KindValidation: validation.KindValidation{Type: "object"},
 												ObjectValidation: validation.ObjectValidation{
 													Required: []string{"finalCode", "sharedName"},
 													Properties: []validation.PropertyValidation{
 														{Name: "finalCode", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
 														}},
 														{Name: "nested", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+															KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 															ObjectValidation: validation.ObjectValidation{
 																Required: []string{"sameName"},
 																Properties: []validation.PropertyValidation{
 																	{Name: "leaf", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
 																	}},
 																	{Name: "sameName", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																		KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
@@ -971,29 +543,15 @@ func TestParseOpenAPI(t *testing.T) {
 															},
 														}},
 														{Name: "optionalShared", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+															KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
 														}},
 														{Name: "sharedName", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
@@ -1003,42 +561,21 @@ func TestParseOpenAPI(t *testing.T) {
 												},
 											},
 											{
-												SchemaPointer:    "#/components/schemas/RefStressMiddleAllOf/allOf/1",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressMiddleAllOf/allOf/1",
+												KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 												ObjectValidation: validation.ObjectValidation{
 													Required: []string{"sharedName"},
 													Properties: []validation.PropertyValidation{
 														{Name: "optionalCode", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressMiddleAllOf/allOf/1/properties/optionalCode",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressMiddleAllOf/allOf/1/properties/optionalCode",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
 														}},
 														{Name: "sharedName", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressMiddleAllOf/allOf/1/properties/sharedName",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressMiddleAllOf/allOf/1/properties/sharedName",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
@@ -1050,83 +587,41 @@ func TestParseOpenAPI(t *testing.T) {
 										},
 									},
 									{
-										SchemaPointer:    "#/components/schemas/RefStressViaMiddle/allOf/1",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/components/schemas/RefStressViaMiddle/allOf/1",
+										KindValidation: validation.KindValidation{Type: "object"},
 										ObjectValidation: validation.ObjectValidation{
 											Required: []string{"middleFlag", "sharedName"},
 											Properties: []validation.PropertyValidation{
 												{Name: "middleFlag", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressViaMiddle/allOf/1/properties/middleFlag",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressViaMiddle/allOf/1/properties/middleFlag",
+													KindValidation: validation.KindValidation{Type: "boolean"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
 												}},
 												{Name: "nested", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressNestedCombined",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:   "#/components/schemas/RefStressNestedCombined",
+													ArrayValidation: validation.ArrayValidation{},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
 													AllOfValidations: []*validation.Validation{
 														{
-															SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+															KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 															ObjectValidation: validation.ObjectValidation{
 																Required: []string{"sameName"},
 																Properties: []validation.PropertyValidation{
 																	{Name: "leaf", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
 																	}},
 																	{Name: "sameName", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																		KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
@@ -1136,42 +631,21 @@ func TestParseOpenAPI(t *testing.T) {
 															},
 														},
 														{
-															SchemaPointer:    "#/components/schemas/RefStressNestedOverlay",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedOverlay",
+															KindValidation: validation.KindValidation{Type: "object"},
 															ObjectValidation: validation.ObjectValidation{
 																Required: []string{"sameName"},
 																Properties: []validation.PropertyValidation{
 																	{Name: "leaf", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
 																	}},
 																	{Name: "sameName", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedOverlay/properties/sameName",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedOverlay/properties/sameName",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
@@ -1181,61 +655,32 @@ func TestParseOpenAPI(t *testing.T) {
 															},
 														},
 														{
-															SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2",
+															KindValidation: validation.KindValidation{Type: "object"},
 															ObjectValidation: validation.ObjectValidation{
 																Required: []string{"sameName", "sealed"},
 																Properties: []validation.PropertyValidation{
 																	{Name: "sameName", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
 																	}},
 																	{Name: "sealed", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
+																		KindValidation: validation.KindValidation{Type: "object"},
 																		ObjectValidation: validation.ObjectValidation{
 																			Required: []string{"locked"},
 																			Properties: []validation.PropertyValidation{
 																				{Name: "locked", Validation: &validation.Validation{
-																					SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
-																					BodyRequired:     false,
-																					KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-																					EnumValidation:   validation.EnumValidation{},
-																					NumberValidation: validation.NumberValidation{},
-																					StringValidation: validation.StringValidation{Format: ""},
-																					ArrayValidation: validation.ArrayValidation{
-																						UniqueItems: false,
-																					},
+																					SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
+																					KindValidation: validation.KindValidation{Type: "boolean"},
 																					ObjectValidation: validation.ObjectValidation{
 																						AdditionalPropertiesAllowed: true,
 																					},
 																				}},
 																			},
-																			AdditionalPropertiesAllowed: false,
 																		},
 																	}},
 																},
@@ -1245,15 +690,8 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												}},
 												{Name: "sharedName", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressViaMiddle/allOf/1/properties/sharedName",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressViaMiddle/allOf/1/properties/sharedName",
+													KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
@@ -1265,82 +703,40 @@ func TestParseOpenAPI(t *testing.T) {
 								},
 							},
 							{
-								SchemaPointer:    "#/components/schemas/RefStressFirstAllOf/allOf/2",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:  "#/components/schemas/RefStressFirstAllOf/allOf/2",
+								KindValidation: validation.KindValidation{Type: "object"},
 								ObjectValidation: validation.ObjectValidation{
 									Required: []string{"final", "nested", "nullableRequired"},
 									Properties: []validation.PropertyValidation{
 										{Name: "final", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"finalCode", "sharedName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "finalCode", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "nested", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+														KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															Required: []string{"sameName"},
 															Properties: []validation.PropertyValidation{
 																{Name: "leaf", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																	KindValidation: validation.KindValidation{Type: "string"},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
 																}},
 																{Name: "sameName", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																	KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
@@ -1350,29 +746,15 @@ func TestParseOpenAPI(t *testing.T) {
 														},
 													}},
 													{Name: "optionalShared", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+														KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sharedName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -1382,56 +764,28 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										}},
 										{Name: "nested", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressNestedCombined",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:   "#/components/schemas/RefStressNestedCombined",
+											ArrayValidation: validation.ArrayValidation{},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 											AllOfValidations: []*validation.Validation{
 												{
-													SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+													KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"sameName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "leaf", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sameName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -1441,42 +795,21 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												},
 												{
-													SchemaPointer:    "#/components/schemas/RefStressNestedOverlay",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressNestedOverlay",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"sameName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "leaf", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sameName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedOverlay/properties/sameName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedOverlay/properties/sameName",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -1486,61 +819,32 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												},
 												{
-													SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"sameName", "sealed"},
 														Properties: []validation.PropertyValidation{
 															{Name: "sameName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sealed", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
+																KindValidation: validation.KindValidation{Type: "object"},
 																ObjectValidation: validation.ObjectValidation{
 																	Required: []string{"locked"},
 																	Properties: []validation.PropertyValidation{
 																		{Name: "locked", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
+																			KindValidation: validation.KindValidation{Type: "boolean"},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
 																		}},
 																	},
-																	AdditionalPropertiesAllowed: false,
 																},
 															}},
 														},
@@ -1550,43 +854,22 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										}},
 										{Name: "nullableRequired", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/nullableRequired",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/nullableRequired",
+											KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "optionalShared", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/optionalShared",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/optionalShared",
+											KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "sharedName", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/sharedName",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/sharedName",
+											KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
@@ -1598,97 +881,48 @@ func TestParseOpenAPI(t *testing.T) {
 						},
 					},
 					{
-						SchemaPointer:    "#/components/schemas/RefStressSecondAllOf",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:   "#/components/schemas/RefStressSecondAllOf",
+						ArrayValidation: validation.ArrayValidation{},
 						ObjectValidation: validation.ObjectValidation{
 							AdditionalPropertiesAllowed: true,
 						},
 						AllOfValidations: []*validation.Validation{
 							{
-								SchemaPointer:    "#/components/schemas/RefStressOtherMiddle",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:   "#/components/schemas/RefStressOtherMiddle",
+								ArrayValidation: validation.ArrayValidation{},
 								ObjectValidation: validation.ObjectValidation{
 									AdditionalPropertiesAllowed: true,
 								},
 								AllOfValidations: []*validation.Validation{
 									{
-										SchemaPointer:    "#/components/schemas/RefStressFinal",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/components/schemas/RefStressFinal",
+										KindValidation: validation.KindValidation{Type: "object"},
 										ObjectValidation: validation.ObjectValidation{
 											Required: []string{"finalCode", "sharedName"},
 											Properties: []validation.PropertyValidation{
 												{Name: "finalCode", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+													KindValidation: validation.KindValidation{Type: "string"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
 												}},
 												{Name: "nested", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+													KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"sameName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "leaf", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sameName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -1698,29 +932,15 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												}},
 												{Name: "optionalShared", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+													KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
 												}},
 												{Name: "sharedName", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+													KindValidation: validation.KindValidation{Type: "string"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
@@ -1730,82 +950,40 @@ func TestParseOpenAPI(t *testing.T) {
 										},
 									},
 									{
-										SchemaPointer:    "#/components/schemas/RefStressOtherMiddle/allOf/1",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/components/schemas/RefStressOtherMiddle/allOf/1",
+										KindValidation: validation.KindValidation{Type: "object"},
 										ObjectValidation: validation.ObjectValidation{
 											Required: []string{"metadata", "rootFlag"},
 											Properties: []validation.PropertyValidation{
 												{Name: "final", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"finalCode", "sharedName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "finalCode", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "nested", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+																KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	Required: []string{"sameName"},
 																	Properties: []validation.PropertyValidation{
 																		{Name: "leaf", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																			KindValidation: validation.KindValidation{Type: "string"},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
 																		}},
 																		{Name: "sameName", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																			KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
@@ -1815,29 +993,15 @@ func TestParseOpenAPI(t *testing.T) {
 																},
 															}},
 															{Name: "optionalShared", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+																KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sharedName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -1847,27 +1011,13 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												}},
 												{Name: "metadata", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressOtherMiddle/allOf/1/properties/metadata",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressOtherMiddle/allOf/1/properties/metadata",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 														AdditionalPropertiesValidation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
@@ -1875,15 +1025,8 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												}},
 												{Name: "rootFlag", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressOtherMiddle/allOf/1/properties/rootFlag",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressOtherMiddle/allOf/1/properties/rootFlag",
+													KindValidation: validation.KindValidation{Type: "boolean"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
@@ -1895,104 +1038,51 @@ func TestParseOpenAPI(t *testing.T) {
 								},
 							},
 							{
-								SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1",
+								KindValidation: validation.KindValidation{Type: "object"},
 								ObjectValidation: validation.ObjectValidation{
 									Required: []string{"count", "finals", "metadata", "rootFlag"},
 									Properties: []validation.PropertyValidation{
 										{Name: "count", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/count",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "number", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/count",
+											KindValidation: validation.KindValidation{Type: "number"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "finals", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/finals",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "array", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/finals",
+											KindValidation: validation.KindValidation{Type: "array"},
 											ArrayValidation: validation.ArrayValidation{
 												Items: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"finalCode", "sharedName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "finalCode", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "nested", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+																KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	Required: []string{"sameName"},
 																	Properties: []validation.PropertyValidation{
 																		{Name: "leaf", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																			KindValidation: validation.KindValidation{Type: "string"},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
 																		}},
 																		{Name: "sameName", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																			KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
@@ -2002,29 +1092,15 @@ func TestParseOpenAPI(t *testing.T) {
 																},
 															}},
 															{Name: "optionalShared", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+																KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sharedName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -2033,34 +1109,19 @@ func TestParseOpenAPI(t *testing.T) {
 														AdditionalPropertiesAllowed: true,
 													},
 												},
-												UniqueItems: false,
 											},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "metadata", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/metadata",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/metadata",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 												AdditionalPropertiesValidation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+													KindValidation: validation.KindValidation{Type: "string"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
@@ -2068,29 +1129,15 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										}},
 										{Name: "rootFlag", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/rootFlag",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/rootFlag",
+											KindValidation: validation.KindValidation{Type: "boolean"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "sharedName", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/sharedName",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/sharedName",
+											KindValidation: validation.KindValidation{Type: "string"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
@@ -2102,96 +1149,47 @@ func TestParseOpenAPI(t *testing.T) {
 						},
 					},
 					{
-						SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2",
+						KindValidation: validation.KindValidation{Type: "object"},
 						ObjectValidation: validation.ObjectValidation{
 							Required: []string{"count", "final", "finalCode", "finals", "metadata", "middleFlag", "nested", "nullableRequired", "rootFlag", "sharedName"},
 							Properties: []validation.PropertyValidation{
 								{Name: "count", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/count",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "number", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/count",
+									KindValidation: validation.KindValidation{Type: "number"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "final", Validation: &validation.Validation{
-									SchemaPointer:    "#/components/schemas/RefStressFinal",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/components/schemas/RefStressFinal",
+									KindValidation: validation.KindValidation{Type: "object"},
 									ObjectValidation: validation.ObjectValidation{
 										Required: []string{"finalCode", "sharedName"},
 										Properties: []validation.PropertyValidation{
 											{Name: "finalCode", Validation: &validation.Validation{
-												SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+												KindValidation: validation.KindValidation{Type: "string"},
 												ObjectValidation: validation.ObjectValidation{
 													AdditionalPropertiesAllowed: true,
 												},
 											}},
 											{Name: "nested", Validation: &validation.Validation{
-												SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+												KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 												ObjectValidation: validation.ObjectValidation{
 													Required: []string{"sameName"},
 													Properties: []validation.PropertyValidation{
 														{Name: "leaf", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
 														}},
 														{Name: "sameName", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+															KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
@@ -2201,29 +1199,15 @@ func TestParseOpenAPI(t *testing.T) {
 												},
 											}},
 											{Name: "optionalShared", Validation: &validation.Validation{
-												SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+												KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 												ObjectValidation: validation.ObjectValidation{
 													AdditionalPropertiesAllowed: true,
 												},
 											}},
 											{Name: "sharedName", Validation: &validation.Validation{
-												SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+												KindValidation: validation.KindValidation{Type: "string"},
 												ObjectValidation: validation.ObjectValidation{
 													AdditionalPropertiesAllowed: true,
 												},
@@ -2233,91 +1217,45 @@ func TestParseOpenAPI(t *testing.T) {
 									},
 								}},
 								{Name: "finalCode", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/finalCode",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/finalCode",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "finals", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/finals",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "array", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/finals",
+									KindValidation: validation.KindValidation{Type: "array"},
 									ArrayValidation: validation.ArrayValidation{
 										Items: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"finalCode", "sharedName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "finalCode", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "nested", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+														KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															Required: []string{"sameName"},
 															Properties: []validation.PropertyValidation{
 																{Name: "leaf", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																	KindValidation: validation.KindValidation{Type: "string"},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
 																}},
 																{Name: "sameName", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																	KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
@@ -2327,29 +1265,15 @@ func TestParseOpenAPI(t *testing.T) {
 														},
 													}},
 													{Name: "optionalShared", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+														KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sharedName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -2358,34 +1282,19 @@ func TestParseOpenAPI(t *testing.T) {
 												AdditionalPropertiesAllowed: true,
 											},
 										},
-										UniqueItems: false,
 									},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "metadata", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/metadata",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/metadata",
+									KindValidation: validation.KindValidation{Type: "object"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 										AdditionalPropertiesValidation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+											KindValidation: validation.KindValidation{Type: "string"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
@@ -2393,70 +1302,35 @@ func TestParseOpenAPI(t *testing.T) {
 									},
 								}},
 								{Name: "middleFlag", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/middleFlag",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/middleFlag",
+									KindValidation: validation.KindValidation{Type: "boolean"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "nested", Validation: &validation.Validation{
-									SchemaPointer:    "#/components/schemas/RefStressNestedCombined",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:   "#/components/schemas/RefStressNestedCombined",
+									ArrayValidation: validation.ArrayValidation{},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 									AllOfValidations: []*validation.Validation{
 										{
-											SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+											KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"sameName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "leaf", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sameName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+														KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -2466,42 +1340,21 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										},
 										{
-											SchemaPointer:    "#/components/schemas/RefStressNestedOverlay",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressNestedOverlay",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"sameName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "leaf", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sameName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedOverlay/properties/sameName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedOverlay/properties/sameName",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -2511,61 +1364,32 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										},
 										{
-											SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"sameName", "sealed"},
 												Properties: []validation.PropertyValidation{
 													{Name: "sameName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sealed", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
+														KindValidation: validation.KindValidation{Type: "object"},
 														ObjectValidation: validation.ObjectValidation{
 															Required: []string{"locked"},
 															Properties: []validation.PropertyValidation{
 																{Name: "locked", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
+																	KindValidation: validation.KindValidation{Type: "boolean"},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
 																}},
 															},
-															AdditionalPropertiesAllowed: false,
 														},
 													}},
 												},
@@ -2575,77 +1399,41 @@ func TestParseOpenAPI(t *testing.T) {
 									},
 								}},
 								{Name: "nullableRequired", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/nullableRequired",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/nullableRequired",
+									KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "optionalCode", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/optionalCode",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/optionalCode",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "optionalShared", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/optionalShared",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/optionalShared",
+									KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "rootFlag", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/rootFlag",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/rootFlag",
+									KindValidation: validation.KindValidation{Type: "boolean"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "sharedName", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/sharedName",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object/post/requestBody/content/application~1json/schema/allOf/2/properties/sharedName",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 							},
-							AdditionalPropertiesAllowed: false,
 						},
 					},
 				},
@@ -2653,97 +1441,49 @@ func TestParseOpenAPI(t *testing.T) {
 		},
 		"refStressObjectPut": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:   "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema",
+				BodyRequired:    true,
+				ArrayValidation: validation.ArrayValidation{},
 				ObjectValidation: validation.ObjectValidation{
 					AdditionalPropertiesAllowed: true,
 				},
 				AllOfValidations: []*validation.Validation{
 					{
-						SchemaPointer:    "#/components/schemas/RefStressFirstAllOf",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:   "#/components/schemas/RefStressFirstAllOf",
+						ArrayValidation: validation.ArrayValidation{},
 						ObjectValidation: validation.ObjectValidation{
 							AdditionalPropertiesAllowed: true,
 						},
 						AllOfValidations: []*validation.Validation{
 							{
-								SchemaPointer:    "#/components/schemas/RefStressFinal",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:  "#/components/schemas/RefStressFinal",
+								KindValidation: validation.KindValidation{Type: "object"},
 								ObjectValidation: validation.ObjectValidation{
 									Required: []string{"finalCode", "sharedName"},
 									Properties: []validation.PropertyValidation{
 										{Name: "finalCode", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+											KindValidation: validation.KindValidation{Type: "string"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "nested", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+											KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"sameName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "leaf", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sameName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+														KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -2753,29 +1493,15 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										}},
 										{Name: "optionalShared", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+											KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "sharedName", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+											KindValidation: validation.KindValidation{Type: "string"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
@@ -2785,97 +1511,48 @@ func TestParseOpenAPI(t *testing.T) {
 								},
 							},
 							{
-								SchemaPointer:    "#/components/schemas/RefStressViaMiddle",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:   "#/components/schemas/RefStressViaMiddle",
+								ArrayValidation: validation.ArrayValidation{},
 								ObjectValidation: validation.ObjectValidation{
 									AdditionalPropertiesAllowed: true,
 								},
 								AllOfValidations: []*validation.Validation{
 									{
-										SchemaPointer:    "#/components/schemas/RefStressMiddleAllOf",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:   "#/components/schemas/RefStressMiddleAllOf",
+										ArrayValidation: validation.ArrayValidation{},
 										ObjectValidation: validation.ObjectValidation{
 											AdditionalPropertiesAllowed: true,
 										},
 										AllOfValidations: []*validation.Validation{
 											{
-												SchemaPointer:    "#/components/schemas/RefStressFinal",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressFinal",
+												KindValidation: validation.KindValidation{Type: "object"},
 												ObjectValidation: validation.ObjectValidation{
 													Required: []string{"finalCode", "sharedName"},
 													Properties: []validation.PropertyValidation{
 														{Name: "finalCode", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
 														}},
 														{Name: "nested", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+															KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 															ObjectValidation: validation.ObjectValidation{
 																Required: []string{"sameName"},
 																Properties: []validation.PropertyValidation{
 																	{Name: "leaf", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
 																	}},
 																	{Name: "sameName", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																		KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
@@ -2885,29 +1562,15 @@ func TestParseOpenAPI(t *testing.T) {
 															},
 														}},
 														{Name: "optionalShared", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+															KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
 														}},
 														{Name: "sharedName", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
@@ -2917,42 +1580,21 @@ func TestParseOpenAPI(t *testing.T) {
 												},
 											},
 											{
-												SchemaPointer:    "#/components/schemas/RefStressMiddleAllOf/allOf/1",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressMiddleAllOf/allOf/1",
+												KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 												ObjectValidation: validation.ObjectValidation{
 													Required: []string{"sharedName"},
 													Properties: []validation.PropertyValidation{
 														{Name: "optionalCode", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressMiddleAllOf/allOf/1/properties/optionalCode",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressMiddleAllOf/allOf/1/properties/optionalCode",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
 														}},
 														{Name: "sharedName", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressMiddleAllOf/allOf/1/properties/sharedName",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressMiddleAllOf/allOf/1/properties/sharedName",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
@@ -2964,83 +1606,41 @@ func TestParseOpenAPI(t *testing.T) {
 										},
 									},
 									{
-										SchemaPointer:    "#/components/schemas/RefStressViaMiddle/allOf/1",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/components/schemas/RefStressViaMiddle/allOf/1",
+										KindValidation: validation.KindValidation{Type: "object"},
 										ObjectValidation: validation.ObjectValidation{
 											Required: []string{"middleFlag", "sharedName"},
 											Properties: []validation.PropertyValidation{
 												{Name: "middleFlag", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressViaMiddle/allOf/1/properties/middleFlag",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressViaMiddle/allOf/1/properties/middleFlag",
+													KindValidation: validation.KindValidation{Type: "boolean"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
 												}},
 												{Name: "nested", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressNestedCombined",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:   "#/components/schemas/RefStressNestedCombined",
+													ArrayValidation: validation.ArrayValidation{},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
 													AllOfValidations: []*validation.Validation{
 														{
-															SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+															KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 															ObjectValidation: validation.ObjectValidation{
 																Required: []string{"sameName"},
 																Properties: []validation.PropertyValidation{
 																	{Name: "leaf", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
 																	}},
 																	{Name: "sameName", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																		KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
@@ -3050,42 +1650,21 @@ func TestParseOpenAPI(t *testing.T) {
 															},
 														},
 														{
-															SchemaPointer:    "#/components/schemas/RefStressNestedOverlay",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedOverlay",
+															KindValidation: validation.KindValidation{Type: "object"},
 															ObjectValidation: validation.ObjectValidation{
 																Required: []string{"sameName"},
 																Properties: []validation.PropertyValidation{
 																	{Name: "leaf", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
 																	}},
 																	{Name: "sameName", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedOverlay/properties/sameName",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedOverlay/properties/sameName",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
@@ -3095,61 +1674,32 @@ func TestParseOpenAPI(t *testing.T) {
 															},
 														},
 														{
-															SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2",
+															KindValidation: validation.KindValidation{Type: "object"},
 															ObjectValidation: validation.ObjectValidation{
 																Required: []string{"sameName", "sealed"},
 																Properties: []validation.PropertyValidation{
 																	{Name: "sameName", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
+																		KindValidation: validation.KindValidation{Type: "string"},
 																		ObjectValidation: validation.ObjectValidation{
 																			AdditionalPropertiesAllowed: true,
 																		},
 																	}},
 																	{Name: "sealed", Validation: &validation.Validation{
-																		SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
-																		BodyRequired:     false,
-																		KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-																		EnumValidation:   validation.EnumValidation{},
-																		NumberValidation: validation.NumberValidation{},
-																		StringValidation: validation.StringValidation{Format: ""},
-																		ArrayValidation: validation.ArrayValidation{
-																			UniqueItems: false,
-																		},
+																		SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
+																		KindValidation: validation.KindValidation{Type: "object"},
 																		ObjectValidation: validation.ObjectValidation{
 																			Required: []string{"locked"},
 																			Properties: []validation.PropertyValidation{
 																				{Name: "locked", Validation: &validation.Validation{
-																					SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
-																					BodyRequired:     false,
-																					KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-																					EnumValidation:   validation.EnumValidation{},
-																					NumberValidation: validation.NumberValidation{},
-																					StringValidation: validation.StringValidation{Format: ""},
-																					ArrayValidation: validation.ArrayValidation{
-																						UniqueItems: false,
-																					},
+																					SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
+																					KindValidation: validation.KindValidation{Type: "boolean"},
 																					ObjectValidation: validation.ObjectValidation{
 																						AdditionalPropertiesAllowed: true,
 																					},
 																				}},
 																			},
-																			AdditionalPropertiesAllowed: false,
 																		},
 																	}},
 																},
@@ -3159,15 +1709,8 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												}},
 												{Name: "sharedName", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressViaMiddle/allOf/1/properties/sharedName",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressViaMiddle/allOf/1/properties/sharedName",
+													KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
@@ -3179,82 +1722,40 @@ func TestParseOpenAPI(t *testing.T) {
 								},
 							},
 							{
-								SchemaPointer:    "#/components/schemas/RefStressFirstAllOf/allOf/2",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:  "#/components/schemas/RefStressFirstAllOf/allOf/2",
+								KindValidation: validation.KindValidation{Type: "object"},
 								ObjectValidation: validation.ObjectValidation{
 									Required: []string{"final", "nested", "nullableRequired"},
 									Properties: []validation.PropertyValidation{
 										{Name: "final", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"finalCode", "sharedName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "finalCode", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "nested", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+														KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															Required: []string{"sameName"},
 															Properties: []validation.PropertyValidation{
 																{Name: "leaf", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																	KindValidation: validation.KindValidation{Type: "string"},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
 																}},
 																{Name: "sameName", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																	KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
@@ -3264,29 +1765,15 @@ func TestParseOpenAPI(t *testing.T) {
 														},
 													}},
 													{Name: "optionalShared", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+														KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sharedName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -3296,56 +1783,28 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										}},
 										{Name: "nested", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressNestedCombined",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:   "#/components/schemas/RefStressNestedCombined",
+											ArrayValidation: validation.ArrayValidation{},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 											AllOfValidations: []*validation.Validation{
 												{
-													SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+													KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"sameName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "leaf", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sameName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -3355,42 +1814,21 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												},
 												{
-													SchemaPointer:    "#/components/schemas/RefStressNestedOverlay",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressNestedOverlay",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"sameName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "leaf", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sameName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedOverlay/properties/sameName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedOverlay/properties/sameName",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -3400,61 +1838,32 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												},
 												{
-													SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"sameName", "sealed"},
 														Properties: []validation.PropertyValidation{
 															{Name: "sameName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sealed", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
+																KindValidation: validation.KindValidation{Type: "object"},
 																ObjectValidation: validation.ObjectValidation{
 																	Required: []string{"locked"},
 																	Properties: []validation.PropertyValidation{
 																		{Name: "locked", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
+																			KindValidation: validation.KindValidation{Type: "boolean"},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
 																		}},
 																	},
-																	AdditionalPropertiesAllowed: false,
 																},
 															}},
 														},
@@ -3464,43 +1873,22 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										}},
 										{Name: "nullableRequired", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/nullableRequired",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/nullableRequired",
+											KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "optionalShared", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/optionalShared",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/optionalShared",
+											KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "sharedName", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/sharedName",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFirstAllOf/allOf/2/properties/sharedName",
+											KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
@@ -3512,97 +1900,48 @@ func TestParseOpenAPI(t *testing.T) {
 						},
 					},
 					{
-						SchemaPointer:    "#/components/schemas/RefStressSecondAllOf",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:   "#/components/schemas/RefStressSecondAllOf",
+						ArrayValidation: validation.ArrayValidation{},
 						ObjectValidation: validation.ObjectValidation{
 							AdditionalPropertiesAllowed: true,
 						},
 						AllOfValidations: []*validation.Validation{
 							{
-								SchemaPointer:    "#/components/schemas/RefStressOtherMiddle",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:   "#/components/schemas/RefStressOtherMiddle",
+								ArrayValidation: validation.ArrayValidation{},
 								ObjectValidation: validation.ObjectValidation{
 									AdditionalPropertiesAllowed: true,
 								},
 								AllOfValidations: []*validation.Validation{
 									{
-										SchemaPointer:    "#/components/schemas/RefStressFinal",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/components/schemas/RefStressFinal",
+										KindValidation: validation.KindValidation{Type: "object"},
 										ObjectValidation: validation.ObjectValidation{
 											Required: []string{"finalCode", "sharedName"},
 											Properties: []validation.PropertyValidation{
 												{Name: "finalCode", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+													KindValidation: validation.KindValidation{Type: "string"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
 												}},
 												{Name: "nested", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+													KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"sameName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "leaf", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sameName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -3612,29 +1951,15 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												}},
 												{Name: "optionalShared", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+													KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
 												}},
 												{Name: "sharedName", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+													KindValidation: validation.KindValidation{Type: "string"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
@@ -3644,82 +1969,40 @@ func TestParseOpenAPI(t *testing.T) {
 										},
 									},
 									{
-										SchemaPointer:    "#/components/schemas/RefStressOtherMiddle/allOf/1",
-										BodyRequired:     false,
-										KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-										EnumValidation:   validation.EnumValidation{},
-										NumberValidation: validation.NumberValidation{},
-										StringValidation: validation.StringValidation{Format: ""},
-										ArrayValidation: validation.ArrayValidation{
-											UniqueItems: false,
-										},
+										SchemaPointer:  "#/components/schemas/RefStressOtherMiddle/allOf/1",
+										KindValidation: validation.KindValidation{Type: "object"},
 										ObjectValidation: validation.ObjectValidation{
 											Required: []string{"metadata", "rootFlag"},
 											Properties: []validation.PropertyValidation{
 												{Name: "final", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"finalCode", "sharedName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "finalCode", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "nested", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+																KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	Required: []string{"sameName"},
 																	Properties: []validation.PropertyValidation{
 																		{Name: "leaf", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																			KindValidation: validation.KindValidation{Type: "string"},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
 																		}},
 																		{Name: "sameName", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																			KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
@@ -3729,29 +2012,15 @@ func TestParseOpenAPI(t *testing.T) {
 																},
 															}},
 															{Name: "optionalShared", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+																KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sharedName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -3761,27 +2030,13 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												}},
 												{Name: "metadata", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressOtherMiddle/allOf/1/properties/metadata",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressOtherMiddle/allOf/1/properties/metadata",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 														AdditionalPropertiesValidation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
@@ -3789,15 +2044,8 @@ func TestParseOpenAPI(t *testing.T) {
 													},
 												}},
 												{Name: "rootFlag", Validation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressOtherMiddle/allOf/1/properties/rootFlag",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressOtherMiddle/allOf/1/properties/rootFlag",
+													KindValidation: validation.KindValidation{Type: "boolean"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
@@ -3809,104 +2057,51 @@ func TestParseOpenAPI(t *testing.T) {
 								},
 							},
 							{
-								SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1",
-								BodyRequired:     false,
-								KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-								EnumValidation:   validation.EnumValidation{},
-								NumberValidation: validation.NumberValidation{},
-								StringValidation: validation.StringValidation{Format: ""},
-								ArrayValidation: validation.ArrayValidation{
-									UniqueItems: false,
-								},
+								SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1",
+								KindValidation: validation.KindValidation{Type: "object"},
 								ObjectValidation: validation.ObjectValidation{
 									Required: []string{"count", "finals", "metadata", "rootFlag"},
 									Properties: []validation.PropertyValidation{
 										{Name: "count", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/count",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "number", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/count",
+											KindValidation: validation.KindValidation{Type: "number"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "finals", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/finals",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "array", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/finals",
+											KindValidation: validation.KindValidation{Type: "array"},
 											ArrayValidation: validation.ArrayValidation{
 												Items: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressFinal",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressFinal",
+													KindValidation: validation.KindValidation{Type: "object"},
 													ObjectValidation: validation.ObjectValidation{
 														Required: []string{"finalCode", "sharedName"},
 														Properties: []validation.PropertyValidation{
 															{Name: "finalCode", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "nested", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+																KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	Required: []string{"sameName"},
 																	Properties: []validation.PropertyValidation{
 																		{Name: "leaf", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																			KindValidation: validation.KindValidation{Type: "string"},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
 																		}},
 																		{Name: "sameName", Validation: &validation.Validation{
-																			SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																			BodyRequired:     false,
-																			KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																			EnumValidation:   validation.EnumValidation{},
-																			NumberValidation: validation.NumberValidation{},
-																			StringValidation: validation.StringValidation{Format: ""},
-																			ArrayValidation: validation.ArrayValidation{
-																				UniqueItems: false,
-																			},
+																			SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																			KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																			ObjectValidation: validation.ObjectValidation{
 																				AdditionalPropertiesAllowed: true,
 																			},
@@ -3916,29 +2111,15 @@ func TestParseOpenAPI(t *testing.T) {
 																},
 															}},
 															{Name: "optionalShared", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+																KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
 															}},
 															{Name: "sharedName", Validation: &validation.Validation{
-																SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-																BodyRequired:     false,
-																KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																EnumValidation:   validation.EnumValidation{},
-																NumberValidation: validation.NumberValidation{},
-																StringValidation: validation.StringValidation{Format: ""},
-																ArrayValidation: validation.ArrayValidation{
-																	UniqueItems: false,
-																},
+																SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+																KindValidation: validation.KindValidation{Type: "string"},
 																ObjectValidation: validation.ObjectValidation{
 																	AdditionalPropertiesAllowed: true,
 																},
@@ -3947,34 +2128,19 @@ func TestParseOpenAPI(t *testing.T) {
 														AdditionalPropertiesAllowed: true,
 													},
 												},
-												UniqueItems: false,
 											},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "metadata", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/metadata",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/metadata",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 												AdditionalPropertiesValidation: &validation.Validation{
-													SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-													BodyRequired:     false,
-													KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-													EnumValidation:   validation.EnumValidation{},
-													NumberValidation: validation.NumberValidation{},
-													StringValidation: validation.StringValidation{Format: ""},
-													ArrayValidation: validation.ArrayValidation{
-														UniqueItems: false,
-													},
+													SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+													KindValidation: validation.KindValidation{Type: "string"},
 													ObjectValidation: validation.ObjectValidation{
 														AdditionalPropertiesAllowed: true,
 													},
@@ -3982,29 +2148,15 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										}},
 										{Name: "rootFlag", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/rootFlag",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/rootFlag",
+											KindValidation: validation.KindValidation{Type: "boolean"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
 										}},
 										{Name: "sharedName", Validation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/sharedName",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressSecondAllOf/allOf/1/properties/sharedName",
+											KindValidation: validation.KindValidation{Type: "string"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
@@ -4016,96 +2168,47 @@ func TestParseOpenAPI(t *testing.T) {
 						},
 					},
 					{
-						SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2",
-						BodyRequired:     false,
-						KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-						EnumValidation:   validation.EnumValidation{},
-						NumberValidation: validation.NumberValidation{},
-						StringValidation: validation.StringValidation{Format: ""},
-						ArrayValidation: validation.ArrayValidation{
-							UniqueItems: false,
-						},
+						SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2",
+						KindValidation: validation.KindValidation{Type: "object"},
 						ObjectValidation: validation.ObjectValidation{
 							Required: []string{"count", "final", "finalCode", "finals", "metadata", "middleFlag", "nested", "nullableRequired", "rootFlag", "sharedName"},
 							Properties: []validation.PropertyValidation{
 								{Name: "count", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/count",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "number", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/count",
+									KindValidation: validation.KindValidation{Type: "number"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "final", Validation: &validation.Validation{
-									SchemaPointer:    "#/components/schemas/RefStressFinal",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/components/schemas/RefStressFinal",
+									KindValidation: validation.KindValidation{Type: "object"},
 									ObjectValidation: validation.ObjectValidation{
 										Required: []string{"finalCode", "sharedName"},
 										Properties: []validation.PropertyValidation{
 											{Name: "finalCode", Validation: &validation.Validation{
-												SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+												KindValidation: validation.KindValidation{Type: "string"},
 												ObjectValidation: validation.ObjectValidation{
 													AdditionalPropertiesAllowed: true,
 												},
 											}},
 											{Name: "nested", Validation: &validation.Validation{
-												SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+												KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 												ObjectValidation: validation.ObjectValidation{
 													Required: []string{"sameName"},
 													Properties: []validation.PropertyValidation{
 														{Name: "leaf", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+															KindValidation: validation.KindValidation{Type: "string"},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
 														}},
 														{Name: "sameName", Validation: &validation.Validation{
-															SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-															BodyRequired:     false,
-															KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-															EnumValidation:   validation.EnumValidation{},
-															NumberValidation: validation.NumberValidation{},
-															StringValidation: validation.StringValidation{Format: ""},
-															ArrayValidation: validation.ArrayValidation{
-																UniqueItems: false,
-															},
+															SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+															KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 															ObjectValidation: validation.ObjectValidation{
 																AdditionalPropertiesAllowed: true,
 															},
@@ -4115,29 +2218,15 @@ func TestParseOpenAPI(t *testing.T) {
 												},
 											}},
 											{Name: "optionalShared", Validation: &validation.Validation{
-												SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+												KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 												ObjectValidation: validation.ObjectValidation{
 													AdditionalPropertiesAllowed: true,
 												},
 											}},
 											{Name: "sharedName", Validation: &validation.Validation{
-												SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-												BodyRequired:     false,
-												KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-												EnumValidation:   validation.EnumValidation{},
-												NumberValidation: validation.NumberValidation{},
-												StringValidation: validation.StringValidation{Format: ""},
-												ArrayValidation: validation.ArrayValidation{
-													UniqueItems: false,
-												},
+												SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+												KindValidation: validation.KindValidation{Type: "string"},
 												ObjectValidation: validation.ObjectValidation{
 													AdditionalPropertiesAllowed: true,
 												},
@@ -4147,91 +2236,45 @@ func TestParseOpenAPI(t *testing.T) {
 									},
 								}},
 								{Name: "finalCode", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/finalCode",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/finalCode",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "finals", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/finals",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "array", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/finals",
+									KindValidation: validation.KindValidation{Type: "array"},
 									ArrayValidation: validation.ArrayValidation{
 										Items: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressFinal",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressFinal",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"finalCode", "sharedName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "finalCode", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/finalCode",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/finalCode",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "nested", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+														KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															Required: []string{"sameName"},
 															Properties: []validation.PropertyValidation{
 																{Name: "leaf", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+																	KindValidation: validation.KindValidation{Type: "string"},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
 																}},
 																{Name: "sameName", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+																	KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
@@ -4241,29 +2284,15 @@ func TestParseOpenAPI(t *testing.T) {
 														},
 													}},
 													{Name: "optionalShared", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/optionalShared",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/optionalShared",
+														KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sharedName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressFinal/properties/sharedName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressFinal/properties/sharedName",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -4272,34 +2301,19 @@ func TestParseOpenAPI(t *testing.T) {
 												AdditionalPropertiesAllowed: true,
 											},
 										},
-										UniqueItems: false,
 									},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "metadata", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/metadata",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/metadata",
+									KindValidation: validation.KindValidation{Type: "object"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 										AdditionalPropertiesValidation: &validation.Validation{
-											SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+											KindValidation: validation.KindValidation{Type: "string"},
 											ObjectValidation: validation.ObjectValidation{
 												AdditionalPropertiesAllowed: true,
 											},
@@ -4307,70 +2321,35 @@ func TestParseOpenAPI(t *testing.T) {
 									},
 								}},
 								{Name: "middleFlag", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/middleFlag",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/middleFlag",
+									KindValidation: validation.KindValidation{Type: "boolean"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "nested", Validation: &validation.Validation{
-									SchemaPointer:    "#/components/schemas/RefStressNestedCombined",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:   "#/components/schemas/RefStressNestedCombined",
+									ArrayValidation: validation.ArrayValidation{},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 									AllOfValidations: []*validation.Validation{
 										{
-											SchemaPointer:    "#/components/schemas/RefStressNestedBase",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: true},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressNestedBase",
+											KindValidation: validation.KindValidation{Type: "object", Nullable: true},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"sameName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "leaf", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sameName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedBase/properties/sameName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedBase/properties/sameName",
+														KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -4380,42 +2359,21 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										},
 										{
-											SchemaPointer:    "#/components/schemas/RefStressNestedOverlay",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressNestedOverlay",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"sameName"},
 												Properties: []validation.PropertyValidation{
 													{Name: "leaf", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressMetadataValue",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressMetadataValue",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sameName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedOverlay/properties/sameName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedOverlay/properties/sameName",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
@@ -4425,61 +2383,32 @@ func TestParseOpenAPI(t *testing.T) {
 											},
 										},
 										{
-											SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2",
-											BodyRequired:     false,
-											KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-											EnumValidation:   validation.EnumValidation{},
-											NumberValidation: validation.NumberValidation{},
-											StringValidation: validation.StringValidation{Format: ""},
-											ArrayValidation: validation.ArrayValidation{
-												UniqueItems: false,
-											},
+											SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2",
+											KindValidation: validation.KindValidation{Type: "object"},
 											ObjectValidation: validation.ObjectValidation{
 												Required: []string{"sameName", "sealed"},
 												Properties: []validation.PropertyValidation{
 													{Name: "sameName", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sameName",
+														KindValidation: validation.KindValidation{Type: "string"},
 														ObjectValidation: validation.ObjectValidation{
 															AdditionalPropertiesAllowed: true,
 														},
 													}},
 													{Name: "sealed", Validation: &validation.Validation{
-														SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
-														BodyRequired:     false,
-														KindValidation:   validation.KindValidation{Type: "object", Nullable: false},
-														EnumValidation:   validation.EnumValidation{},
-														NumberValidation: validation.NumberValidation{},
-														StringValidation: validation.StringValidation{Format: ""},
-														ArrayValidation: validation.ArrayValidation{
-															UniqueItems: false,
-														},
+														SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed",
+														KindValidation: validation.KindValidation{Type: "object"},
 														ObjectValidation: validation.ObjectValidation{
 															Required: []string{"locked"},
 															Properties: []validation.PropertyValidation{
 																{Name: "locked", Validation: &validation.Validation{
-																	SchemaPointer:    "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
-																	BodyRequired:     false,
-																	KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-																	EnumValidation:   validation.EnumValidation{},
-																	NumberValidation: validation.NumberValidation{},
-																	StringValidation: validation.StringValidation{Format: ""},
-																	ArrayValidation: validation.ArrayValidation{
-																		UniqueItems: false,
-																	},
+																	SchemaPointer:  "#/components/schemas/RefStressNestedCombined/allOf/2/properties/sealed/properties/locked",
+																	KindValidation: validation.KindValidation{Type: "boolean"},
 																	ObjectValidation: validation.ObjectValidation{
 																		AdditionalPropertiesAllowed: true,
 																	},
 																}},
 															},
-															AdditionalPropertiesAllowed: false,
 														},
 													}},
 												},
@@ -4489,77 +2418,41 @@ func TestParseOpenAPI(t *testing.T) {
 									},
 								}},
 								{Name: "nullableRequired", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/nullableRequired",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/nullableRequired",
+									KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "optionalCode", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/optionalCode",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/optionalCode",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "optionalShared", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/optionalShared",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/optionalShared",
+									KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "rootFlag", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/rootFlag",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "boolean", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/rootFlag",
+									KindValidation: validation.KindValidation{Type: "boolean"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 								{Name: "sharedName", Validation: &validation.Validation{
-									SchemaPointer:    "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/sharedName",
-									BodyRequired:     false,
-									KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-									EnumValidation:   validation.EnumValidation{},
-									NumberValidation: validation.NumberValidation{},
-									StringValidation: validation.StringValidation{Format: ""},
-									ArrayValidation: validation.ArrayValidation{
-										UniqueItems: false,
-									},
+									SchemaPointer:  "#/paths/~1ref-stress-object-put/put/requestBody/content/application~1json/schema/allOf/2/properties/sharedName",
+									KindValidation: validation.KindValidation{Type: "string"},
 									ObjectValidation: validation.ObjectValidation{
 										AdditionalPropertiesAllowed: true,
 									},
 								}},
 							},
-							AdditionalPropertiesAllowed: false,
 						},
 					},
 				},
@@ -4567,15 +2460,9 @@ func TestParseOpenAPI(t *testing.T) {
 		},
 		"stringNoFormatNotNullable": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1string-no-format-not-nullable/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "string", Nullable: false},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:  "#/paths/~1string-no-format-not-nullable/post/requestBody/content/application~1json/schema",
+				BodyRequired:   true,
+				KindValidation: validation.KindValidation{Type: "string"},
 				ObjectValidation: validation.ObjectValidation{
 					AdditionalPropertiesAllowed: true,
 				},
@@ -4583,15 +2470,9 @@ func TestParseOpenAPI(t *testing.T) {
 		},
 		"stringNoFormatNullable": {
 			expectedValidation: &validation.Validation{
-				SchemaPointer:    "#/paths/~1string-no-format-nullable/post/requestBody/content/application~1json/schema",
-				BodyRequired:     true,
-				KindValidation:   validation.KindValidation{Type: "string", Nullable: true},
-				EnumValidation:   validation.EnumValidation{},
-				NumberValidation: validation.NumberValidation{},
-				StringValidation: validation.StringValidation{Format: ""},
-				ArrayValidation: validation.ArrayValidation{
-					UniqueItems: false,
-				},
+				SchemaPointer:  "#/paths/~1string-no-format-nullable/post/requestBody/content/application~1json/schema",
+				BodyRequired:   true,
+				KindValidation: validation.KindValidation{Type: "string", Nullable: true},
 				ObjectValidation: validation.ObjectValidation{
 					AdditionalPropertiesAllowed: true,
 				},
