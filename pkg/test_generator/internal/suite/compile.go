@@ -316,7 +316,7 @@ func (compiler *Compiler) validateFormat(pointer string, members map[string]json
 	return nil
 }
 
-// applyEnum replaces a Domain with the compatible finite enum values when enum is present.
+// applyEnum replaces a Domain with the unchecked local enum and valid-example oracle union.
 func (compiler *Compiler) applyEnum(
 	domain *Domain,
 	use *schemaUse,

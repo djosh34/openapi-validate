@@ -492,7 +492,7 @@ func trustedStringGenerator(
 	useOracle bool,
 ) (*rapid.Generator[jsonvalue.Value], error) {
 	if use == nil {
-		return nil, errNoTrustedStringExample
+		return nil, fmt.Errorf("trusted string generator has no schema occurrence: %w", errNoTrustedStringExample)
 	}
 
 	values := make([]jsonvalue.Value, 0, len(use.examples.Valid))
