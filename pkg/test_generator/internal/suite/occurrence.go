@@ -54,24 +54,25 @@ func (compiler *Compiler) requireAllXValidCases(use *schemaUse, seen map[*schema
 	}
 
 	seen[use] = struct{}{}
-	if use.allOfPointer != "" && use.examples.ValidDeclared && len(use.examples.Valid) == 0 {
-		return compiler.failure(
-			"compile", "unconstructible", use.allOfPointer, "allOf",
-			fmt.Errorf("%w: allOf merge has no trusted valid generation case", errUnconstructible),
-		)
-	}
-
 	children := []*schemaUse{use.resolved, use.items, use.additional}
 
-	children = append(children, use.allOf...)
 	for _, property := range use.properties {
 		children = append(children, property.use)
 	}
+
+	children = append(children, use.allOf...)
 
 	for _, child := range children {
 		if err := compiler.requireAllXValidCases(child, seen); err != nil {
 			return err
 		}
+	}
+
+	if use.allOfPointer != "" && use.examples.ValidDeclared && len(use.examples.Valid) == 0 {
+		return compiler.failure(
+			"compile", "unconstructible", use.allOfPointer, "allOf",
+			fmt.Errorf("%w: allOf merge has no trusted valid generation case", errUnconstructible),
+		)
 	}
 
 	return nil
