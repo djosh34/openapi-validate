@@ -2,6 +2,8 @@
 package generate
 
 import (
+	"fmt"
+	"go/token"
 	"os"
 	"path/filepath"
 
@@ -22,6 +24,12 @@ func Generate(dir string, packageName string, openAPI []byte) error {
 		return err
 	}
 
+	for operationID := range parsed {
+		if !isSafeOperationIdentifier(operationID) {
+			return fmt.Errorf("operation ID %q cannot be used as a generated Go identifier", operationID)
+		}
+	}
+
 	files, err := render(packageName, openAPI, parsed)
 	if err != nil {
 		return err
@@ -38,4 +46,19 @@ func Generate(dir string, packageName string, openAPI []byte) error {
 	}
 
 	return nil
+}
+
+// isSafeOperationIdentifier reports whether an operation ID can name a generated package variable.
+func isSafeOperationIdentifier(operationID string) bool {
+	if !token.IsIdentifier(operationID) || operationID == "_" || operationID == "init" {
+		return false
+	}
+
+	switch operationID {
+	case "byte", "error", "errors", "json", "jsonvalue", "openAPI", "regexp", "string", "testing",
+		"testgenerator", "TestValidations", "true", "validation", "validations":
+		return false
+	default:
+		return true
+	}
 }

@@ -2,6 +2,7 @@ package generate
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -188,27 +189,53 @@ func TestGeneratedValidation(t *testing.T) {
 	require.NoError(t, err, string(result))
 }
 
-// TestGenerateRejectsInvalidOperationIdentifier leaves Go identifier validation to source formatting.
-func TestGenerateRejectsInvalidOperationIdentifier(t *testing.T) {
+// TestGenerateRejectsUnsafeOperationIdentifiers checks generated package-scope name conflicts.
+func TestGenerateRejectsUnsafeOperationIdentifiers(t *testing.T) {
 	t.Parallel()
 
-	output := filepath.Join(t.TempDir(), "output")
-	err := Generate(output, "example", []byte(`
+	for _, operationID := range []string{
+		"validations",
+		"init",
+		"_",
+		"validation",
+		"openAPI",
+		"TestValidations",
+		"request/path",
+		"type",
+		"json",
+		"regexp",
+		"jsonvalue",
+		"errors",
+		"testing",
+		"testgenerator",
+		"string",
+		"byte",
+		"error",
+		"true",
+	} {
+		t.Run(operationID, func(t *testing.T) {
+			t.Parallel()
+
+			output := filepath.Join(t.TempDir(), "output")
+			spec := fmt.Appendf(nil, `
 openapi: 3.0.3
 info: {title: generated, version: "1"}
 paths:
   /request:
     post:
-      operationId: request/path
+      operationId: %q
       requestBody:
         content:
           application/json:
             schema: {type: string}
-`))
-	require.ErrorContains(t, err, "format validate.go.tmpl")
+`, operationID)
+			err := Generate(output, "example", spec)
+			require.ErrorContains(t, err, fmt.Sprintf("operation ID %q", operationID))
 
-	_, statErr := os.Stat(output)
-	require.ErrorIs(t, statErr, os.ErrNotExist)
+			_, statErr := os.Stat(output)
+			require.ErrorIs(t, statErr, os.ErrNotExist)
+		})
+	}
 }
 
 // TestGenerateWritesEmptyValidationMap verifies documents without JSON request bodies still generate valid tests.
