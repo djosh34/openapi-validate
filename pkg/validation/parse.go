@@ -29,10 +29,10 @@ func Parse(spec []byte) (map[string]*Validation, error) {
 		compiler := schemaCompiler{
 			source:   source,
 			bySchema: make(map[string]*Validation),
-			active:   make(map[string]int),
+			active:   make(map[string]struct{}),
 		}
 
-		root, err := compiler.compile(source.RequestSchema, 0)
+		root, err := compiler.compile(source.RequestSchema)
 		if err != nil {
 			return nil, fmt.Errorf("compile operationId %q: %w", operationID, err)
 		}
@@ -48,22 +48,18 @@ func Parse(spec []byte) (map[string]*Validation, error) {
 type schemaCompiler struct {
 	source   oas.Source
 	bySchema map[string]*Validation
-	active   map[string]int
+	active   map[string]struct{}
 }
 
 // compile resolves and compiles one reachable schema occurrence.
-func (compiler *schemaCompiler) compile(occurrence oas.LocatedSchema, instanceDepth int) (*Validation, error) {
+func (compiler *schemaCompiler) compile(occurrence oas.LocatedSchema) (*Validation, error) {
 	resolved, err := compiler.source.Resolve(occurrence)
 	if err != nil {
 		return nil, fmt.Errorf("resolve schema at %s: %w", occurrence.Pointer, err)
 	}
 
-	if activeDepth, ok := compiler.active[resolved.Pointer]; ok {
-		if instanceDepth == activeDepth {
-			return nil, fmt.Errorf("compile schema at %s: non-consuming schema cycle", resolved.Pointer)
-		}
-
-		return compiler.bySchema[resolved.Pointer], nil
+	if _, cyclic := compiler.active[resolved.Pointer]; cyclic {
+		return nil, fmt.Errorf("compile schema at %s: recursive schema is unsupported", resolved.Pointer)
 	}
 
 	if validation, ok := compiler.bySchema[resolved.Pointer]; ok {
@@ -83,10 +79,10 @@ func (compiler *schemaCompiler) compile(occurrence oas.LocatedSchema, instanceDe
 	validation.ObjectValidation.AdditionalPropertiesAllowed = true
 	compiler.bySchema[resolved.Pointer] = validation
 
-	compiler.active[resolved.Pointer] = instanceDepth
+	compiler.active[resolved.Pointer] = struct{}{}
 	defer delete(compiler.active, resolved.Pointer)
 
-	if err := compiler.compileKeywords(validation, resolved, members, instanceDepth); err != nil {
+	if err := compiler.compileKeywords(validation, resolved, members); err != nil {
 		return nil, err
 	}
 
@@ -141,7 +137,6 @@ func (compiler *schemaCompiler) compileKeywords(
 	validation *Validation,
 	schema oas.LocatedSchema,
 	members map[string]json.RawMessage,
-	instanceDepth int,
 ) error {
 	if err := compileKind(validation, schema.Pointer, members); err != nil {
 		return err
@@ -163,15 +158,15 @@ func (compiler *schemaCompiler) compileKeywords(
 		return err
 	}
 
-	if err := compiler.compileArray(validation, schema, members, instanceDepth); err != nil {
+	if err := compiler.compileArray(validation, schema, members); err != nil {
 		return err
 	}
 
-	if err := compiler.compileObject(validation, schema, members, instanceDepth); err != nil {
+	if err := compiler.compileObject(validation, schema, members); err != nil {
 		return err
 	}
 
-	return compiler.compileAllOf(validation, schema, members, instanceDepth)
+	return compiler.compileAllOf(validation, schema, members)
 }
 
 // compileDocumentation validates documentation-only field shapes.
@@ -497,7 +492,6 @@ func (compiler *schemaCompiler) compileArray(
 	validation *Validation,
 	schema oas.LocatedSchema,
 	members map[string]json.RawMessage,
-	instanceDepth int,
 ) error {
 	minimum, err := decodeOptionalNonNegativeInteger(members, "minItems")
 	if err != nil {
@@ -533,7 +527,7 @@ func (compiler *schemaCompiler) compileArray(
 			return keywordError(schema.Pointer, "items", err)
 		}
 
-		validation.ArrayValidation.Items, err = compiler.compile(child, instanceDepth+1)
+		validation.ArrayValidation.Items, err = compiler.compile(child)
 		if err != nil {
 			return err
 		}
@@ -549,7 +543,6 @@ func (compiler *schemaCompiler) compileObject(
 	validation *Validation,
 	schema oas.LocatedSchema,
 	members map[string]json.RawMessage,
-	instanceDepth int,
 ) error {
 	minimum, err := decodeOptionalNonNegativeInteger(members, "minProperties")
 	if err != nil {
@@ -591,7 +584,7 @@ func (compiler *schemaCompiler) compileObject(
 				return keywordError(schema.Pointer, "properties", err)
 			}
 
-			parsed, err := compiler.compile(child, instanceDepth+1)
+			parsed, err := compiler.compile(child)
 			if err != nil {
 				return err
 			}
@@ -618,7 +611,7 @@ func (compiler *schemaCompiler) compileObject(
 				return keywordError(schema.Pointer, "additionalProperties", err)
 			}
 
-			validation.ObjectValidation.AdditionalPropertiesValidation, err = compiler.compile(child, instanceDepth+1)
+			validation.ObjectValidation.AdditionalPropertiesValidation, err = compiler.compile(child)
 			if err != nil {
 				return err
 			}
@@ -633,7 +626,6 @@ func (compiler *schemaCompiler) compileAllOf(
 	validation *Validation,
 	schema oas.LocatedSchema,
 	members map[string]json.RawMessage,
-	instanceDepth int,
 ) error {
 	raw, ok := members["allOf"]
 	if !ok {
@@ -652,7 +644,7 @@ func (compiler *schemaCompiler) compileAllOf(
 			return keywordError(schema.Pointer, "allOf", err)
 		}
 
-		parsed, err := compiler.compile(child, instanceDepth)
+		parsed, err := compiler.compile(child)
 		if err != nil {
 			return err
 		}

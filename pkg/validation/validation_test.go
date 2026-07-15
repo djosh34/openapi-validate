@@ -280,16 +280,18 @@ func TestValidationExactNumbers(t *testing.T) {
 	require.NotEmpty(t, integer.Validate(json.RawMessage(`1e-100001`)))
 }
 
-// TestValidationRecursionUniqueItemsAndAllOf covers recursive and composition graph behavior directly.
-func TestValidationRecursionUniqueItemsAndAllOf(t *testing.T) {
+// TestValidationNestedUniqueItemsAndAllOf covers finite nesting and composition behavior directly.
+func TestValidationNestedUniqueItemsAndAllOf(t *testing.T) {
 	t.Parallel()
 
 	components := `,"components":{"schemas":{"Node":{"type":"object","required":["value"],"properties":{
-		"value":{"type":"integer"},"child":{"$ref":"#/components/schemas/Node"}
+		"value":{"type":"integer"},"child":{"$ref":"#/components/schemas/Child"}
+	},"additionalProperties":false},"Child":{"type":"object","required":["value"],"properties":{
+		"value":{"type":"integer"}
 	},"additionalProperties":false}}}`
-	recursive := mustParseSchema(t, `{"$ref":"#/components/schemas/Node"}`, components)
-	require.Empty(t, recursive.Validate(json.RawMessage(`{"value":1,"child":{"value":2}}`)))
-	errs := recursive.Validate(json.RawMessage(`{"value":1,"child":{"value":2.5}}`))
+	nested := mustParseSchema(t, `{"$ref":"#/components/schemas/Node"}`, components)
+	require.Empty(t, nested.Validate(json.RawMessage(`{"value":1,"child":{"value":2}}`)))
+	errs := nested.Validate(json.RawMessage(`{"value":1,"child":{"value":2.5}}`))
 	require.Contains(t, errors.Join(errs...).Error(), "instance #/child/value")
 
 	unique := mustParseSchema(t, `{"type":"array","items":{},"uniqueItems":true}`, "")
@@ -339,12 +341,6 @@ func TestParseRejectsUnsupportedAndMalformedReachableSchemas(t *testing.T) {
 		{name: "xmlRelativeNamespace", schema: `{"xml":{"namespace":"/relative"}}`, want: "absolute URI"},
 		{name: "xmlUnknownField", schema: `{"xml":{"other":true}}`, want: "unsupported field"},
 		{
-			name:       "nonConsumingCycle",
-			schema:     `{"$ref":"#/components/schemas/Loop"}`,
-			components: `,"components":{"schemas":{"Loop":{"allOf":[{"$ref":"#/components/schemas/Loop"}]}}}`,
-			want:       "non-consuming schema cycle",
-		},
-		{
 			name:       "nestedUnsupported",
 			schema:     `{"properties":{"value":{"$ref":"#/components/schemas/Bad"}}}`,
 			components: `,"components":{"schemas":{"Bad":{"oneOf":[{}]}}}`,
@@ -364,6 +360,46 @@ func TestParseRejectsUnsupportedAndMalformedReachableSchemas(t *testing.T) {
 	parsed, err := Parse([]byte(`{"openapi":"3.0.3","paths":{"/a":{"post":{"operationId":"unused"}}}}`))
 	require.NoError(t, err)
 	require.Empty(t, parsed)
+}
+
+// TestParseRejectsRecursiveSchemas makes finite, acyclic Parse results an explicit contract.
+func TestParseRejectsRecursiveSchemas(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		components string
+	}{
+		{
+			name: "objectProperty",
+			components: `,"components":{"schemas":{"Loop":{"type":"object","properties":{
+				"child":{"$ref":"#/components/schemas/Loop"}
+			}}}}`,
+		},
+		{
+			name: "arrayItem",
+			components: `,"components":{"schemas":{"Loop":{"type":"array",
+				"items":{"$ref":"#/components/schemas/Loop"}
+			}}}`,
+		},
+		{
+			name: "allOf",
+			components: `,"components":{"schemas":{"Loop":{"allOf":[
+				{"$ref":"#/components/schemas/Loop"}
+			]}}}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := Parse(openAPISpec(`{"$ref":"#/components/schemas/Loop"}`, test.components, false))
+			require.ErrorContains(t, err, `compile operationId "checkThing"`)
+			require.ErrorContains(t, err, "recursive schema is unsupported")
+			require.ErrorContains(t, err, "#/components/schemas/Loop")
+		})
+	}
 }
 
 // TestParseAcceptsWellFormedDocumentationFields guards the supported documentation-only shapes.
@@ -487,7 +523,12 @@ func TestValidationConcurrentHighContention(t *testing.T) {
 	components := `,"components":{"schemas":{"Node":{"type":"object","required":["name","amount","children"],"properties":{
 		"name":{"type":"string","pattern":"^[a-z]+$"},
 		"amount":{"type":"integer","minimum":9007199254740993,"multipleOf":3},
-		"children":{"type":"array","items":{"$ref":"#/components/schemas/Node"}}
+		"children":{"type":"array","items":{"$ref":"#/components/schemas/Child"}}
+	},"additionalProperties":false,"allOf":[{"minProperties":3}]},
+	"Child":{"type":"object","required":["name","amount","children"],"properties":{
+		"name":{"type":"string","pattern":"^[a-z]+$"},
+		"amount":{"type":"integer","minimum":9007199254740993,"multipleOf":3},
+		"children":{"type":"array","items":{"type":"string"}}
 	},"additionalProperties":false,"allOf":[{"minProperties":3}]}}}`
 	parsed := mustParseSchema(t, `{"$ref":"#/components/schemas/Node"}`, components)
 
