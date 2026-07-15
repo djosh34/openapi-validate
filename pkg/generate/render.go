@@ -1,12 +1,10 @@
-//nolint:godoclint // The private template contexts are local implementation details.
+//nolint:godoclint // The private template helpers are local implementation details.
 package generate
 
 import (
 	"bytes"
 	"embed"
 	"fmt"
-	"maps"
-	"slices"
 	"strconv"
 	"text/template"
 
@@ -16,22 +14,6 @@ import (
 
 //go:embed templates/*.go.tmpl
 var templateFiles embed.FS
-
-type sourceTemplate struct {
-	Package     string
-	Assignments []assignmentTemplate
-}
-
-type assignmentTemplate struct {
-	OperationID string
-	Nodes       []string
-	Links       []string
-}
-
-type testTemplate struct {
-	Package string
-	OpenAPI string
-}
 
 func render(
 	packageName string,
@@ -43,21 +25,22 @@ func render(
 		return nil, fmt.Errorf("parse templates: %w", err)
 	}
 
-	source := sourceTemplate{Package: packageName}
-
-	for _, operationID := range slices.Sorted(maps.Keys(parsed)) {
-		source.Assignments = append(source.Assignments, renderAssignment(operationID, parsed[operationID]))
+	data := struct {
+		Package     string
+		OpenAPI     string
+		Validations map[string]*validation.Validation
+	}{
+		Package:     packageName,
+		OpenAPI:     strconv.Quote(string(openAPI)),
+		Validations: parsed,
 	}
 
-	validate, err := executeTemplate(templates, "validate.go.tmpl", source)
+	validate, err := executeTemplate(templates, "validate.go.tmpl", data)
 	if err != nil {
 		return nil, err
 	}
 
-	validateTest, err := executeTemplate(templates, "validate_test.go.tmpl", testTemplate{
-		Package: packageName,
-		OpenAPI: strconv.Quote(string(openAPI)),
-	})
+	validateTest, err := executeTemplate(templates, "validate_test.go.tmpl", data)
 	if err != nil {
 		return nil, err
 	}

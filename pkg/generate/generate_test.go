@@ -2,15 +2,17 @@ package generate
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-// TestGenerateWritesCompiledValidation checks constraints, references, and generated compilation.
+// TestGenerateWritesCompiledValidation covers every exported validation field and generated compilation.
 func TestGenerateWritesCompiledValidation(t *testing.T) {
 	t.Parallel()
 
@@ -21,54 +23,159 @@ func TestGenerateWritesCompiledValidation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(output))
 	})
 
-	spec := []byte(`
-openapi: 3.0.3
-info: {title: generated, version: "1"}
-paths:
-  /request:
-    post:
-      operationId: request/path
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: {$ref: '#/components/schemas/Node'}
-      responses:
-        '204': {description: empty}
-components:
-  schemas:
-    Node:
-      type: object
-      required: [code, amount, choice]
-      additionalProperties: false
-      properties:
-        code: {type: string, minLength: 2, pattern: '^a+$'}
-        amount: {type: number, minimum: 1, multipleOf: 0.5}
-        choice: {type: string, enum: [first, second]}
-        child: {$ref: '#/components/schemas/Node'}
-`)
+	spec := []byte(strings.Join([]string{
+		"openapi: 3.0.3",
+		"info: {title: generated, version: \"1\"}",
+		"paths:",
+		"  /zeta:",
+		"    post:",
+		"      operationId: zetaRequest",
+		"      requestBody:",
+		"        content:",
+		"          application/json:",
+		"            schema: {type: boolean}",
+		"      responses:",
+		"        '204': {description: empty}",
+		"  /alpha:",
+		"    post:",
+		"      operationId: alphaRequest",
+		"      requestBody:",
+		"        required: true",
+		"        content:",
+		"          application/json:",
+		"            schema:",
+		"              type: object",
+		"              nullable: true",
+		"              minProperties: 4",
+		"              maxProperties: 6",
+		"              required: [array, enum, number, text]",
+		"              additionalProperties: {type: string, minLength: 1}",
+		"              properties:",
+		"                array:",
+		"                  type: array",
+		"                  nullable: true",
+		"                  minItems: 1",
+		"                  maxItems: 3",
+		"                  uniqueItems: true",
+		"                  items: {type: integer, minimum: 1, maximum: 5, multipleOf: 1}",
+		"                enum:",
+		"                  enum:",
+		"                    - null",
+		"                    - false",
+		"                    - true",
+		"                    - 0",
+		"                    - ''",
+		"                    - []",
+		"                    - {}",
+		"                    - [{nested: [false, 2, x]}]",
+		"                    - {nested: [null, {x: []}]}",
+		"                number:",
+		"                  type: number",
+		"                  minimum: 1",
+		"                  exclusiveMinimum: true",
+		"                  maximum: 10",
+		"                  exclusiveMaximum: true",
+		"                  multipleOf: 0.5",
+		"                text:",
+		"                  type: string",
+		"                  minLength: 3",
+		"                  maxLength: 30",
+		"                  pattern: '^[^@]+@[^@]+$'",
+		"                  format: email",
+		"                closed:",
+		"                  type: object",
+		"                  additionalProperties: false",
+		"                  properties:",
+		"                    child: {type: string}",
+		"              allOf:",
+		"                - {minProperties: 4}",
+		"                - properties:",
+		"                    flag: {type: boolean}",
+		"      responses:",
+		"        '204': {description: empty}",
+	}, "\n"))
 
 	err = Generate(output, "generatefixture", spec)
 	require.NoError(t, err)
+
+	generated, err := os.ReadFile(filepath.Join(output, "validate.go"))
+	require.NoError(t, err)
+
+	generatedSource := string(generated)
+
+	for _, field := range []string{
+		"SchemaPointer:", "BodyRequired:", "KindValidation:", "Type:", "Nullable:",
+		"EnumValidation:", "Values:", "ExactValues:", "ExactValue:", "NumberValidation:", "Minimum:",
+		"Maximum:", "Exclusive:", "MultipleOf:", "ExactMultipleOf:", "StringValidation:",
+		"MinLength:", "MaxLength:", "Pattern:", "Format:", "CompiledPattern:",
+		"ArrayValidation:", "MinItems:", "MaxItems:", "Items:", "UniqueItems:",
+		"ObjectValidation:", "MinProperties:", "MaxProperties:", "Required:", "Properties:", "Name:", "Validation:",
+		"AdditionalPropertiesAllowed:", "AdditionalPropertiesValidation:", "AllOfValidations:",
+	} {
+		require.Contains(t, generatedSource, field)
+	}
+
+	for _, nestedLocation := range []string{
+		"/properties/array/items",
+		"/properties/closed/properties/child",
+		"/additionalProperties",
+		"/allOf/0",
+	} {
+		require.Contains(t, generatedSource, nestedLocation)
+	}
+
+	require.NotContains(t, generatedSource, "func")
+	require.NotContains(t, generatedSource, "nodes :=")
+	require.NotContains(t, generatedSource, ".Validation =")
+	require.Equal(t, 3, strings.Count(generatedSource, "\nvar "))
+	require.Less(
+		t,
+		strings.Index(generatedSource, "var alphaRequest"),
+		strings.Index(generatedSource, "var zetaRequest"),
+	)
+	require.Less(
+		t,
+		strings.Index(generatedSource, "var zetaRequest"),
+		strings.Index(generatedSource, "var validations"),
+	)
 
 	probe := []byte(`package generatefixture
 
 import "testing"
 
 func TestGeneratedValidation(t *testing.T) {
-	valid := []byte(` + "`" + `{
-		"code":"aa",
-		"amount":1.5,
-		"choice":"first",
-		"child":{"code":"aaa","amount":2,"choice":"second"}
-	}` + "`" + `)
-	if errs := validations["request/path"].Validate(valid); len(errs) != 0 {
-		t.Fatalf("valid body: %v", errs)
+	enumValues := []string{
+		"null",
+		"false",
+		"true",
+		"0",
+		"\"\"",
+		"[]",
+		"{}",
+		"[{\"nested\":[false,2,\"x\"]}]",
+		"{\"nested\":[null,{\"x\":[]}]}",
+	}
+	for _, enumValue := range enumValues {
+		body := []byte(
+			"{\"array\":[2],\"enum\":" + enumValue +
+				",\"number\":1.5,\"text\":\"a@b.co\",\"extra\":\"ok\"}",
+		)
+		if errs := validations["alphaRequest"].Validate(body); len(errs) != 0 {
+			t.Fatalf("valid enum %s: %v", enumValue, errs)
+		}
 	}
 
-	invalid := []byte(` + "`" + `{"code":"b","amount":1.25,"choice":"third"}` + "`" + `)
-	if errs := validations["request/path"].Validate(invalid); len(errs) != 4 {
-		t.Fatalf("got %d errors, want 4: %v", len(errs), errs)
+	invalid := []byte(
+		"{\"array\":[2,2],\"enum\":\"missing\",\"number\":1,\"text\":\"bad\",\"extra\":1}",
+	)
+	if errs := validations["alphaRequest"].Validate(invalid); len(errs) == 0 {
+		t.Fatal("invalid body passed")
+	}
+	if errs := validations["alphaRequest"].Validate([]byte("null")); len(errs) != 0 {
+		t.Fatalf("nullable body: %v", errs)
+	}
+	if errs := validations["zetaRequest"].Validate([]byte("true")); len(errs) != 0 {
+		t.Fatalf("zeta body: %v", errs)
 	}
 }
 `)
@@ -80,6 +187,55 @@ func TestGeneratedValidation(t *testing.T) {
 	command.Dir = repo
 	result, err := command.CombinedOutput()
 	require.NoError(t, err, string(result))
+}
+
+// TestGenerateRejectsUnsafeOperationIdentifiers checks generated package-scope name conflicts.
+func TestGenerateRejectsUnsafeOperationIdentifiers(t *testing.T) {
+	t.Parallel()
+
+	for _, operationID := range []string{
+		"validations",
+		"init",
+		"_",
+		"validation",
+		"openAPI",
+		"TestValidations",
+		"request/path",
+		"type",
+		"json",
+		"regexp",
+		"jsonvalue",
+		"errors",
+		"testing",
+		"testgenerator",
+		"string",
+		"byte",
+		"error",
+		"true",
+	} {
+		t.Run(operationID, func(t *testing.T) {
+			t.Parallel()
+
+			output := filepath.Join(t.TempDir(), "output")
+			spec := fmt.Appendf(nil, `
+openapi: 3.0.3
+info: {title: generated, version: "1"}
+paths:
+  /request:
+    post:
+      operationId: %q
+      requestBody:
+        content:
+          application/json:
+            schema: {type: string}
+`, operationID)
+			err := Generate(output, "example", spec)
+			require.ErrorContains(t, err, fmt.Sprintf("operation ID %q", operationID))
+
+			_, statErr := os.Stat(output)
+			require.ErrorIs(t, statErr, os.ErrNotExist)
+		})
+	}
 }
 
 // TestGenerateWritesEmptyValidationMap verifies documents without JSON request bodies still generate valid tests.

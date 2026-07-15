@@ -1,6 +1,136 @@
+{{define "countBound"}}&validation.CountBound{
+	Value: {{printf "%q" .Value}},
+	ExactValue: jsonvalue.Number{Lexeme: {{printf "%q" .ExactValue.Lexeme}}},
+}{{end}}
+
+{{define "numberBound"}}&validation.NumberBound{
+	Value: {{printf "%q" .Value}},
+	{{if .Exclusive}}Exclusive: true,{{end}}
+	ExactValue: jsonvalue.Number{Lexeme: {{printf "%q" .ExactValue.Lexeme}}},
+}{{end}}
+
+{{define "numberValidation"}}validation.NumberValidation{
+	{{with .Minimum}}Minimum: {{template "numberBound" .}},{{end}}
+	{{with .Maximum}}Maximum: {{template "numberBound" .}},{{end}}
+	{{if .ExactMultipleOf}}
+	MultipleOf: {{printf "%q" .MultipleOf}},
+	ExactMultipleOf: &jsonvalue.Number{Lexeme: {{printf "%q" .ExactMultipleOf.Lexeme}}},
+	{{end}}
+}{{end}}
+
+{{define "stringValidation"}}validation.StringValidation{
+	{{with .MinLength}}MinLength: {{template "countBound" .}},{{end}}
+	{{with .MaxLength}}MaxLength: {{template "countBound" .}},{{end}}
+	{{with .Pattern}}Pattern: {{printf "%q" .}},{{end}}
+	{{with .Format}}Format: {{printf "%q" .}},{{end}}
+	{{if .CompiledPattern}}CompiledPattern: regexp.MustCompile({{printf "%q" .Pattern}}),{{end}}
+}{{end}}
+
+{{define "arrayValidation"}}validation.ArrayValidation{
+	{{with .MinItems}}MinItems: {{template "countBound" .}},{{end}}
+	{{with .MaxItems}}MaxItems: {{template "countBound" .}},{{end}}
+	{{with .Items}}Items: {{template "validation" .}},{{end}}
+	{{if .UniqueItems}}UniqueItems: true,{{end}}
+}{{end}}
+
+{{define "objectValidation"}}validation.ObjectValidation{
+	{{with .MinProperties}}MinProperties: {{template "countBound" .}},{{end}}
+	{{with .MaxProperties}}MaxProperties: {{template "countBound" .}},{{end}}
+	{{with .Required}}
+	Required: []string{ {{range .}}{{printf "%q" .}},{{end}} },
+	{{end}}
+	{{with .Properties}}
+	Properties: []validation.PropertyValidation{
+		{{range .}}{
+			Name: {{printf "%q" .Name}},
+			Validation: {{template "validation" .Validation}},
+		},{{end}}
+	},
+	{{end}}
+	{{if .AdditionalPropertiesAllowed}}AdditionalPropertiesAllowed: true,{{end}}
+	{{with .AdditionalPropertiesValidation}}
+	AdditionalPropertiesValidation: {{template "validation" .}},
+	{{end}}
+}{{end}}
+
+{{define "jsonKind" -}}
+{{- if eq . 1}}jsonvalue.KindBoolean
+{{- else if eq . 2}}jsonvalue.KindNumber
+{{- else if eq . 3}}jsonvalue.KindString
+{{- else if eq . 4}}jsonvalue.KindArray
+{{- else if eq . 5}}jsonvalue.KindObject
+{{- else}}jsonvalue.KindNull
+{{- end}}
+{{- end}}
+
+{{define "jsonValue"}}jsonvalue.Value{
+	{{if ne .Kind 0}}Kind: {{template "jsonKind" .Kind}},{{end}}
+	{{if .Boolean}}Boolean: true,{{end}}
+	{{with .Number.Lexeme}}Number: jsonvalue.Number{Lexeme: {{printf "%q" .}}},{{end}}
+	{{with .String}}String: {{printf "%q" .}},{{end}}
+	{{if eq .Kind 4}}
+	Array: []jsonvalue.Value{ {{range .Array}}{{template "jsonValue" .}},{{end}} },
+	{{end}}
+	{{if eq .Kind 5}}
+	Object: []jsonvalue.Member{
+		{{range .Object}}{
+			Name: {{printf "%q" .Name}},
+			Value: {{template "jsonValue" .Value}},
+		},{{end}}
+	},
+	{{end}}
+}{{end}}
+
+{{define "enum"}}validation.EnumValidation{
+	Values: []json.RawMessage{
+		{{range .Values}}json.RawMessage({{printf "%q" .}}),{{end}}
+	},
+	ExactValues: []jsonvalue.Value{
+		{{range .ExactValues}}{{template "jsonValue" .}},{{end}}
+	},
+}{{end}}
+
+{{define "validation"}}&validation.Validation{
+	SchemaPointer: {{printf "%q" .SchemaPointer}},
+	{{if .BodyRequired}}BodyRequired: true,{{end}}
+
+	{{if or .KindValidation.Type .KindValidation.Nullable}}
+	KindValidation: validation.KindValidation{
+		{{with .KindValidation.Type}}Type: {{printf "%q" .}},{{end}}
+		{{if .KindValidation.Nullable}}Nullable: true,{{end}}
+	},
+	{{end}}
+
+	{{if .EnumValidation.Values}}
+	EnumValidation: {{template "enum" .EnumValidation}},
+	{{end}}
+
+	{{if or .NumberValidation.Minimum .NumberValidation.Maximum .NumberValidation.ExactMultipleOf}}
+	NumberValidation: {{template "numberValidation" .NumberValidation}},
+	{{end}}
+
+	{{if or .StringValidation.MinLength .StringValidation.MaxLength .StringValidation.Pattern .StringValidation.Format .StringValidation.CompiledPattern}}
+	StringValidation: {{template "stringValidation" .StringValidation}},
+	{{end}}
+
+	{{if or .ArrayValidation.MinItems .ArrayValidation.MaxItems .ArrayValidation.Items .ArrayValidation.UniqueItems}}
+	ArrayValidation: {{template "arrayValidation" .ArrayValidation}},
+	{{end}}
+
+	{{if or .ObjectValidation.MinProperties .ObjectValidation.MaxProperties .ObjectValidation.Required .ObjectValidation.Properties .ObjectValidation.AdditionalPropertiesAllowed .ObjectValidation.AdditionalPropertiesValidation}}
+	ObjectValidation: {{template "objectValidation" .ObjectValidation}},
+	{{end}}
+
+	{{with .AllOfValidations}}
+	AllOfValidations: []*validation.Validation{
+		{{range .}}{{template "validation" .}},{{end}}
+	},
+	{{end}}
+}{{end}}
+
 {{define "validate.go.tmpl"}}// Package {{.Package}} contains generated request-body validations.
 //
-//nolint:dupl,lll // Generated validation graphs may contain repeated schemas and long pointers.
+//nolint:dupl,godoclint,lll // Generated validation trees use operation IDs and may contain repeated schemas.
 package {{.Package}}
 
 import (
@@ -11,17 +141,14 @@ import (
 	"github.com/djosh34/decode_and_validate_generator/pkg/validation"
 )
 
+{{range $operationID, $validation := .Validations}}
+var {{$operationID}} = {{template "validation" $validation}}
+{{end}}
+
 // validations contains every compiled request-body validation by exact operation ID.
 var validations = map[string]*validation.Validation{
-{{range .Assignments}}	{{printf "%q" .OperationID}}: func() *validation.Validation {
-	nodes := []*validation.Validation{
-		{{range .Nodes}}{{.}},
-		{{end}}
-	}
-
-	{{range .Links}}{{.}}
+	{{range $operationID, $_ := .Validations}}
+	{{printf "%q" $operationID}}: {{$operationID}},
 	{{end}}
-	return nodes[0]
-}(),
-{{end}}}
+}
 {{end}}
