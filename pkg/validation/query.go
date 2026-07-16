@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
-	"math/big"
 	"slices"
 	"sort"
 	"strings"
 
 	"github.com/djosh34/decode_and_validate_generator/pkg/internal/oas"
-	"github.com/djosh34/decode_and_validate_generator/pkg/jsonvalue"
 	"github.com/go-json-experiment/json/jsontext"
 )
 
@@ -65,6 +63,10 @@ type queryClaim struct {
 
 // QueryDecoderDefinition is the generation-only compiled form of a QueryDecoder.
 // Callers should normally use Parse instead.
+// Validation pointers in definitions passed to NewQueryDecoderFromGenerated or
+// returned by Definition are shared with the decoder.
+// Do not mutate a definition while a decoder sharing it is in use;
+// concurrent mutation has undefined behavior.
 type QueryDecoderDefinition struct {
 	OperationID string
 	Parameters  []QueryParameterDefinition
@@ -90,7 +92,8 @@ type QueryPropertyDefinition struct {
 	Array      bool
 }
 
-// Definition returns a detached generation-only snapshot of decoder.
+// Definition returns the generation-only compiled form of decoder.
+// Its Validation pointers remain shared; see QueryDecoderDefinition.
 func (decoder *QueryDecoder) Definition() QueryDecoderDefinition {
 	definition := QueryDecoderDefinition{
 		OperationID: decoder.operationID,
@@ -99,7 +102,7 @@ func (decoder *QueryDecoder) Definition() QueryDecoderDefinition {
 	for index, parameter := range decoder.parameters {
 		compiled := QueryParameterDefinition{
 			Name: parameter.name, Wire: uint8(parameter.wire), Separator: parameter.separator,
-			Required: parameter.required, AllowEmpty: parameter.allowEmpty, Validation: cloneValidation(parameter.validation),
+			Required: parameter.required, AllowEmpty: parameter.allowEmpty, Validation: parameter.validation,
 			DefaultValue: append(json.RawMessage(nil), parameter.defaultValue...), ScalarType: parameter.scalarType,
 			Properties: make([]QueryPropertyDefinition, len(parameter.properties)),
 		}
@@ -117,7 +120,7 @@ func (decoder *QueryDecoder) Definition() QueryDecoderDefinition {
 
 // NewQueryDecoderFromGenerated restores a generator-produced decoder definition.
 //
-//nolint:funcorder // The snapshot method sits beside its public definition types above this restoring constructor.
+//nolint:funcorder // The definition method sits beside its public types above this restoring constructor.
 func NewQueryDecoderFromGenerated(definition QueryDecoderDefinition) (*QueryDecoder, error) {
 	parameters := make([]queryParameter, len(definition.Parameters))
 	for index, compiled := range definition.Parameters {
@@ -162,7 +165,7 @@ func compileQueryDecoder(operationID string, source oas.Source, compiler *schema
 func newQueryDecoder(operationID string, parameters []queryParameter) (*QueryDecoder, error) {
 	decoder := &QueryDecoder{
 		operationID: operationID,
-		parameters:  cloneQueryParameters(parameters),
+		parameters:  parameters,
 		owners:      make(map[string]queryClaim),
 	}
 	deepBases := make(map[string]struct{})
@@ -552,174 +555,6 @@ func escapePointerToken(token string) string {
 	token = strings.ReplaceAll(token, "~", "~0")
 
 	return strings.ReplaceAll(token, "/", "~1")
-}
-
-func cloneQueryParameters(parameters []queryParameter) []queryParameter {
-	if parameters == nil {
-		return nil
-	}
-
-	cloned := make([]queryParameter, len(parameters))
-	validations := make(map[*Validation]*Validation)
-
-	for index, parameter := range parameters {
-		cloned[index] = parameter
-		cloned[index].validation = cloneValidationWithMemo(parameter.validation, validations)
-		cloned[index].defaultValue = append(jsontext.Value(nil), parameter.defaultValue...)
-		cloned[index].properties = append([]queryProperty(nil), parameter.properties...)
-		cloned[index].propertyByName = maps.Clone(parameter.propertyByName)
-	}
-
-	return cloned
-}
-
-func cloneValidation(validation *Validation) *Validation {
-	return cloneValidationWithMemo(validation, make(map[*Validation]*Validation))
-}
-
-func cloneValidationWithMemo(validation *Validation, cloned map[*Validation]*Validation) *Validation {
-	if validation == nil {
-		return nil
-	}
-
-	if existing, ok := cloned[validation]; ok {
-		return existing
-	}
-
-	clonedValidation := *validation
-	cloned[validation] = &clonedValidation
-
-	clonedValidation.EnumValidation.Values = cloneRawMessages(validation.EnumValidation.Values)
-	clonedValidation.EnumValidation.ExactValues = cloneExactValues(validation.EnumValidation.ExactValues)
-	clonedValidation.NumberValidation.Minimum = cloneNumberBound(validation.NumberValidation.Minimum)
-	clonedValidation.NumberValidation.Maximum = cloneNumberBound(validation.NumberValidation.Maximum)
-	clonedValidation.NumberValidation.ExactMultipleOf = cloneExactNumber(validation.NumberValidation.ExactMultipleOf)
-	clonedValidation.StringValidation.MinLength = cloneCountBound(validation.StringValidation.MinLength)
-
-	clonedValidation.StringValidation.MaxLength = cloneCountBound(validation.StringValidation.MaxLength)
-	if validation.StringValidation.CompiledPattern != nil {
-		//nolint:staticcheck // Copy detaches caller-controlled Longest state.
-		clonedValidation.StringValidation.CompiledPattern = validation.StringValidation.CompiledPattern.Copy()
-	}
-
-	clonedValidation.ArrayValidation.MinItems = cloneCountBound(validation.ArrayValidation.MinItems)
-	clonedValidation.ArrayValidation.MaxItems = cloneCountBound(validation.ArrayValidation.MaxItems)
-	clonedValidation.ArrayValidation.Items = cloneValidationWithMemo(validation.ArrayValidation.Items, cloned)
-	clonedValidation.ObjectValidation.MinProperties = cloneCountBound(validation.ObjectValidation.MinProperties)
-	clonedValidation.ObjectValidation.MaxProperties = cloneCountBound(validation.ObjectValidation.MaxProperties)
-
-	clonedValidation.ObjectValidation.Required = append([]string(nil), validation.ObjectValidation.Required...)
-	if validation.ObjectValidation.Properties != nil {
-		clonedValidation.ObjectValidation.Properties = make([]PropertyValidation, len(validation.ObjectValidation.Properties))
-		for index, property := range validation.ObjectValidation.Properties {
-			clonedValidation.ObjectValidation.Properties[index] = PropertyValidation{
-				Name:       property.Name,
-				Validation: cloneValidationWithMemo(property.Validation, cloned),
-			}
-		}
-	}
-
-	clonedValidation.ObjectValidation.AdditionalPropertiesValidation = cloneValidationWithMemo(
-		validation.ObjectValidation.AdditionalPropertiesValidation,
-		cloned,
-	)
-	if validation.AllOfValidations != nil {
-		clonedValidation.AllOfValidations = make([]*Validation, len(validation.AllOfValidations))
-		for index, child := range validation.AllOfValidations {
-			clonedValidation.AllOfValidations[index] = cloneValidationWithMemo(child, cloned)
-		}
-	}
-
-	return &clonedValidation
-}
-
-func cloneRawMessages(values []json.RawMessage) []json.RawMessage {
-	if values == nil {
-		return nil
-	}
-
-	cloned := make([]json.RawMessage, len(values))
-	for index, value := range values {
-		cloned[index] = append(json.RawMessage(nil), value...)
-	}
-
-	return cloned
-}
-
-func cloneExactValues(values []jsonvalue.Value) []jsonvalue.Value {
-	if values == nil {
-		return nil
-	}
-
-	cloned := make([]jsonvalue.Value, len(values))
-	for index, value := range values {
-		cloned[index] = cloneExactValue(value)
-	}
-
-	return cloned
-}
-
-func cloneExactValue(value jsonvalue.Value) jsonvalue.Value {
-	value.Number = cloneExactNumberValue(value.Number)
-	if value.Array != nil {
-		array := make([]jsonvalue.Value, len(value.Array))
-		for index, child := range value.Array {
-			array[index] = cloneExactValue(child)
-		}
-
-		value.Array = array
-	}
-
-	if value.Object != nil {
-		object := make([]jsonvalue.Member, len(value.Object))
-		for index, member := range value.Object {
-			object[index] = jsonvalue.Member{Name: member.Name, Value: cloneExactValue(member.Value)}
-		}
-
-		value.Object = object
-	}
-
-	return value
-}
-
-func cloneNumberBound(bound *NumberBound) *NumberBound {
-	if bound == nil {
-		return nil
-	}
-
-	cloned := *bound
-	cloned.ExactValue = cloneExactNumberValue(bound.ExactValue)
-
-	return &cloned
-}
-
-func cloneCountBound(bound *CountBound) *CountBound {
-	if bound == nil {
-		return nil
-	}
-
-	cloned := *bound
-	cloned.ExactValue = cloneExactNumberValue(bound.ExactValue)
-
-	return &cloned
-}
-
-func cloneExactNumber(number *jsonvalue.Number) *jsonvalue.Number {
-	if number == nil {
-		return nil
-	}
-
-	cloned := cloneExactNumberValue(*number)
-
-	return &cloned
-}
-
-func cloneExactNumberValue(number jsonvalue.Number) jsonvalue.Number {
-	if number.Rational != nil {
-		number.Rational = new(big.Rat).Set(number.Rational)
-	}
-
-	return number
 }
 
 func isScalarType(typeName string) bool {
