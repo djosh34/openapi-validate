@@ -459,7 +459,8 @@ func TestGeneratedPatternValidationMatchesRuntimeOptions(t *testing.T) {
 	t.Parallel()
 
 	repo := repoRoot(t)
-	spec := []byte(`openapi: 3.0.3
+	specForPattern := func(pattern string) []byte {
+		return fmt.Appendf(nil, `openapi: 3.0.3
 info: {title: pattern parity, version: "1"}
 paths:
   /request:
@@ -468,10 +469,11 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: {type: string, pattern: '^.$'}
+            schema: {type: string, pattern: %q}
       responses:
         '204': {description: empty}
-`)
+`, pattern)
+	}
 
 	tests := []struct {
 		name    string
@@ -497,6 +499,17 @@ paths:
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
+			pattern := "^.$"
+			probeBody := `"é"`
+
+			probeAccepted := !test.reject
+			if test.useRE2 {
+				pattern = `(?m)^a$`
+				probeBody = `"a"`
+				probeAccepted = true
+			}
+
+			spec := specForPattern(pattern)
 			composite := validation.PatternOptions(test.options...)
 			runtime, _, err := validation.Parse(spec, composite)
 			require.NoError(t, err)
@@ -513,11 +526,17 @@ paths:
 
 			generated, err := os.ReadFile(filepath.Join(output, "validate.go"))
 			require.NoError(t, err)
+			generatedTest, err := os.ReadFile(filepath.Join(output, "validate_test.go"))
+			require.NoError(t, err)
 
 			source := string(generated)
 			require.Contains(t, source, "patternvalidator.MustParse")
 			require.Equal(t, test.reject, strings.Contains(source, "patternvalidator.RejectNonASCII"))
 			require.Equal(t, test.useRE2, strings.Contains(source, "patternvalidator.UseRE2"))
+
+			testSource := string(generatedTest)
+			require.Equal(t, test.reject, strings.Contains(testSource, "patternvalidator.RejectNonASCII"))
+			require.Equal(t, test.useRE2, strings.Contains(testSource, "patternvalidator.UseRE2"))
 
 			probe := fmt.Appendf(nil, `package generatepatternparity
 
@@ -531,16 +550,17 @@ func TestPatternSettings(t *testing.T) {
 	if compiled.UsesRE2() != %t {
 		t.Fatalf("UsesRE2 = %%t", compiled.UsesRE2())
 	}
-	accepted := len(patternRequest.Validate([]byte("\"é\""))) == 0
+	accepted := len(patternRequest.Validate([]byte(%q))) == 0
 	if accepted != %t {
 		t.Fatalf("non-ASCII acceptance = %%t", accepted)
 	}
 }
-`, test.reject, test.useRE2, !test.reject)
+`, test.reject, test.useRE2, probeBody, probeAccepted)
 			require.NoError(t, os.WriteFile(filepath.Join(output, "pattern_probe_test.go"), probe, 0o644))
 
 			command := exec.CommandContext(
-				t.Context(), "go", "test", "./pkg/"+filepath.Base(output), "-run", "^TestPatternSettings$",
+				t.Context(), "go", "test", "./pkg/"+filepath.Base(output),
+				"-run", "^(TestPatternSettings|TestValidations)$",
 			)
 			command.Dir = repo
 			result, err := command.CombinedOutput()

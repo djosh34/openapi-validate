@@ -30,7 +30,14 @@ func Generate(
 		return errors.New("generate: nil pattern option")
 	}
 
-	parsed, queryDecoders, err := validation.Parse(openAPI, patternOption)
+	settings := patternSettings{}
+	captureSettings := patternvalidator.Option(func(compiled *patternvalidator.PatternValidation) {
+		patternOption(compiled)
+		settings.RejectNonASCII = compiled.RejectsNonASCII()
+		settings.UseRE2 = compiled.UsesRE2()
+	})
+
+	parsed, queryDecoders, err := validation.Parse(openAPI, captureSettings)
 	if err != nil {
 		return err
 	}
@@ -41,7 +48,7 @@ func Generate(
 		}
 	}
 
-	files, err := render(packageName, openAPI, parsed, queryDecoders)
+	files, err := render(packageName, openAPI, parsed, queryDecoders, settings)
 	if err != nil {
 		return err
 	}

@@ -366,7 +366,6 @@ func (state *parser) parseClass() (NodeID, error) {
 	}
 
 	items := make([]ClassItem, 0)
-	first := true
 
 	for {
 		if state.position == len(state.source) {
@@ -392,12 +391,10 @@ func (state *parser) parseClass() (NodeID, error) {
 			return 0, foreignError(state.position, "POSIX character classes are not ECMAScript 5.1 syntax")
 		}
 
-		left, err := state.parseClassAtom(first)
+		left, err := state.parseClassAtom()
 		if err != nil {
 			return 0, err
 		}
-
-		first = false
 
 		if state.position < len(state.source) && state.source[state.position] == '-' &&
 			state.position+1 < len(state.source) && state.source[state.position+1] != ']' {
@@ -408,7 +405,7 @@ func (state *parser) parseClass() (NodeID, error) {
 
 			state.position++
 
-			right, parseErr := state.parseClassAtom(false)
+			right, parseErr := state.parseClassAtom()
 			if parseErr != nil {
 				return 0, parseErr
 			}
@@ -433,14 +430,9 @@ func (state *parser) parseClass() (NodeID, error) {
 }
 
 //nolint:cyclop,gocyclo // Class escapes are a closed, flat grammar table.
-func (state *parser) parseClassAtom(first bool) (classAtom, error) {
+func (state *parser) parseClassAtom() (classAtom, error) {
 	start := state.position
 	if state.source[state.position] == '-' {
-		last := state.position+1 < len(state.source) && state.source[state.position+1] == ']'
-		if !first && !last {
-			return classAtom{}, syntaxError(start, "unescaped hyphen is only allowed first or last")
-		}
-
 		state.position++
 
 		return singletonClassAtom('-', start, state.position), nil

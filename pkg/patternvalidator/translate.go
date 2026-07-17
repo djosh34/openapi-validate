@@ -227,7 +227,7 @@ func (translation *translator) writeClass(node patternsyntax.Node) {
 	for _, item := range node.ClassItems {
 		switch item.Kind {
 		case patternsyntax.ClassItemRange:
-			ranges = append(ranges, runeRange{low: item.Low, high: item.High})
+			ranges = appendLiteralClassRange(ranges, item.Low, item.High)
 		case patternsyntax.ClassItemDigit:
 			ranges = append(ranges, digitRanges...)
 		case patternsyntax.ClassItemNotDigit:
@@ -249,6 +249,20 @@ func (translation *translator) writeClass(node patternsyntax.Node) {
 	}
 
 	translation.writeRuneSet(ranges, node.Span)
+}
+
+func appendLiteralClassRange(ranges []runeRange, low rune, high rune) []runeRange {
+	if low != high || low <= 0xffff {
+		return append(ranges, runeRange{low: low, high: high})
+	}
+
+	highSurrogate, lowSurrogate := utf16.EncodeRune(low)
+
+	return append(
+		ranges,
+		runeRange{low: mapSurrogate(highSurrogate), high: mapSurrogate(highSurrogate)},
+		runeRange{low: mapSurrogate(lowSurrogate), high: mapSurrogate(lowSurrogate)},
+	)
 }
 
 func (translation *translator) writeRuneSet(ranges []runeRange, span patternsyntax.Span) {
