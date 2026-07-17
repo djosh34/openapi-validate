@@ -21,6 +21,32 @@ filter[role]=admin&filter[active]=true
 {"filter":{"active":true,"role":"admin"}}
 ```
 
+OpenAPI 3.0.3 does not define how `deepObject` serializes array-valued object properties. Klopt extends the OpenAPI behavior with repeated bracketed keys:
+
+```yaml
+- name: tags
+  in: query
+  style: deepObject
+  explode: true
+  schema:
+    type: object
+    properties:
+      key:
+        type: array
+        items:
+          type: string
+```
+
+```text
+tags[key]=item1&tags[key]=item2
+```
+
+decodes to:
+
+```json
+{"tags":{"key":["item1","item2"]}}
+```
+
 Use that JSON with any struct:
 
 ```go
