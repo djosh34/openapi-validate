@@ -146,6 +146,23 @@ func TestRejectNonASCIIAppliesToPatternValuesAndSubjects(t *testing.T) {
 	raw, err := Parse(`^.$`, RejectNonASCII, UseRE2)
 	require.NoError(t, err)
 	require.False(t, raw.Validate("é"))
+
+	for _, test := range []struct {
+		pattern string
+		offset  int
+	}{
+		{pattern: `\x{e9}`, offset: 0},
+		{pattern: `[a-\x{e9}]`, offset: 3},
+		{pattern: `\303`, offset: 0},
+	} {
+		_, err = Parse(test.pattern, RejectNonASCII, UseRE2)
+		assertParseError(t, err, ParseErrorPolicy, test.offset)
+	}
+
+	for _, pattern := range []string{`\Q\x{e9}\E`, `\\x{e9}`} {
+		_, err = Parse(pattern, RejectNonASCII, UseRE2)
+		require.NoError(t, err)
+	}
 }
 
 func TestParseClassifiesPublicErrors(t *testing.T) {
@@ -217,20 +234,39 @@ func TestCompiledValidationIsSafeForConcurrentReads(t *testing.T) {
 
 	validation := MustParse(`^(?=a)(?!ab)a`)
 
+	const (
+		workers    = 32
+		iterations = 100
+	)
+
+	type result struct {
+		value string
+		want  bool
+		got   bool
+	}
+
+	results := make(chan result, workers*iterations*2)
+
 	var wait sync.WaitGroup
-	for range 32 {
+	for range workers {
 		wait.Add(1)
 		go func() {
 			defer wait.Done()
 
-			for range 100 {
-				require.True(t, validation.Validate("ac"))
-				require.False(t, validation.Validate("ab"))
+			for range iterations {
+				results <- result{value: "ac", want: true, got: validation.Validate("ac")}
+
+				results <- result{value: "ab", want: false, got: validation.Validate("ab")}
 			}
 		}()
 	}
 
 	wait.Wait()
+	close(results)
+
+	for result := range results {
+		require.Equal(t, result.want, result.got, "value %q", result.value)
+	}
 }
 
 func TestParseReportsComplexity(t *testing.T) {

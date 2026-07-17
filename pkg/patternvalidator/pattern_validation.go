@@ -21,6 +21,12 @@ import (
 const (
 	maximumGeneratedRegexpBytes = 1024 * 1024
 	maximumASCII                = 0x7f
+	hexadecimalBase             = 16
+	hexadecimalAlphaOffset      = 10
+	octalBase                   = 8
+	rawHexadecimalDigits        = 2
+	rawOctalDigits              = 3
+	rawQuoteEnd                 = `\E`
 )
 
 // Option configures a newly allocated PatternValidation before parsing starts.
@@ -95,6 +101,15 @@ func Parse(source string, options ...Option) (*PatternValidation, error) {
 		if err != nil {
 			return nil, &ParseError{
 				Kind: ParseErrorRawGoSyntax, Offset: rawGoErrorOffset(source, err), Cause: err,
+			}
+		}
+
+		if validation.rejectNonASCII {
+			if offset := firstNonASCIIRawEscape(source); offset >= 0 {
+				return nil, &ParseError{
+					Kind: ParseErrorPolicy, Offset: offset,
+					Cause: errors.New("non-ASCII pattern value is rejected by policy"),
+				}
 			}
 		}
 
@@ -214,6 +229,83 @@ func rawGoErrorOffset(source string, err error) int {
 	}
 
 	return 0
+}
+
+func firstNonASCIIRawEscape(source string) int {
+	for index := 0; index < len(source); index++ {
+		if source[index] != '\\' || index+1 >= len(source) {
+			continue
+		}
+
+		offset := index
+		next, value, ok := rawEscapeValue(source, offset)
+		index = next
+
+		if ok && value > maximumASCII {
+			return offset
+		}
+	}
+
+	return -1
+}
+
+func rawEscapeValue(source string, offset int) (int, rune, bool) {
+	marker := offset + 1
+	if source[marker] == 'Q' {
+		quoted := source[marker+1:]
+		if quoteEnd := strings.Index(quoted, rawQuoteEnd); quoteEnd >= 0 {
+			return marker + quoteEnd + len(rawQuoteEnd), 0, false
+		}
+
+		return len(source) - 1, 0, false
+	}
+
+	if source[marker] == 'x' {
+		digits := marker + 1
+		if source[digits] == '{' {
+			digits++
+			closing := digits + strings.IndexByte(source[digits:], '}')
+
+			return closing, hexadecimalValue(source[digits:closing]), true
+		}
+
+		end := digits + rawHexadecimalDigits
+
+		return end - 1, hexadecimalValue(source[digits:end]), true
+	}
+
+	if source[marker] >= '0' && source[marker] <= '7' {
+		end := min(marker+rawOctalDigits, len(source))
+
+		return end - 1, octalValue(source[marker:end]), true
+	}
+
+	return marker, 0, false
+}
+
+func hexadecimalValue(source string) rune {
+	value := rune(0)
+	for index := range len(source) {
+		value *= hexadecimalBase
+		if source[index] >= '0' && source[index] <= '9' {
+			value += rune(source[index] - '0')
+		} else if source[index] >= 'a' && source[index] <= 'f' {
+			value += rune(source[index]-'a') + hexadecimalAlphaOffset
+		} else {
+			value += rune(source[index]-'A') + hexadecimalAlphaOffset
+		}
+	}
+
+	return value
+}
+
+func octalValue(source string) rune {
+	value := rune(0)
+	for index := range len(source) {
+		value = value*octalBase + rune(source[index]-'0')
+	}
+
+	return value
 }
 
 // RejectsNonASCII reports the effective strict-ASCII setting.
