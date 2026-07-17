@@ -195,10 +195,7 @@ func (translation *translator) writeNode(nodeID patternsyntax.NodeID) {
 		translation.writeNode(node.Children[0])
 		translation.write(")", node.Span)
 	case patternsyntax.KindRepeat:
-		translation.write("(?:", node.Span)
-		translation.writeNode(node.Children[0])
-		translation.write(")", node.Span)
-		translation.writeRepeat(node)
+		translation.writeRepeatedNode(node)
 	case patternsyntax.KindPositiveLookahead, patternsyntax.KindNegativeLookahead:
 		translation.failure = &ParseError{
 			Kind: ParseErrorInternalTranslation, Offset: node.Span.Start,
@@ -209,17 +206,42 @@ func (translation *translator) writeNode(nodeID patternsyntax.NodeID) {
 
 func (translation *translator) writeLiteral(value rune, span patternsyntax.Span) {
 	if value <= 0xffff {
-		translation.write(fmt.Sprintf("\\x{%x}", value), span)
+		translation.writeCodeUnit(value, span)
 
 		return
 	}
 
 	high, low := utf16.EncodeRune(value)
-	translation.write(fmt.Sprintf("\\x{%x}\\x{%x}", mapSurrogate(high), mapSurrogate(low)), span)
+	translation.writeCodeUnit(high, span)
+	translation.writeCodeUnit(low, span)
 }
 
 func mapSurrogate(value rune) rune {
 	return 0x10000 + value - 0xd800
+}
+
+func (translation *translator) writeCodeUnit(value rune, span patternsyntax.Span) {
+	if value >= 0xd800 && value <= 0xdfff {
+		value = mapSurrogate(value)
+	}
+
+	translation.write(fmt.Sprintf("\\x{%x}", value), span)
+}
+
+func (translation *translator) writeRepeatedNode(node patternsyntax.Node) {
+	child := translation.tree.Nodes[node.Children[0]]
+	if child.Kind == patternsyntax.KindLiteral && child.Value > 0xffff {
+		high, low := utf16.EncodeRune(child.Value)
+		translation.writeCodeUnit(high, child.Span)
+		translation.write("(?:", node.Span)
+		translation.writeCodeUnit(low, child.Span)
+	} else {
+		translation.write("(?:", node.Span)
+		translation.writeNode(node.Children[0])
+	}
+
+	translation.write(")", node.Span)
+	translation.writeRepeat(node)
 }
 
 func (translation *translator) writeClass(node patternsyntax.Node) {
