@@ -90,6 +90,33 @@ func TestQueryDecoderStyleMatrix(t *testing.T) {
 	}
 }
 
+func TestQueryDecoderAllowReservedIsInertForSchemaParameters(t *testing.T) {
+	t.Parallel()
+
+	for _, allowReserved := range []bool{false, true} {
+		t.Run(fmt.Sprintf("allowReserved %t", allowReserved), func(t *testing.T) {
+			t.Parallel()
+
+			decoder := parseQueryDecoder(t, fmt.Sprintf(
+				`{name: q, in: query, allowReserved: %t, schema: {type: string}}`,
+				allowReserved,
+			))
+
+			for _, test := range []struct {
+				rawQuery string
+				expected string
+			}{
+				{rawQuery: `q=:/?@!$'()*,;`, expected: `{"q":":/?@!$'()*,;"}`},
+				{rawQuery: `q=%23%5B%5D%26%3D%2B`, expected: `{"q":"#[]&=+"}`},
+			} {
+				actual, err := decoder.Decode(&url.URL{RawQuery: test.rawQuery})
+				require.NoError(t, err)
+				require.JSONEq(t, test.expected, string(actual))
+			}
+		})
+	}
+}
+
 func TestQueryDecoderLiteralBracketNamesAcrossNonDeepStyles(t *testing.T) {
 	t.Parallel()
 
@@ -290,10 +317,17 @@ func TestQueryCompileRejectionsAndLiteralBracketOwnership(t *testing.T) {
 		{name: "JSON no direct type", parameters: `- name: q
       in: query
       content: {application/json: {schema: {allOf: [{type: object}]}}}`, contains: "must have a direct type"},
-		{name: "reserved", parameters: `- {name: q, in: query, allowReserved: true, schema: {type: string}}`, contains: "allowReserved true"},
 		{name: "required shape", parameters: `- {name: q, in: query, required: nope, schema: {type: string}}`, contains: "required"},
 		{name: "allow empty shape", parameters: `- {name: q, in: query, allowEmptyValue: nope, schema: {type: string}}`, contains: "allowEmptyValue"},
-		{name: "allow reserved shape", parameters: `- {name: q, in: query, allowReserved: nope, schema: {type: string}}`, contains: "allowReserved"},
+		{name: "allow reserved shape", parameters: `- {name: q, in: query, allowReserved: nope, schema: {type: string}}`, contains: "allowReserved must be a boolean"},
+		{name: "content with allow reserved false", parameters: `- name: q
+      in: query
+      allowReserved: false
+      content: {application/json: {schema: {type: string}}}`, contains: "content cannot be combined with allowReserved"},
+		{name: "content with allow reserved true", parameters: `- name: q
+      in: query
+      allowReserved: true
+      content: {application/json: {schema: {type: string}}}`, contains: "content cannot be combined with allowReserved"},
 		{name: "content with style", parameters: `- name: q
       in: query
       style: form

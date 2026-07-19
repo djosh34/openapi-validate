@@ -237,13 +237,8 @@ func compileQueryParameter(located oas.LocatedSchema, compiler *schemaCompiler) 
 		return queryParameter{}, fmt.Errorf("parameter %q at %s allowEmptyValue: %w", name, located.Pointer, err)
 	}
 
-	allowReserved, err := decodeOptionalBoolean(members, "allowReserved")
-	if err != nil {
-		return queryParameter{}, fmt.Errorf("parameter %q at %s allowReserved: %w", name, located.Pointer, err)
-	}
-
-	if allowReserved {
-		return queryParameter{}, fmt.Errorf("parameter %q at %s allowReserved true is unsupported", name, located.Pointer)
+	if _, decodeErr := decodeOptionalBoolean(members, "allowReserved"); decodeErr != nil {
+		return queryParameter{}, fmt.Errorf("parameter %q at %s allowReserved: %w", name, located.Pointer, decodeErr)
 	}
 
 	_, hasSchema := members["schema"]
@@ -258,6 +253,12 @@ func compileQueryParameter(located oas.LocatedSchema, compiler *schemaCompiler) 
 	var schema oas.LocatedSchema
 
 	if hasContent {
+		if _, ok := members["allowReserved"]; ok {
+			return queryParameter{}, fmt.Errorf(
+				"parameter %q at %s content cannot be combined with allowReserved", name, located.Pointer,
+			)
+		}
+
 		if _, ok := members["style"]; ok {
 			return queryParameter{}, fmt.Errorf("parameter %q at %s content cannot be combined with style", name, located.Pointer)
 		}
