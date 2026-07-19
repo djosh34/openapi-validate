@@ -55,6 +55,10 @@ func CheckJSONRequestBodies(
 	}
 
 	for _, operationID := range slices.Sorted(maps.Keys(sources)) {
+		if len(sources[operationID].RequestSchema.Raw) == 0 {
+			continue
+		}
+
 		t.Run(operationID, func(t *testing.T) {
 			t.Parallel()
 
