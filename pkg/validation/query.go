@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"mime"
 	"slices"
 	"sort"
 	"strings"
@@ -230,6 +231,84 @@ func (decoder *QueryDecoder) addOwner(name string, claim queryClaim) error {
 	return nil
 }
 
+func strictMediaTypeParameters(mediaType string) bool {
+	separator := strings.IndexByte(mediaType, ';')
+	if separator == -1 {
+		return true
+	}
+
+	seen := make(map[string]struct{})
+
+	for _, parameter := range mediaTypeParameterSegments(mediaType[separator+1:]) {
+		parameter = strings.TrimLeft(parameter, " \t")
+
+		equal := strings.IndexByte(parameter, '=')
+		if equal <= 0 {
+			return false
+		}
+
+		if equal+1 >= len(parameter) {
+			return false
+		}
+
+		if strings.ContainsRune(" \t", rune(parameter[equal-1])) {
+			return false
+		}
+
+		if strings.ContainsRune(" \t", rune(parameter[equal+1])) {
+			return false
+		}
+
+		name := strings.ToLower(parameter[:equal])
+		if _, duplicate := seen[name]; duplicate {
+			return false
+		}
+
+		seen[name] = struct{}{}
+	}
+
+	return true
+}
+
+func mediaTypeParameterSegments(parameters string) []string {
+	segments := make([]string, 0, strings.Count(parameters, ";")+1)
+	parameterStart := 0
+
+	quoted := false
+
+	escaped := false
+	for index := range len(parameters) {
+		if escaped {
+			escaped = false
+
+			continue
+		}
+
+		if quoted && parameters[index] == '\\' {
+			escaped = true
+
+			continue
+		}
+
+		if parameters[index] == '"' {
+			quoted = !quoted
+
+			continue
+		}
+
+		if parameters[index] != ';' || quoted {
+			continue
+		}
+
+		segments = append(segments, parameters[parameterStart:index])
+		parameterStart = index + 1
+	}
+
+	segments = append(segments, parameters[parameterStart:])
+
+	return segments
+}
+
 //nolint:cyclop,funlen,gocognit,gocyclo,maintidx,nestif // Parameter Object rules form one finite decision table.
 func compileQueryParameter(located oas.LocatedSchema, compiler *schemaCompiler) (queryParameter, error) {
 	members, err := parameterMembers(located)
@@ -282,30 +361,102 @@ func compileQueryParameter(located oas.LocatedSchema, compiler *schemaCompiler) 
 			return queryParameter{}, fmt.Errorf("parameter %q at %s content cannot be combined with explode", name, located.Pointer)
 		}
 
+		contentPointer := locatedRawChild(located, members["content"], "content").Pointer
+
 		var content map[string]json.RawMessage
-		if unmarshalErr := json.Unmarshal(members["content"], &content); unmarshalErr != nil || len(content) != 1 {
-			return queryParameter{}, fmt.Errorf("parameter %q at %s content must contain exactly one media type", name, located.Pointer)
-		}
-
-		if _, ok := content["application/json"]; !ok {
-			return queryParameter{}, fmt.Errorf("parameter %q at %s only application/json content is supported", name, located.Pointer)
-		}
-
-		var mediaType map[string]json.RawMessage
-		if unmarshalErr := json.Unmarshal(content["application/json"], &mediaType); unmarshalErr != nil {
+		if unmarshalErr := json.Unmarshal(members["content"], &content); unmarshalErr != nil {
 			return queryParameter{}, fmt.Errorf(
-				"parameter %q at %s application/json schema: %w", name, located.Pointer, unmarshalErr,
+				"parameter %q content at %s must be an object: %w", name, contentPointer, unmarshalErr,
 			)
 		}
 
-		if mediaType["schema"] == nil {
-			return queryParameter{}, fmt.Errorf("parameter %q at %s application/json schema does not exist", name, located.Pointer)
+		if content == nil {
+			return queryParameter{}, fmt.Errorf("parameter %q content at %s must be an object", name, contentPointer)
 		}
 
-		schema = locatedRawChild(located, mediaType["schema"], "content", "application/json", "schema")
+		if len(content) != 1 {
+			return queryParameter{}, fmt.Errorf(
+				"parameter %q content at %s must contain exactly one media type", name, contentPointer,
+			)
+		}
+
+		mediaTypeName := slices.Sorted(maps.Keys(content))[0]
+		rawMediaType := content[mediaTypeName]
+
+		parsedMediaType, _, parseMediaTypeErr := mime.ParseMediaType(mediaTypeName)
+		if parseMediaTypeErr != nil {
+			return queryParameter{}, fmt.Errorf(
+				"parameter %q content at %s media type %q is malformed: %w",
+				name, contentPointer, mediaTypeName, parseMediaTypeErr,
+			)
+		}
+
+		if !strictMediaTypeParameters(mediaTypeName) {
+			return queryParameter{}, fmt.Errorf(
+				"parameter %q content at %s media type %q is malformed", name, contentPointer, mediaTypeName,
+			)
+		}
+
+		if strings.Count(parsedMediaType, "/") != 1 {
+			return queryParameter{}, fmt.Errorf(
+				"parameter %q content at %s media type %q is malformed", name, contentPointer, mediaTypeName,
+			)
+		}
+
+		if parsedMediaType != "application/json" {
+			return queryParameter{}, fmt.Errorf(
+				"parameter %q content at %s only application/json is supported, got %q",
+				name, contentPointer, mediaTypeName,
+			)
+		}
+
+		mediaTypePointer := locatedRawChild(located, rawMediaType, "content", mediaTypeName).Pointer
+
+		var mediaType map[string]json.RawMessage
+		if unmarshalErr := json.Unmarshal(rawMediaType, &mediaType); unmarshalErr != nil {
+			return queryParameter{}, fmt.Errorf(
+				"parameter %q Media Type Object at %s must be an object: %w", name, mediaTypePointer, unmarshalErr,
+			)
+		}
+
+		if mediaType == nil {
+			return queryParameter{}, fmt.Errorf(
+				"parameter %q Media Type Object at %s must be an object", name, mediaTypePointer,
+			)
+		}
+
+		rawSchema, ok := mediaType["schema"]
+		if !ok {
+			rawSchema = json.RawMessage(`{}`)
+		}
+
+		schema = locatedRawChild(located, rawSchema, "content", mediaTypeName, "schema")
 		parameter.wire = wireJSONContent
 	} else {
 		schema = locatedRawChild(located, members["schema"], "schema")
+	}
+
+	if hasContent {
+		parameter.validation, err = compiler.compile(schema)
+		if err != nil {
+			return queryParameter{}, fmt.Errorf("parameter %q schema: %w", name, err)
+		}
+
+		resolved, resolveErr := compiler.source.Resolve(schema)
+		if resolveErr != nil {
+			return queryParameter{}, fmt.Errorf("parameter %q: resolve schema at %s: %w", name, schema.Pointer, resolveErr)
+		}
+
+		directMembers, membersErr := schemaMembers(resolved)
+		if membersErr != nil {
+			return queryParameter{}, fmt.Errorf("parameter %q: %w", name, membersErr)
+		}
+
+		if raw, ok := directMembers["default"]; ok {
+			parameter.defaultValue = append(jsontext.Value(nil), raw...)
+		}
+
+		return parameter, nil
 	}
 
 	resolved, directMembers, directType, err := directSchemaType(compiler.source, schema)
@@ -315,15 +466,6 @@ func compileQueryParameter(located oas.LocatedSchema, compiler *schemaCompiler) 
 
 	if raw, ok := directMembers["default"]; ok {
 		parameter.defaultValue = append(jsontext.Value(nil), raw...)
-	}
-
-	if hasContent {
-		parameter.validation, err = compiler.compile(schema)
-		if err != nil {
-			return queryParameter{}, fmt.Errorf("parameter %q schema: %w", name, err)
-		}
-
-		return parameter, nil
 	}
 
 	style := "form"
