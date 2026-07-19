@@ -71,18 +71,24 @@ func validateCreateThing(body []byte) error {
 In-memory test-source generation is a separate alternative:
 
 ```go
+package example
+
 import (
 	"github.com/djosh34/klopt/pkg/generate"
 	"github.com/djosh34/klopt/pkg/validation"
 )
 
-files, err := generate.GenerateInMemory(
-	"generated",
-	spec,
-	validation.PatternOptions(),
-)
-if err != nil {
-	return err
+func generateValidationSources(spec []byte) (map[string][]byte, error) {
+	files, err := generate.GenerateInMemory(
+		"generated",
+		spec,
+		validation.PatternOptions(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }
 ```
 

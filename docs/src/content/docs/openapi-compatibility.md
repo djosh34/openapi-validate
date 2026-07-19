@@ -48,7 +48,7 @@ Klopt implements a request-focused subset of OpenAPI. This page describes observ
 
 | Support | Boundary | Canonical detail |
 |---|---|---|
-| Default mode | Closed portable ECMAScript 5.1 subset with search semantics and supported leading lookaheads. | Pattern source is capped at 64 KiB; default-only limits are 100 nesting levels, 64 leading lookaheads, and 1 MiB translated regexp per check. See [Patterns](/klopt/patterns/). |
+| Default mode | Closed portable ECMAScript 5.1 subset with search semantics and supported leading lookaheads. | Pattern source is capped at 64 KiB; default-only limits are 100 nesting levels, 10,000 AST nodes, 64 leading lookaheads, a 1,000 counted-repeat endpoint, a 1,000 cumulative nested-repeat product, and 1 MiB translated regexp per check. See [Patterns](/klopt/patterns/). |
 | `UseRE2` | Raw Go `regexp` syntax and semantics for deliberately non-portable contracts. | It bypasses the ES parser and default-only limits, not the 64 KiB source cap. |
 | Generated values | Production matching and generated construction are distinct. Generated request-body strings are ASCII-only and formats are opaque construction constraints. | A runtime-valid pattern, unusable evidence, empty language, or constructor budget can fail later in generated tests. |
 

@@ -17,7 +17,7 @@ Default mode supports literals, alternation, groups, character classes, ES5.1 es
 
 Both modes cap each pattern source at 64 KiB. `UseRE2` bypasses the ECMAScript parser and its default-only limits, but it does not bypass that source cap.
 
-Default mode additionally limits nesting to 100 levels, leading lookaheads to 64, and each translated Go regexp check to 1 MiB. These bounds turn hostile or accidentally explosive patterns into parsing errors rather than unbounded work.
+Default mode additionally limits nesting to 100 levels, the syntax tree to 10,000 nodes, leading lookaheads to 64, counted-repeat endpoints to 1,000, the cumulative nested-repeat product to 1,000, and each translated Go regexp check to 1 MiB. These bounds turn hostile or accidentally explosive patterns into parsing errors rather than unbounded work.
 
 ## Generated values and trusted evidence
 
