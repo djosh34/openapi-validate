@@ -356,10 +356,10 @@ components:
     apiKey: {type: apiKey, in: query, name: api_key}
 `))
 	require.NoError(t, err)
-	actual, err := decoders["query"].Decode(&url.URL{RawQuery: `exact=2&owned=true&options%5Bfixed%5D=false&options%5Bdynamic%5D=3&free=true&api_key=secret`})
+	actual, err := decoders["query"].Decode(&url.URL{RawQuery: `exact=2&owned=true&options%5Bfixed%5D=false&options%5Bdynamic%5D=3&free=true&bracket%5Bkey%5D=value&api_key=secret`})
 	require.NoError(t, err)
 	require.JSONEq(t, `{
-      "filter":{"free":"true","api_key":"secret"},
+		"filter":{"free":"true","bracket[key]":"value","api_key":"secret"},
       "exact":2,
       "declared":{"owned":true},
       "options":{"fixed":false,"dynamic":3}

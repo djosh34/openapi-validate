@@ -429,6 +429,7 @@ func TestGeneratedRuntimeParity(t *testing.T) {
 			expected: "{\"filter\":{\"x\":[\"a\",\"b\"]}}",
 		},
 		{operationID: "dynamicForm", rawQuery: "a=1&b=true", expected: "{\"filter\":{\"a\":\"1\",\"b\":\"true\"}}"},
+		{operationID: "dynamicForm", rawQuery: "a%5Bb%5D=1", expected: "{\"filter\":{\"a[b]\":\"1\"}}"},
 		{
 			operationID: "dynamicFormNamed", rawQuery: "filter=a,1,b,true",
 			expected: "{\"filter\":{\"a\":\"1\",\"b\":\"true\"}}",

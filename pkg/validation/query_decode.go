@@ -75,7 +75,7 @@ func (decoder *QueryDecoder) Decode(input *url.URL) (json.RawMessage, error) {
 			continue
 		}
 
-		if decoder.openForm != -1 && !strings.ContainsAny(pair.name, "[]") {
+		if decoder.openForm != -1 {
 			pair.childName = pair.name
 			claimed[decoder.openForm] = append(claimed[decoder.openForm], pair)
 		}
