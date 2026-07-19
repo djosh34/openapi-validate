@@ -40,7 +40,7 @@ func useRuntime(body []byte, requestURL *url.URL) error {
 		return err
 	}
 
-	queryJSON, err := queryDecoders["createThing"].Decode(requestURL)
+	queryJSON, err := queryDecoders["listItems"].Decode(requestURL)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func useRuntime(body []byte, requestURL *url.URL) error {
 }
 ```
 
-Both maps are keyed by `operationId`. Parse once at startup, reuse the immutable compiled values, and do not mutate them. Empty body bytes mean absence; JSON `null` is present. Query decoding returns validated JSON so the caller retains control of its Go types. See [Query Decoding](/klopt/query-decoding/) for wire styles and [Patterns](/klopt/patterns/) before choosing pattern options.
+Both maps are keyed by `operationId`; this example uses the body operation `createThing` and the query operation `listItems`. Parse once at startup, reuse the immutable compiled values, and do not mutate them. Empty body bytes mean absence; JSON `null` is present. Query decoding returns validated JSON so the caller retains control of its Go types. See [Query Decoding](/klopt/query-decoding/) for wire styles and [Patterns](/klopt/patterns/) before choosing pattern options.
 
 ## In-memory source generation
 
