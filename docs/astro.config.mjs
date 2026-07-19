@@ -8,12 +8,10 @@ export default defineConfig({
     starlight({
       title: 'klopt',
       sidebar: [
-        { label: 'Getting Started', link: '/' },
+        { label: 'Getting started', link: '/' },
         { label: 'Philosophy', link: '/philosophy/' },
+        { label: 'Query decoding', link: '/query-decoding/' },
         { label: 'Architecture', link: '/architecture/' },
-        { label: 'Query Decoding', link: '/query-decoding/' },
-        { label: 'Patterns', link: '/patterns/' },
-        { label: 'OpenAPI Compatibility', link: '/openapi-compatibility/' },
         { label: 'Roadmap', link: '/roadmap/' },
       ],
     }),
