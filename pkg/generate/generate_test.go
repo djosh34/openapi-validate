@@ -2,18 +2,138 @@ package generate
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"go/scanner"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/djosh34/klopt/pkg/internal/oas"
 	"github.com/djosh34/klopt/pkg/patternvalidator"
 	"github.com/djosh34/klopt/pkg/validation"
 
 	"github.com/stretchr/testify/require"
 )
+
+// TestGenerateInMemoryReturnsBothSources verifies the public non-filesystem generation boundary.
+func TestGenerateInMemoryReturnsBothSources(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		spec          []byte
+		patternOption patternvalidator.Option
+	}{
+		{
+			name: "request body",
+			spec: []byte(`openapi: 3.0.3
+paths:
+  /request:
+    post:
+      operationId: request
+      requestBody:
+        content:
+          application/json:
+            schema: {type: string, pattern: '(?i)a'}
+`),
+			patternOption: validation.PatternOptions(patternvalidator.UseRE2),
+		},
+		{
+			name: "no validations",
+			spec: []byte(`openapi: 3.0.3
+paths:
+  /bodyless:
+    get: {}
+`),
+			patternOption: validation.PatternOptions(),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			files, err := GenerateInMemory("generated", test.spec, test.patternOption)
+			require.NoError(t, err)
+			require.Len(t, files, 2)
+			require.NotEmpty(t, files["validate.go"])
+			require.NotEmpty(t, files["validate_test.go"])
+		})
+	}
+}
+
+// TestGenerateInMemoryPreservesParseAndRenderErrors verifies failures remain inspectable at their source.
+func TestGenerateInMemoryPreservesParseAndRenderErrors(t *testing.T) {
+	t.Parallel()
+
+	t.Run("parse", func(t *testing.T) {
+		t.Parallel()
+
+		files, err := GenerateInMemory("generated", []byte(`openapi: 3.0.3
+paths:
+  /request:
+    post:
+      operationId: request
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Missing'}
+`), validation.PatternOptions())
+		require.Nil(t, files)
+
+		var referenceError *oas.ReferenceError
+		require.True(t, errors.As(err, &referenceError))
+	})
+
+	t.Run("render", func(t *testing.T) {
+		t.Parallel()
+
+		files, err := GenerateInMemory("not valid", []byte(`openapi: 3.0.3
+paths: {}
+`), validation.PatternOptions())
+		require.Nil(t, files)
+
+		var syntaxErrors scanner.ErrorList
+		require.True(t, errors.As(err, &syntaxErrors))
+	})
+}
+
+// TestGenerateInMemoryLeavesSuiteConstructionToGoTest verifies generation does not preflight generated tests.
+func TestGenerateInMemoryLeavesSuiteConstructionToGoTest(t *testing.T) {
+	t.Parallel()
+
+	files, err := GenerateInMemory("generatedconstruction", []byte(`openapi: 3.0.3
+paths:
+  /request:
+    post:
+      operationId: request
+      requestBody:
+        content:
+          application/json:
+            schema: {type: string, pattern: '(?i)a'}
+`), validation.PatternOptions(patternvalidator.UseRE2))
+	require.NoError(t, err)
+
+	repo := repoRoot(t)
+	output, err := os.MkdirTemp(filepath.Join(repo, "pkg"), "generate-construction-boundary-")
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, os.RemoveAll(output)) })
+
+	for name, source := range files {
+		require.NoError(t, os.WriteFile(filepath.Join(output, name), source, 0o644))
+	}
+
+	command := exec.CommandContext(
+		t.Context(), "go", "test", "./pkg/"+filepath.Base(output), "-run", "^TestValidations$",
+	)
+	command.Dir = repo
+	result, err := command.CombinedOutput()
+	require.Error(t, err, string(result))
+	require.Contains(t, string(result), "raw Go regexp generator does not support case-folding flags")
+}
 
 // TestGenerateWritesCompiledValidation covers every exported validation field and generated compilation.
 func TestGenerateWritesCompiledValidation(t *testing.T) {
@@ -605,7 +725,13 @@ paths:
           application/json:
             schema: {type: string}
 `, operationID)
-			err := Generate(output, "example", spec, validation.PatternOptions())
+			files, err := GenerateInMemory("example", spec, validation.PatternOptions())
+			require.Nil(t, files)
+			require.ErrorIs(t, err, ErrUnsafeOperationID)
+			require.ErrorContains(t, err, fmt.Sprintf("operation ID %q", operationID))
+
+			err = Generate(output, "example", spec, validation.PatternOptions())
+			require.ErrorIs(t, err, ErrUnsafeOperationID)
 			require.ErrorContains(t, err, fmt.Sprintf("operation ID %q", operationID))
 
 			_, statErr := os.Stat(output)
@@ -735,7 +861,7 @@ func TestGenerateRejectsNilPatternOptionBeforeWriting(t *testing.T) {
 
 	for _, schema := range []string{"{type: string, pattern: a}", "{type: string}"} {
 		output := filepath.Join(t.TempDir(), "output")
-		err := Generate(output, "example", []byte(`openapi: 3.0.3
+		spec := []byte(`openapi: 3.0.3
 info: {title: nil option, version: "1"}
 paths:
   /request:
@@ -744,9 +870,15 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: `+schema+`
-`), nil)
-		require.ErrorContains(t, err, "nil pattern option")
+            schema: ` + schema + `
+`)
+
+		files, err := GenerateInMemory("example", spec, nil)
+		require.Nil(t, files)
+		require.ErrorIs(t, err, ErrNilPatternOption)
+
+		err = Generate(output, "example", spec, nil)
+		require.ErrorIs(t, err, ErrNilPatternOption)
 
 		_, statErr := os.Stat(output)
 		require.ErrorIs(t, statErr, os.ErrNotExist)
@@ -795,6 +927,43 @@ func TestGenerateStopsBeforeWritingOnParseError(t *testing.T) {
 
 	_, statErr := os.Stat(output)
 	require.ErrorIs(t, statErr, os.ErrNotExist)
+}
+
+// TestGenerateReturnsFilesystemErrors verifies direct directory and file publication failures remain inspectable.
+func TestGenerateReturnsFilesystemErrors(t *testing.T) {
+	t.Parallel()
+
+	spec := []byte(`openapi: 3.0.3
+paths: {}
+`)
+
+	t.Run("create directory", func(t *testing.T) {
+		t.Parallel()
+
+		blocker := filepath.Join(t.TempDir(), "file")
+		require.NoError(t, os.WriteFile(blocker, []byte("not a directory"), 0o644))
+
+		err := Generate(filepath.Join(blocker, "output"), "generated", spec, validation.PatternOptions())
+
+		var pathError *os.PathError
+		require.True(t, errors.As(err, &pathError))
+		require.Equal(t, "mkdir", pathError.Op)
+	})
+
+	t.Run("write file", func(t *testing.T) {
+		t.Parallel()
+
+		output := t.TempDir()
+		for _, name := range []string{"validate.go", "validate_test.go"} {
+			require.NoError(t, os.Mkdir(filepath.Join(output, name), 0o755))
+		}
+
+		err := Generate(output, "generated", spec, validation.PatternOptions())
+
+		var pathError *os.PathError
+		require.True(t, errors.As(err, &pathError))
+		require.Equal(t, "open", pathError.Op)
+	})
 }
 
 // TestGenerateExampleMatchesFixture checks the checked-in generated example.

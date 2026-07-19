@@ -18,6 +18,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestCheckJSONRequestBodiesSkipsQueryOnlyOperations verifies non-body operations need no generated suite.
+func TestCheckJSONRequestBodiesSkipsQueryOnlyOperations(t *testing.T) {
+	t.Parallel()
+
+	CheckJSONRequestBodies(t, []byte(`openapi: 3.0.3
+paths:
+  /items:
+    get:
+      operationId: listItems
+      parameters:
+        - {name: limit, in: query, schema: {type: integer}}
+`), func(operationID string, body []byte) error {
+		t.Fatalf("validator called for query-only operation %q with %s", operationID, body)
+
+		return nil
+	}, validation.PatternOptions(), DefaultOption)
+}
+
 // TestCheckJSONRequestBodiesRunsCompiledPartitionsAsValidJSON verifies compiled partitions and operation routing.
 func TestCheckJSONRequestBodiesRunsCompiledPartitionsAsValidJSON(t *testing.T) {
 	t.Parallel()

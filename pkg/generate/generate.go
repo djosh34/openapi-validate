@@ -19,6 +19,13 @@ const (
 	fileMode = 0o644
 )
 
+var (
+	// ErrNilPatternOption reports a nil pattern option.
+	ErrNilPatternOption = errors.New("generate: nil pattern option")
+	// ErrUnsafeOperationID reports an operation ID that cannot name generated Go state.
+	ErrUnsafeOperationID = errors.New("generate: unsafe operation ID")
+)
+
 // Generate parses one OpenAPI document and writes validate.go and validate_test.go.
 func Generate(
 	dir string,
@@ -26,29 +33,7 @@ func Generate(
 	openAPI []byte,
 	patternOption patternvalidator.Option,
 ) error {
-	if patternOption == nil {
-		return errors.New("generate: nil pattern option")
-	}
-
-	settings := patternSettings{}
-	captureSettings := patternvalidator.Option(func(compiled *patternvalidator.PatternValidation) {
-		patternOption(compiled)
-		settings.RejectNonASCII = compiled.RejectsNonASCII()
-		settings.UseRE2 = compiled.UsesRE2()
-	})
-
-	parsed, queryDecoders, err := validation.Parse(openAPI, captureSettings)
-	if err != nil {
-		return err
-	}
-
-	for operationID := range parsed {
-		if !isSafeOperationIdentifier(operationID) {
-			return fmt.Errorf("operation ID %q cannot be used as a generated Go identifier", operationID)
-		}
-	}
-
-	files, err := render(packageName, openAPI, parsed, queryDecoders, settings)
+	files, err := GenerateInMemory(packageName, openAPI, patternOption)
 	if err != nil {
 		return err
 	}
@@ -64,6 +49,48 @@ func Generate(
 	}
 
 	return nil
+}
+
+// GenerateInMemory parses one OpenAPI document and returns validate.go and validate_test.go.
+//
+//nolint:revive // GenerateInMemory is the required public API name.
+func GenerateInMemory(
+	packageName string,
+	openAPI []byte,
+	patternOption patternvalidator.Option,
+) (map[string][]byte, error) {
+	if patternOption == nil {
+		return nil, ErrNilPatternOption
+	}
+
+	settings := patternSettings{}
+	captureSettings := patternvalidator.Option(func(compiled *patternvalidator.PatternValidation) {
+		patternOption(compiled)
+		settings.RejectNonASCII = compiled.RejectsNonASCII()
+		settings.UseRE2 = compiled.UsesRE2()
+	})
+
+	parsed, queryDecoders, err := validation.Parse(openAPI, captureSettings)
+	if err != nil {
+		return nil, err
+	}
+
+	for operationID := range parsed {
+		if !isSafeOperationIdentifier(operationID) {
+			return nil, fmt.Errorf(
+				"%w: operation ID %q cannot be used as a generated Go identifier",
+				ErrUnsafeOperationID,
+				operationID,
+			)
+		}
+	}
+
+	files, err := render(packageName, openAPI, parsed, queryDecoders, settings)
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }
 
 // isSafeOperationIdentifier reports whether an operation ID can name a generated package variable.
