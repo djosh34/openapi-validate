@@ -303,6 +303,8 @@ func TestQueryDecoderDeepObjectDynamicWireContract(t *testing.T) {
 
 	for _, rawQuery := range []string{
 		`filter[a]=x`,
+		`unrelated[raw]=x`,
+		`filter%5D=x`,
 		`filter%5Ba%5D=x&filter%5Ba%5D=y`,
 		`filter%5Ba%5Bb%5D%5D=x`,
 		`filter%5Ba%5D%5Bb%5D=x`,
@@ -364,7 +366,7 @@ components:
     }`, string(actual))
 
 	_, err = decoders["query"].Decode(&url.URL{RawQuery: `options[malformed]=3`})
-	require.ErrorContains(t, err, "deepObject")
+	require.ErrorContains(t, err, "canonical")
 	_, err = decoders["query"].Decode(&url.URL{RawQuery: `closed%5Bunknown%5D=3`})
 	require.ErrorContains(t, err, "malformed or unknown deepObject child")
 }
@@ -513,7 +515,7 @@ func TestQueryDecoderNamesAreCaseSensitive(t *testing.T) {
 	require.JSONEq(t, `{}`, string(actual))
 
 	deep := parseQueryDecoder(t, deepParameter(`role: {type: string}`))
-	actual, err = deep.Decode(&url.URL{RawQuery: `Filter[role]=admin`})
+	actual, err = deep.Decode(&url.URL{RawQuery: `Filter%5Brole%5D=admin`})
 	require.NoError(t, err)
 	require.JSONEq(t, `{}`, string(actual))
 
@@ -736,9 +738,8 @@ func TestQueryCompileRejectionsAndLiteralBracketOwnership(t *testing.T) {
 	require.ErrorContains(t, err, "canonical")
 
 	normal := parseQueryDecoder(t, `{name: tags, in: query, schema: {type: string}}`)
-	actual, err = normal.Decode(&url.URL{RawQuery: `tags[key]=ignored`})
-	require.NoError(t, err)
-	require.JSONEq(t, `{}`, string(actual))
+	_, err = normal.Decode(&url.URL{RawQuery: `tags[key]=ignored`})
+	require.ErrorContains(t, err, "canonical")
 }
 
 func TestQueryDecoderConstraintsDefaultsAndConcurrency(t *testing.T) {

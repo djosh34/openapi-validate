@@ -37,7 +37,16 @@ func (decoder *QueryDecoder) Decode(input *url.URL) (json.RawMessage, error) {
 	}
 
 	claimed := make([][]rawPair, len(decoder.parameters))
+
 	for _, pair := range pairs {
+		if strings.ContainsAny(pair.rawName, "[]") {
+			return nil, fmt.Errorf(
+				"operationId %q claim query name %q: brackets must use canonical %%5B and %%5D encoding",
+				decoder.operationID,
+				pair.name,
+			)
+		}
+
 		claim, ok := decoder.owners[pair.name]
 		if ok {
 			if strings.ContainsAny(pair.name, "[]") && !canonicalBracketEncoding(pair) {
@@ -169,8 +178,9 @@ func lexRawQuery(rawQuery string) ([]rawPair, error) {
 func (decoder *QueryDecoder) claimDeepName(pair rawPair) (int, string, error) {
 	for index := range decoder.parameters {
 		parameter := &decoder.parameters[index]
-		if parameter.wire != wireDeepObject ||
-			pair.name != parameter.name && !strings.HasPrefix(pair.name, parameter.name+"[") {
+		if parameter.wire != wireDeepObject || pair.name != parameter.name &&
+			!strings.HasPrefix(pair.name, parameter.name+"[") &&
+			!strings.HasPrefix(pair.name, parameter.name+"]") {
 			continue
 		}
 

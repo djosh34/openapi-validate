@@ -442,6 +442,8 @@ func TestGeneratedRuntimeParity(t *testing.T) {
 		{operationID: "dynamicDeep", rawQuery: "filter%5Bvalue%5D=1", errorContains: "minimum"},
 		{operationID: "dynamicDeep", rawQuery: "filter%5Bvalue%5D=2&filter%5Bvalue%5D=3", errorContains: "duplicate"},
 		{operationID: "dynamicDeep", rawQuery: "filter[value]=2", errorContains: "canonical"},
+		{operationID: "dynamicDeep", rawQuery: "unrelated[raw]=2", errorContains: "canonical"},
+		{operationID: "dynamicDeep", rawQuery: "filter%5D=2", errorContains: "malformed"},
 		{operationID: "dynamicEmpty", rawQuery: "", expected: "{}"},
 		{operationID: "dynamicEmpty", rawQuery: "value=x", errorContains: "validate query"},
 		{operationID: "jsonContent", rawQuery: "q=%7B%22x%22%3Atrue%7D", expected: "{\"q\":{\"x\":true}}"},
