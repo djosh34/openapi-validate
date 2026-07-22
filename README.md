@@ -134,7 +134,9 @@ if err != nil {
 
 The returned map contains all needed generated files. The source is caller-owned, generated maps are package-private, and generated tests cover JSON request bodies only.
 
-Klopt undergoes extensive fuzz testing using its own JSON test generator.
+## Test generation
+
+Klopt undergoes extensive fuzz testing using its own [JSON test generator](https://djosh34.github.io/klopt/architecture/#test-generation).
 
 # Contributing
 
