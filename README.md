@@ -138,6 +138,13 @@ The returned map contains all needed generated files. The source is caller-owned
 
 Klopt undergoes extensive fuzz testing using its own [JSON test generator](https://djosh34.github.io/klopt/architecture/#test-generation).
 
+## Roadmap
+
+- [ ] Add proper format support for Int32 (`int32`), Int64 (`int64`), `float`, `double`, UUID, CIDR, IPv4, and possibly more, including the required test-generation additions.
+- [ ] Add path decoding analogous to query decoding for both the Go standard library (`net/http`) and Gin.
+- [ ] Continue improving test generation.
+- [ ] Broaden OpenAPI support with `anyOf` and perhaps `oneOf` and `not`.
+
 # Contributing
 
 klopt is currently a greenfield project, and contributions are not yet accepted. Creating issues is welcome.
