@@ -3,6 +3,10 @@ title: Getting started
 description: Validate OpenAPI 3.0.3 JSON request bodies and decode query parameters into JSON.
 ---
 
+:::caution[Work in progress]
+These docs are a work in progress and may not yet be complete or fully up to date with the code.
+:::
+
 `pkg/validation` compiles an OpenAPI 3.0.3 document once. Use the result to validate raw JSON request bodies and decode query parameters into validated JSON.
 
 ## Install
